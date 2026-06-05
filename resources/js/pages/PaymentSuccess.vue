@@ -1,0 +1,183 @@
+<template>
+  <div class="payment-state payment-state--success">
+    <section class="payment-state__hero">
+      <v-container class="py-16">
+        <v-row justify="center">
+          <v-col cols="12" lg="9">
+            <div class="payment-state__shell">
+              <span class="payment-state__eyebrow">Pago confirmado</span>
+              <div class="payment-state__seal">OK</div>
+              <h1>Tu joya ya aparto su lugar contigo.</h1>
+              <p v-if="paymentProvider === 'paypal'">
+                PayPal confirmó tu compra y tu orden quedó registrada correctamente.
+                Preparamos el siguiente paso para que puedas volver al catálogo o seguir explorando.
+              </p>
+              <p v-else>
+                Mercado Pago confirmó tu compra y tu orden quedó registrada correctamente.
+                Preparamos el siguiente paso para que puedas volver al catálogo o seguir explorando.
+              </p>
+
+              <div class="payment-state__actions">
+                <v-btn class="payment-state__btn payment-state__btn--solid" :to="{ name: 'ProductList' }" elevation="0">
+                  Seguir comprando
+                </v-btn>
+                <v-btn class="payment-state__btn" variant="outlined" :to="{ name: 'Home' }">
+                  Ir al inicio
+                </v-btn>
+              </div>
+            </div>
+          </v-col>
+        </v-row>
+      </v-container>
+    </section>
+  </div>
+</template>
+
+<script setup>
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import { useCart } from '../composables/useCart';
+
+const route = useRoute();
+const { clearCart } = useCart();
+const lastMercadoPagoOrderKey = 'last_mercado_pago_order_id';
+const lastPayPalOrderKey = 'last_paypal_order_id';
+const paypalOrderIdKey = 'paypal_order_id';
+const paymentProvider = ref('mercadopago'); // Por defecto
+
+onMounted(async () => {
+  // Verificar si es un retorno de PayPal
+  const orderId = route.query.order_id;
+  const paypalOrderId = sessionStorage.getItem(paypalOrderIdKey);
+  const lastPayPalOrder = sessionStorage.getItem(lastPayPalOrderKey);
+
+  if (orderId && paypalOrderId && lastPayPalOrder) {
+    paymentProvider.value = 'paypal';
+    
+    // Capturar el pago de PayPal
+    try {
+      const response = await fetch('/api/paypal/capturar-pago', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          order_id: lastPayPalOrder,
+          paypal_order_id: paypalOrderId
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || result.success === false) {
+        console.error('Error al capturar pago de PayPal:', result.message);
+        // Aquí podrías redirigir a una página de error
+      }
+    } catch (error) {
+      console.error('Error al capturar pago de PayPal:', error);
+    } finally {
+      sessionStorage.removeItem(lastPayPalOrderKey);
+      sessionStorage.removeItem(paypalOrderIdKey);
+    }
+  } else {
+    paymentProvider.value = 'mercadopago';
+    sessionStorage.removeItem(lastMercadoPagoOrderKey);
+  }
+
+  clearCart();
+});
+</script>
+
+<style scoped>
+.payment-state {
+  margin-top: 70px;
+  min-height: calc(100vh - 70px);
+  background:
+    radial-gradient(circle at top left, rgba(216, 196, 173, 0.46), transparent 34%),
+    linear-gradient(180deg, #fbf7f1 0%, #f3ece2 100%);
+  color: #5f5244;
+}
+
+.payment-state__hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.payment-state__shell {
+  position: relative;
+  padding: 3rem;
+  border-radius: 32px;
+  background: rgba(255, 251, 246, 0.88);
+  border: 1px solid rgba(184, 151, 120, 0.2);
+  box-shadow: 0 24px 60px rgba(111, 90, 70, 0.1);
+  text-align: center;
+}
+
+.payment-state__eyebrow {
+  display: inline-flex;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: rgba(134, 111, 86, 0.1);
+  color: #8c745f;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.74rem;
+}
+
+.payment-state__seal {
+  width: 92px;
+  height: 92px;
+  margin: 1.4rem auto 1.2rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 30% 30%, #f3e5cf, #b89778 68%, #8b6e56 100%);
+  color: #fff9f2;
+  font-size: 1.05rem;
+  letter-spacing: 0.18em;
+}
+
+.payment-state h1 {
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  color: #6b5b47;
+  margin-bottom: 1rem;
+}
+
+.payment-state p {
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.9;
+  color: #7a6856;
+}
+
+.payment-state__actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.payment-state__btn {
+  min-width: 210px;
+  border-radius: 999px !important;
+  letter-spacing: 0.08em;
+}
+
+.payment-state__btn--solid {
+  background: linear-gradient(135deg, #8c745f, #a88d74) !important;
+  color: #fffdf9 !important;
+}
+
+@media (max-width: 600px) {
+  .payment-state {
+    margin-top: 84px;
+    min-height: calc(100vh - 84px);
+  }
+
+  .payment-state__shell {
+    padding: 2rem 1.3rem;
+  }
+}
+</style>

@@ -1,0 +1,52 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            $table->string('codigo')->unique();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->text('material')->nullable();
+            $table->text('peso')->nullable();
+            $table->decimal('price', 10, 2);
+            $table->integer('stock')->default(0);
+            $table->enum('collection', [
+                'Coleccion Cosmologia Maya',
+                'Coleccion Maya Contemporanea'
+            ])->default('Coleccion Cosmologia Maya');
+
+            $table->enum('category', [
+                'Charm',
+                'Collar',
+                'Pulsera',
+                'Arete',
+                'Arracada',
+                'Dije',
+                'Glifo',
+                'Mandala',
+
+            ])->default('Charm');
+            $table->text('dimensiones')->nullable();
+            $table->string('image')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('products');
+    }
+};

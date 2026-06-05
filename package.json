@@ -1,0 +1,35 @@
+{
+    "$schema": "https://www.schemastore.org/package.json",
+    "name": "ecommerce-starter-template",
+    "version": "1.0.0",
+    "description": "E-commerce starter template with Laravel, Filament, and Vue.js",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite"
+    },
+    "devDependencies": {
+        "@tailwindcss/postcss": "^4.1.18",
+        "@tailwindcss/vite": "^4.0.0",
+        "@vitejs/plugin-vue": "^6.0.3",
+        "autoprefixer": "^10.4.23",
+        "axios": "^1.17.0",
+        "concurrently": "^9.0.1",
+        "laravel-vite-plugin": "^2.0.0",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^4.1.18",
+        "vite": "^7.0.7"
+    },
+    "dependencies": {
+        "@fancyapps/ui": "^6.1.13",
+        "@mdi/font": "^7.4.47",
+        "konva": "^10.3.0",
+        "pinia": "^3.0.4",
+        "vue": "^3.5.26",
+        "vue-konva": "^3.4.0",
+        "vue-loader": "^17.4.2",
+        "vue-router": "^4.6.4",
+        "vuetify": "^3.11.6"
+    }
+}

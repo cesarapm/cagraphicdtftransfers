@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://izaguirrequ.com/sitemap.xml
+
+# Bloquear áreas administrativas
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /storage/
+
+# Permitir recursos públicos
+Allow: /css/
+Allow: /js/
+Allow: /images/
+Allow: /fonts/
