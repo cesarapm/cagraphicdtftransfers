@@ -36,25 +36,109 @@ class GangSheetController extends Controller
     }
 
     /**
-     * Save a new gang sheet
+     * Save a new gang sheet (can be anonymous or authenticated)
      */
     public function store(Request $request)
     {
+        \Log::info("=== STORE REQUEST START ===");
+        \Log::info("Has image_files: " . ($request->hasFile('image_files') ? 'YES' : 'NO'));
+        if ($request->hasFile('image_files')) {
+            \Log::info("Number of image_files: " . count($request->file('image_files')));
+        }
+        
         $validated = $request->validate([
             'name' => 'nullable|string|max:255',
             'width' => 'required|numeric|min:1',
             'height' => 'required|numeric|min:1',
-            'images' => 'required|array|min:1',
+            'unit' => 'nullable|in:feet,inches',
+            'images' => 'required|string', // JSON string of images
+            'image_files' => 'nullable|array', // Image files from multipart
+            'image_files.*' => 'nullable|file|image|max:50000', // Each file max 50MB
             'preview' => 'nullable|string', // Base64 preview
             'order_id' => 'nullable|exists:orders,id',
             'notes' => 'nullable|string',
         ]);
 
+        // Decode images from JSON string
+        $imagesData = json_decode($validated['images'], true);
+        \Log::info("Decoded images count: " . count($imagesData ?? []));
+        
+        if (!is_array($imagesData) || empty($imagesData)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid images data. Must be non-empty array.',
+            ], 422);
+        }
+
+        // Process uploaded image files and store them
+        if ($request->hasFile('image_files')) {
+            $imageFiles = $request->file('image_files');
+            $storagePaths = [];
+            $basePath = 'gang-sheets/' . uniqid() . '/'; // Single directory for all images
+            \Log::info("Created basePath: {$basePath}");
+            
+            foreach ($imageFiles as $index => $file) {
+                if ($file && $file->isValid()) {
+                    try {
+                        // Generate unique filename
+                        $filename = 'image_' . uniqid() . '_' . $index . '.' . $file->getClientOriginalExtension();
+                        
+                        // Store file
+                        $storagePath = $file->storeAs($basePath, $filename, 'public');
+                        $storagePaths[$index] = $storagePath;
+                        
+                        // Log storage
+                        \Log::info("Stored image[{$index}]: {$storagePath} (basePath={$basePath})");
+                    } catch (\Exception $e) {
+                        \Log::warning("Failed to store image file at index {$index}: " . $e->getMessage());
+                    }
+                }
+            }
+            
+            // Add storage paths to images data instead of base64
+            foreach ($imagesData as $index => &$imageData) {
+                if (isset($storagePaths[$index])) {
+                    // Store both path and remove any base64 data
+                    $imageData['path'] = $storagePaths[$index];
+                    unset($imageData['base64']);
+                    \Log::info("Assigned path to image[{$index}]: " . $storagePaths[$index]);
+                }
+            }
+        }
+        
+        $validated['images'] = $imagesData;
+
         try {
-            // Save preview image if provided
+            // Get unit early for consistent use throughout
+            $unit = $validated['unit'] ?? 'inches';
+            
+            // Save preview image - with size validation and compression
             $previewPath = null;
             if (!empty($validated['preview'])) {
-                $previewPath = $this->saveBase64Image($validated['preview'], 'previews');
+                // Extract base64 data
+                $imageData = $validated['preview'];
+                if (strpos($imageData, 'data:image') === 0) {
+                    $imageData = substr($imageData, strpos($imageData, ',') + 1);
+                }
+                
+                // Check size before decoding (base64 is ~33% larger than binary)
+                $binarySize = strlen(base64_decode($imageData, true));
+                
+                // Different limits for feet (larger) vs inches (smaller)
+                $maxSize = $unit === 'feet' ? 400000000 : 40000000; // 400MB for feet, 40MB for inches
+                
+                if ($binarySize > 0 && $binarySize < $maxSize) {
+                    $imageContent = base64_decode($imageData);
+                    if ($imageContent !== false) {
+                        // Determine extension based on unit (PNG for feet, JPEG for inches)
+                        $extension = $unit === 'feet' ? 'png' : 'jpg';
+                        
+                        $filename = 'preview_' . uniqid() . '.' . $extension;
+                        $path = 'previews/' . $filename;
+                        Storage::disk('public')->put($path, $imageContent);
+                        $previewPath = $path;
+                    }
+                }
             }
 
             // Calculate total area
@@ -63,13 +147,18 @@ class GangSheetController extends Controller
                 $totalArea += ($image['width'] ?? 0) * ($image['height'] ?? 0);
             }
 
+            // DPI: 150 DPI for professional DTF printing quality
+            // 150 DPI = 1.8 GB memory for 22x10ft sheet (manageable)
+            $dpi = 150;
+
             $gangSheet = GangSheet::create([
-                'customer_id' => auth()->id(),
+                'customer_id' => auth()->id() ?? null, // Allow anonymous saves
                 'order_id' => $validated['order_id'] ?? null,
                 'name' => $validated['name'] ?? 'Gang Sheet ' . now()->format('Y-m-d H:i'),
                 'width' => $validated['width'],
                 'height' => $validated['height'],
-                'dpi' => 300, // Default to 300 DPI for final export
+                'unit' => $unit,
+                'dpi' => $dpi, // Fixed 100 DPI
                 'images_data' => $validated['images'],
                 'preview_path' => $previewPath,
                 'total_area' => $totalArea,
@@ -244,32 +333,299 @@ class GangSheetController extends Controller
     }
 
     /**
-     * Generate high-resolution image (placeholder - needs Imagick implementation)
+     * Testing endpoint - Generate image without payment
+     * GET /api/gang-sheets/{id}/test-generate
      */
-    private function generateHighResImage(GangSheet $gangSheet)
+    public function testGenerateImage($id)
     {
-        // TODO: Implement with Imagick for proper 300 DPI output
-        // For now, this is a placeholder
-        
-        $dpi = 300;
-        $width = $gangSheet->width * $dpi;
-        $height = $gangSheet->height * $dpi;
-        
-        // This is a simplified version - in production, you'd use Imagick
-        // to properly composite images at 300 DPI with transparency
-        
-        $filename = 'final-' . Str::random(40) . '.png';
-        $path = 'gang-sheets/' . $filename;
-        
-        // Placeholder: Return path for now
-        // In production, implement proper image generation here
-        
-        return $path;
+        \Log::info("=== TEST GENERATE IMAGE START (ID: {$id}) ===");
+        $gangSheet = GangSheet::findOrFail($id);
+        \Log::info("Found gang sheet, images_data: " . json_encode($gangSheet->images_data));
+
+        try {
+            $gangSheet->update(['status' => 'processing']);
+
+            $finalPath = $this->generateHighResImage($gangSheet);
+
+            $gangSheet->update([
+                'final_path' => $finalPath,
+                'status' => 'completed',
+            ]);
+
+            // Retornar información del archivo generado
+            $filePath = Storage::disk('public')->path($finalPath);
+            $fileSize = filesize($filePath);
+
+            \Log::info("=== TEST GENERATE IMAGE SUCCESS ===");
+            \Log::info("Final path: {$finalPath}, Size: {$fileSize} bytes");
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Image generated successfully',
+                'download_url' => Storage::url($finalPath),
+                'file_path' => $finalPath,
+                'file_size_mb' => round($fileSize / 1024 / 1024, 2),
+                'download_link' => "/api/gang-sheets/{$id}/download",
+            ]);
+
+        } catch (\Exception $e) {
+            $gangSheet->update(['status' => 'failed']);
+            \Log::error("=== TEST GENERATE IMAGE FAILED ===");
+            \Log::error("Error: " . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error generating image: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
-     * Upload and process image for gang sheet
+     * Download final gang sheet image
+     * GET /api/gang-sheets/{id}/download
      */
+    public function downloadFinal($id)
+    {
+        \Log::info("=== DOWNLOAD FINAL START (ID: {$id}) ===");
+        
+        $gangSheet = GangSheet::findOrFail($id);
+        \Log::info("Gang sheet found. final_path: " . ($gangSheet->final_path ?? 'NULL'));
+
+        if (!$gangSheet->final_path || !Storage::disk('public')->exists($gangSheet->final_path)) {
+            \Log::error("Final path does not exist: " . ($gangSheet->final_path ?? 'NULL'));
+            return response()->json(['error' => 'Image not found'], 404);
+        }
+
+        $filePath = Storage::disk('public')->path($gangSheet->final_path);
+        $fileSize = filesize($filePath);
+        
+        \Log::info("File path: {$filePath}");
+        \Log::info("File size: {$fileSize} bytes");
+        \Log::info("File exists: " . (file_exists($filePath) ? 'YES' : 'NO'));
+        \Log::info("File is readable: " . (is_readable($filePath) ? 'YES' : 'NO'));
+        
+        return response()->download(
+            $filePath,
+            "gang-sheet-{$gangSheet->width}x{$gangSheet->height}-{$gangSheet->unit}.png",
+            ['Content-Type' => 'image/png']
+        );
+    }
+
+    /**
+     * Generate high-resolution image for DTF printing
+     * Uses Imagick for professional quality output
+     */
+    private function generateHighResImage(GangSheet $gangSheet)
+    {
+        $width = $gangSheet->width;
+        $height = $gangSheet->height;
+        $unit = $gangSheet->unit;
+        $dpi = 120; // 120 DPI - optimal balance: professional quality without exceeding memory limits (INT_MAX 2.1GB)
+        
+        // Convert dimensions to pixels at 120 DPI
+        if ($unit === 'feet') {
+            // Convert feet to inches first, then to pixels
+            $widthInches = $width * 12;
+            $heightInches = $height * 12;
+        } else {
+            $widthInches = $width;
+            $heightInches = $height;
+        }
+        
+        $widthPixels = ceil($widthInches * $dpi);
+        $heightPixels = ceil($heightInches * $dpi);
+        
+        try {
+            // Use GD (compatible with all PHP installations)
+            // Imagick support can be added later if needed
+            return $this->generateWithGD($gangSheet, $widthPixels, $heightPixels, $dpi);
+        } catch (\Exception $e) {
+            \Log::error('Error generating high-res image: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Generate image using GD (primary method)
+     */
+    private function generateWithGD(GangSheet $gangSheet, int $widthPixels, int $heightPixels, int $dpi)
+    {
+        \Log::info("=== GENERATE WITH GD START ===");
+        \Log::info("Dimensions: {$widthPixels}x{$heightPixels}px @ {$dpi}DPI");
+        \Log::info("Gang Sheet ID: {$gangSheet->id}, Images count: " . count($gangSheet->images_data ?? []));
+        
+        // Create blank image with white background
+        $image = imagecreatetruecolor($widthPixels, $heightPixels);
+        $white = imagecolorallocate($image, 255, 255, 255);
+        imagefill($image, 0, 0, $white);
+        
+        // Process each image
+        $imagesData = $gangSheet->images_data ?? [];
+        \Log::info("Processing " . count($imagesData) . " images");
+        
+        foreach ($imagesData as $index => $imageData) {
+            \Log::info("Processing image[{$index}]: " . json_encode($imageData));
+            
+            // All dimensions from frontend are in INCHES (x, y, width, height)
+            // We need to convert to pixels at the export DPI
+            $x = $imageData['x'] ?? 0;
+            $y = $imageData['y'] ?? 0;
+            $width = $imageData['width'] ?? 0;
+            $height = $imageData['height'] ?? 0;
+            
+            // Convert from inches to pixels at export DPI
+            $scaledX = (int)($x * $dpi);
+            $scaledY = (int)($y * $dpi);
+            $scaledWidth = (int)($width * $dpi);
+            $scaledHeight = (int)($height * $dpi);
+            
+            \Log::info("Converted: x={$scaledX}, y={$scaledY}, width={$scaledWidth}, height={$scaledHeight} (from {$x}in x {$y}in x {$width}in x {$height}in)");
+            
+            $sourceImage = null;
+            
+            // Try to load from stored file path FIRST (more efficient)
+            if (!empty($imageData['path'])) {
+                \Log::info("Checking path: " . $imageData['path']);
+                if (Storage::disk('public')->exists($imageData['path'])) {
+                    try {
+                        $realPath = Storage::disk('public')->path($imageData['path']);
+                        \Log::info("Real path: {$realPath}");
+                        $sourceImage = $this->loadImageGD($realPath);
+                        \Log::info("✓ Loaded image from path: {$imageData['path']}");
+                    } catch (\Exception $e) {
+                        \Log::warning('✗ Failed to load image from path: ' . $e->getMessage());
+                    }
+                } else {
+                    \Log::warning('✗ Path does not exist: ' . $imageData['path']);
+                }
+            } else {
+                \Log::warning('✗ No path in imageData');
+            }
+            
+            // Fallback to base64 data URL if file not available
+            if (!$sourceImage && !empty($imageData['base64'])) {
+                $sourceImage = $this->loadImageFromBase64($imageData['base64']);
+                \Log::info("✓ Loaded image from base64 (fallback)");
+            }
+            
+            // Paste image if loaded successfully
+            if ($sourceImage) {
+                try {
+                    imagecopyresampled(
+                        $image,
+                        $sourceImage,
+                        $scaledX,
+                        $scaledY,
+                        0,
+                        0,
+                        $scaledWidth,
+                        $scaledHeight,
+                        imagesx($sourceImage),
+                        imagesy($sourceImage)
+                    );
+                    \Log::info("✓ Pasted image at ({$scaledX}, {$scaledY}) size {$scaledWidth}x{$scaledHeight}");
+                    imagedestroy($sourceImage);
+                } catch (\Exception $e) {
+                    \Log::warning('✗ Failed to paste image: ' . ($imageData['name'] ?? 'unknown'));
+                }
+            } else {
+                \Log::warning('✗ No source image available for: ' . ($imageData['name'] ?? 'unknown') . ' [index=' . $index . ']');
+            }
+        }
+        
+        // Save as PNG
+        $filename = 'gang-sheet-' . $gangSheet->id . '-' . time() . '.png';
+        $path = Storage::disk('public')->path('exports/' . $filename);
+        
+        // Create directory if not exists
+        if (!is_dir(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+        
+        $pngResult = imagepng($image, $path, 9); // 9 = maximum compression
+        imagedestroy($image);
+        
+        \Log::info("=== GENERATE WITH GD END ===");
+        \Log::info("PNG save result: " . ($pngResult ? 'SUCCESS' : 'FAILED'));
+        \Log::info("PNG file path: {$path}");
+        \Log::info("PNG file size: " . filesize($path) . " bytes");
+        
+        return 'exports/' . $filename;
+    }
+
+    /**
+     * Load image from base64 data URL
+     */
+    private function loadImageFromBase64(string $base64Data)
+    {
+        try {
+            // Extract base64 content from data URL
+            if (strpos($base64Data, 'data:image') === 0) {
+                $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+            }
+            
+            // Decode base64
+            $imageData = base64_decode($base64Data, true);
+            if ($imageData === false) {
+                return null;
+            }
+            
+            // Create temporary file
+            $tempFile = tempnam(sys_get_temp_dir(), 'img_');
+            file_put_contents($tempFile, $imageData);
+            
+            // Detect MIME type and load
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $tempFile);
+            finfo_close($finfo);
+            
+            $image = null;
+            switch ($mimeType) {
+                case 'image/png':
+                    $image = imagecreatefrompng($tempFile);
+                    break;
+                case 'image/jpeg':
+                    $image = imagecreatefromjpeg($tempFile);
+                    break;
+                case 'image/gif':
+                    $image = imagecreatefromgif($tempFile);
+                    break;
+                case 'image/webp':
+                    $image = imagecreatefromwebp($tempFile);
+                    break;
+            }
+            
+            // Clean up temp file
+            @unlink($tempFile);
+            
+            return $image;
+        } catch (\Exception $e) {
+            \Log::warning('Failed to load base64 image: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Load image using GD (supports PNG, JPG, etc)
+     */
+    private function loadImageGD(string $path)
+    {
+        $mimeType = mime_content_type($path);
+        
+        switch ($mimeType) {
+            case 'image/png':
+                return imagecreatefrompng($path);
+            case 'image/jpeg':
+                return imagecreatefromjpeg($path);
+            case 'image/gif':
+                return imagecreatefromgif($path);
+            case 'image/webp':
+                return imagecreatefromwebp($path);
+            default:
+                return null;
+        }
+    }
+
     public function uploadImage(Request $request)
     {
         $request->validate([

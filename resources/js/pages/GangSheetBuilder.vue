@@ -18,7 +18,8 @@
           How it works
         </h2>
         <ol class="list-decimal list-inside space-y-2 text-gray-700">
-          <li>Select your desired sheet size (22"×120" is most common)</li>
+          <li>Select your measurement unit (Feet or Inches)</li>
+          <li>Choose your desired sheet size from the available options</li>
           <li>Upload your design images (PNG with transparent background recommended)</li>
           <li>Drag and resize images on the canvas or use Auto Build to arrange automatically</li>
           <li>Review coverage and pricing</li>
@@ -26,35 +27,102 @@
         </ol>
       </div>
 
-      <!-- Pricing Info -->
-      <div class="grid md:grid-cols-3 gap-4 mb-8">
-        <div class="bg-white rounded-lg shadow-sm border p-4">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="font-semibold text-gray-700">22" × 120" Sheet</h3>
-            <span class="text-2xl font-bold text-green-600">$165</span>
-          </div>
-          <p class="text-sm text-gray-500">Most popular - 10 feet long</p>
-        </div>
-        
-        <div class="bg-white rounded-lg shadow-sm border p-4">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="font-semibold text-gray-700">22" × 60" Sheet</h3>
-            <span class="text-2xl font-bold text-green-600">$95</span>
-          </div>
-          <p class="text-sm text-gray-500">5 feet - good for smaller orders</p>
-        </div>
-        
-        <div class="bg-white rounded-lg shadow-sm border p-4">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="font-semibold text-gray-700">13" × 19" Sheet</h3>
-            <span class="text-2xl font-bold text-green-600">$28</span>
-          </div>
-          <p class="text-sm text-gray-500">Perfect for testing designs</p>
+      <!-- Unit Selector - Radio Buttons -->
+      <div class="mb-8">
+        <div class="flex items-center gap-8 bg-white p-6 rounded-lg border">
+          <label class="flex items-center cursor-pointer gap-3">
+            <input 
+              type="radio" 
+              v-model="activeTab" 
+              value="feet"
+              class="w-4 h-4 accent-blue-600"
+            />
+            <span class="text-lg font-medium text-gray-700">Feet (Pies)</span>
+          </label>
+          
+          <label class="flex items-center cursor-pointer gap-3">
+            <input 
+              type="radio" 
+              v-model="activeTab" 
+              value="inches"
+              class="w-4 h-4 accent-blue-600"
+            />
+            <span class="text-lg font-medium text-gray-700">Inches (Pulgadas)</span>
+          </label>
         </div>
       </div>
 
-      <!-- Editor Component -->
-      <GangSheetEditor />
+      <!-- Pricing Info - Feet -->
+      <div v-if="activeTab === 'feet'" class="grid md:grid-cols-3 gap-4 mb-8 animate-fadeIn">
+        <div class="bg-white rounded-lg shadow-sm border p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-gray-700">22' × 10' Sheet</h3>
+            <span class="text-2xl font-bold text-green-600">$165</span>
+          </div>
+          <p class="text-sm text-gray-500">Most popular size</p>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-sm border p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-gray-700">22' × 5' Sheet</h3>
+            <span class="text-2xl font-bold text-green-600">$95</span>
+          </div>
+          <p class="text-sm text-gray-500">Good for smaller orders</p>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-sm border p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-gray-700">11' × 5' Sheet</h3>
+            <span class="text-2xl font-bold text-green-600">$65</span>
+          </div>
+          <p class="text-sm text-gray-500">Compact option</p>
+        </div>
+      </div>
+
+      <!-- Pricing Info - Inches -->
+      <div v-if="activeTab === 'inches'" class="grid md:grid-cols-4 gap-4 mb-8 animate-fadeIn">
+        <div class="bg-white rounded-lg shadow-sm border p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-gray-700">22" × 120"</h3>
+            <span class="text-2xl font-bold text-green-600">$165</span>
+          </div>
+          <p class="text-sm text-gray-500">10 feet long</p>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-sm border p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-gray-700">22" × 60"</h3>
+            <span class="text-2xl font-bold text-green-600">$95</span>
+          </div>
+          <p class="text-sm text-gray-500">5 feet long</p>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-sm border p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-gray-700">13" × 19"</h3>
+            <span class="text-2xl font-bold text-green-600">$28</span>
+          </div>
+          <p class="text-sm text-gray-500">Testing designs</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-gray-700">11" × 17"</h3>
+            <span class="text-2xl font-bold text-green-600">$22</span>
+          </div>
+          <p class="text-sm text-gray-500">Small format</p>
+        </div>
+      </div>
+
+      <!-- Editor Component - Feet Tab -->
+      <div v-if="activeTab === 'feet'">
+        <GangSheetEditorFeet />
+      </div>
+
+      <!-- Editor Component - Inches Tab -->
+      <div v-if="activeTab === 'inches'">
+        <GangSheetEditorInches />
+      </div>
 
       <!-- Features -->
       <div class="mt-12 grid md:grid-cols-4 gap-6">
@@ -105,6 +173,11 @@
         
         <div class="space-y-4">
           <div>
+            <h3 class="font-semibold text-gray-800 mb-2">What's the difference between Feet and Inches?</h3>
+            <p class="text-gray-600">Both use the same printing technology. Choose based on your preferred measurement unit - Feet for larger format designs, Inches for more precise measurements.</p>
+          </div>
+          
+          <div>
             <h3 class="font-semibold text-gray-800 mb-2">What file format should I upload?</h3>
             <p class="text-gray-600">PNG files with transparent backgrounds work best. We also accept JPG, JPEG, and SVG formats.</p>
           </div>
@@ -135,12 +208,22 @@
 </template>
 
 <script>
-import GangSheetEditor from '../components/GangSheetEditor.vue';
+import { ref } from 'vue';
+import GangSheetEditorFeet from '../components/GangSheetEditorFeet.vue';
+import GangSheetEditorInches from '../components/GangSheetEditorInches.vue';
 
 export default {
   name: 'GangSheetBuilder',
   components: {
-    GangSheetEditor,
+    GangSheetEditorFeet,
+    GangSheetEditorInches,
+  },
+  setup() {
+    const activeTab = ref('inches'); // Default to Inches tab
+
+    return {
+      activeTab,
+    };
   },
 };
 </script>
@@ -150,5 +233,20 @@ export default {
   min-height: 100vh;
   background: linear-gradient(to bottom, #f9fafb, #ffffff);
   margin-top: 80px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
 }
 </style>

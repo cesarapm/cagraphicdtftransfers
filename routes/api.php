@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\OrderTrackingController;
 use App\Http\Controllers\Api\PedidoController;
 use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\PaymentMethodsController;
+use App\Http\Controllers\Api\SheetSizeController;
 use App\Http\Controllers\GangSheetController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +16,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('/products/featured', [ProductController::class, 'featured']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/products', [ProductController::class, 'index']);
+
+// Sheet Sizes
+Route::get('/sheet-sizes', [SheetSizeController::class, 'index']);
+Route::get('/sheet-sizes/{unit}', [SheetSizeController::class, 'getByUnit']);
+
+// Gang Sheets - Public endpoints
+Route::post('/gang-sheets/save', [GangSheetController::class, 'store']);
+Route::get('/gang-sheets/{id}/download', [GangSheetController::class, 'downloadFinal']); // Descarga pública (después de pagar)
+Route::get('/gang-sheets/{id}/test-generate', [GangSheetController::class, 'testGenerateImage']); // Testing sin pago
 
 // Métodos de pago
 Route::get('/payment-methods', [PaymentMethodsController::class, 'index']);
@@ -35,7 +45,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('gang-sheets')->group(function () {
         Route::get('/', [GangSheetController::class, 'index']);
         Route::get('/{id}', [GangSheetController::class, 'show']);
-        Route::post('/save', [GangSheetController::class, 'store']);
         Route::put('/{id}', [GangSheetController::class, 'update']);
         Route::delete('/{id}', [GangSheetController::class, 'destroy']);
         Route::post('/{id}/generate', [GangSheetController::class, 'generateFinal']);

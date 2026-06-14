@@ -27,9 +27,22 @@
         </select>
         
         <div v-if="selectedSize === 'custom'" class="flex gap-2">
-          <input v-model.number="customWidth" type="number" placeholder="Width (in)" class="w-24 px-3 py-2 border rounded-lg" />
+          <input 
+            v-model.number="customWidth" 
+            type="number" 
+            placeholder="Width (in)" 
+            class="w-24 px-3 py-2 border rounded-lg"
+            min="1"
+            max="1200"
+          />
           <span class="self-center">×</span>
-          <input v-model.number="customHeight" type="number" placeholder="Height (in)" class="w-24 px-3 py-2 border rounded-lg" />
+          <input 
+            v-model.number="customHeight" 
+            type="number" 
+            placeholder="Height (in)" 
+            class="w-24 px-3 py-2 border rounded-lg"
+            min="1"
+          />
           <button @click="applyCustomSize" class="btn-primary">Apply</button>
         </div>
         
@@ -543,6 +556,7 @@ export default {
     };
 
     const handleDragEnd = (e) => {
+      e.evt.preventDefault();
       const node = e.target;
       const id = node.id();
       const img = images.value.find(i => i.id === id);
@@ -800,7 +814,7 @@ export default {
 
 <style scoped>
 .gang-sheet-editor {
-  max-width: 1400px;
+  max-width: 100%;
   margin: 0 auto;
 }
 

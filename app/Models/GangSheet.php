@@ -13,6 +13,7 @@ class GangSheet extends Model
         'name',
         'width',
         'height',
+        'unit',
         'dpi',
         'images_data',
         'preview_path',
