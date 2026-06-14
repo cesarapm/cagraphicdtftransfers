@@ -29,12 +29,12 @@
     "src": "resources/fonts/sanke.otf"
   },
   "resources/js/app.js": {
-    "file": "assets/app-C3fNZsY6.js",
+    "file": "assets/app-C6qjqysI.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "css": [
-      "assets/app-BxWnq7YQ.css"
+      "assets/app-yMWtxey6.css"
     ],
     "assets": [
       "assets/materialdesignicons-webfont-CSr8KVlo.eot",
