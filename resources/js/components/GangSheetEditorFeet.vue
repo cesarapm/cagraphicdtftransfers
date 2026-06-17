@@ -94,6 +94,22 @@
         <p class="text-sm text-gray-400">PNG, JPG, JPEG, SVG (min 300×300px recommended)</p>
       </div>
 
+         <!-- Uploaded Images List -->
+    <div v-if="uploadedImages.length > 0" class="mt-4 bg-white rounded-lg shadow-sm p-4">
+      <h3 class="font-semibold mb-3 text-gray-800">Uploaded Images ({{ uploadedImages.length }})</h3>
+      <div class="grid grid-cols-6 gap-3">
+        <div v-for="img in uploadedImages" :key="img.id" 
+             class="border rounded-lg p-2 hover:shadow-md transition-shadow cursor-move"
+             draggable="true"
+             @dragstart="handleImageDragStart($event, img)"
+             @click="addImageToCanvas(img)">
+          <img :src="img.src" :alt="img.name" class="w-full h-20 object-contain mb-1" />
+          <p class="text-xs text-gray-600 truncate">{{ img.name }}</p>
+          <p class="text-xs text-gray-500">{{ (img.size / 1024).toFixed(1) }} KB</p>
+        </div>
+      </div>
+    </div>
+
       <!-- Image Settings -->
       <div v-if="selectedImage" class="mt-4 p-4 bg-gray-50 rounded-lg">
         <h3 class="font-semibold mb-3">Selected Image Settings</h3>
@@ -198,21 +214,7 @@
       </v-stage>
     </div>
 
-    <!-- Uploaded Images List -->
-    <div v-if="uploadedImages.length > 0" class="mt-4 bg-white rounded-lg shadow-sm p-4">
-      <h3 class="font-semibold mb-3 text-gray-800">Uploaded Images ({{ uploadedImages.length }})</h3>
-      <div class="grid grid-cols-6 gap-3">
-        <div v-for="img in uploadedImages" :key="img.id" 
-             class="border rounded-lg p-2 hover:shadow-md transition-shadow cursor-move"
-             draggable="true"
-             @dragstart="handleImageDragStart($event, img)"
-             @click="addImageToCanvas(img)">
-          <img :src="img.src" :alt="img.name" class="w-full h-20 object-contain mb-1" />
-          <p class="text-xs text-gray-600 truncate">{{ img.name }}</p>
-          <p class="text-xs text-gray-500">{{ (img.size / 1024).toFixed(1) }} KB</p>
-        </div>
-      </div>
-    </div>
+ 
 
     <!-- Stats Footer -->
     <div class="stats-footer mt-4 bg-white rounded-lg shadow-sm p-4 flex justify-between items-center">
@@ -1003,35 +1005,49 @@ export default {
 
     const saveGangSheet = async (event) => {
       if (images.value.length === 0) {
-        alert('Please add images to the canvas first');
+        alert('Por favor agrega imágenes primero');
         return;
       }
 
       let btn = null;
       let originalText = '';
-
+      
       try {
-        // Mostrar estado de carga
         if (event?.target) {
           btn = event.target.closest('button');
           if (btn) {
             originalText = btn.textContent;
-            btn.textContent = 'Saving to Server...';
+            btn.textContent = 'Preparando...';
             btn.disabled = true;
           }
         }
 
-        console.log('💾 Preparando datos para guardar...');
+        console.log('💾 Preparando datos para guardar con transparencia...');
+        
+        // ⭐ Generar PNG transparente
+        console.log('🎨 Generando imagen PNG con fondo transparente...');
+        const pngDataURL = await generatePrintFile();
+        
+        if (!pngDataURL || pngDataURL === 'data:,') {
+          throw new Error('No se pudo generar la imagen PNG');
+        }
+        
+        // Convertir DataURL a Blob
+        const pngResponse = await fetch(pngDataURL);
+        const pngBlob = await pngResponse.blob();
+        
+        console.log('✅ PNG generado:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
         
         const formData = new FormData();
         
-        // Datos del sheet (nombres correctos que espera el backend)
+        // Datos del sheet
         formData.append('width', sheetWidth.value);
         formData.append('height', sheetHeight.value);
         formData.append('unit', 'feet');
-        formData.append('name', `Gang Sheet ${sheetWidth.value}x${sheetHeight.value}ft`);
+        formData.append('format', 'png'); // ⭐ IMPORTANTE
+        formData.append('dpi', exportDPI.value); // ⭐ Guardar DPI usado
         
-        // Preparar metadata de imágenes (sin archivos)
+        // Preparar metadata de imágenes
         const imagesMetadata = images.value.map((img, index) => ({
           index: index,
           x: img.xInches,
@@ -1043,31 +1059,35 @@ export default {
           originalHeight: img.originalHeight,
         }));
         
-        // Enviar metadata como JSON string
         formData.append('images', JSON.stringify(imagesMetadata));
-        
         console.log('📊 Metadata:', imagesMetadata);
         
-        // Agregar archivos de imagen (formato correcto: image_files[])
+        // ⭐ NUEVO: Enviar PNG transparente compilado
+        console.log('📦 Añadiendo PNG transparente compilado...');
+        formData.append('gang_sheet_image', pngBlob, `gang-sheet-${sheetWidth.value}x${sheetHeight.value}ft-${exportDPI.value}dpi.png`);
+        console.log('📁 Archivo compilado:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
+        
+        // Agregar archivos originales como respaldo
+        console.log('📦 Preparando archivos originales para respaldo...');
         let filesAdded = 0;
-        images.value.forEach((img, index) => {
+        
+        for (let index = 0; index < images.value.length; index++) {
+          const img = images.value[index];
           if (img.file) {
+            if (btn) btn.textContent = `Preparando ${index + 1}/${images.value.length}...`;
             formData.append(`image_files[${index}]`, img.file);
             filesAdded++;
-            console.log(`✓ Archivo agregado [${index}]:`, img.name);
+            console.log(`✓ Archivo ${index + 1}: ${img.name} (${(img.file.size / 1024 / 1024).toFixed(2)}MB)`);
           }
-        });
-        
-        console.log(`📁 Total archivos agregados: ${filesAdded}`);
-        
-        if (filesAdded === 0) {
-          throw new Error('No se encontraron archivos de imagen para guardar');
         }
+        
+        console.log(`📁 Total archivos originales: ${filesAdded}`);
+        
+        if (btn) btn.textContent = 'Guardando en servidor...';
 
         console.log('🚀 Enviando a /api/gang-sheets/save...');
-
-        // Guardar diseño en backend
-        const saveResponse = await fetch('/api/gang-sheets/save', {
+        
+        const response = await fetch('/api/gang-sheets/save', {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
@@ -1075,36 +1095,30 @@ export default {
           body: formData,
         });
 
-        console.log('📡 Response status:', saveResponse.status);
+        console.log('📡 Response status:', response.status);
         
-        if (!saveResponse.ok) {
-          const text = await saveResponse.text();
+        if (!response.ok) {
+          const text = await response.text();
           console.error('❌ Response error:', text);
-          throw new Error(`Error del servidor (${saveResponse.status}): ${text.substring(0, 100)}`);
+          throw new Error(`Error del servidor (${response.status}): ${text.substring(0, 100)}`);
         }
-
-        const result = await saveResponse.json();
-        console.log('✅ Response data:', result);
         
-        const gangSheetId = result.data.id;
+        const data = await response.json();
+        console.log('✅ Response data:', data);
 
-        // Ahora mostrar modal de pago
+        console.log('✅ GUARDADO EXITOSO');
+        
+        const message = `✅ Gang Sheet guardado exitosamente!\n\n📋 ID: ${data.data.id}\n📐 Tamaño: ${sheetWidth.value}ft x ${sheetHeight.value}ft\n📊 Imágenes: ${images.value.length}\n🎨 Formato: PNG transparente (sin fondo blanco)\n📝 DPI: ${exportDPI.value}\n\n¡Listo para producción!`;
+        alert(message);
+        
         if (btn) {
           btn.textContent = originalText;
           btn.disabled = false;
         }
-
-        // Aquí irá la integración con tu sistema de pago (Stripe, etc)
-        alert(`✅ Design saved!\n\nGang Sheet ID: ${gangSheetId}\n\nNow you need to process payment to generate final image.\n\nNext step: Payment Processing`);
-        
-        console.log('Design saved with ID:', gangSheetId);
-        
-        // TODO: Redirigir a page de pago pasando gang_sheet_id
-        // window.location.href = `/checkout?gang_sheet_id=${gangSheetId}`;
-        
       } catch (error) {
-        console.error('❌ Error:', error);
-        alert('Error saving design: ' + error.message);
+        console.error('❌ Error saving gang sheet:', error);
+        console.error('Stack:', error.stack);
+        alert('Error al guardar: ' + error.message);
         if (btn) {
           btn.textContent = originalText || 'Save to Server';
           btn.disabled = false;
@@ -1112,8 +1126,80 @@ export default {
       }
     };
 
+    /**
+     * Detecta si el canvas tiene fondo blanco sólido
+     */
+    const hasWhiteBackground = (canvas) => {
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const width = canvas.width;
+      const height = canvas.height;
+      
+      const samplePoints = [
+        [0, 0], [width - 1, 0], [0, height - 1], [width - 1, height - 1],
+        [Math.floor(width / 2), 0], [0, Math.floor(height / 2)],
+        [width - 1, Math.floor(height / 2)], [Math.floor(width / 2), height - 1],
+      ];
+      
+      let whiteCount = 0;
+      const threshold = 240;
+      
+      for (const [x, y] of samplePoints) {
+        const imageData = ctx.getImageData(x, y, 1, 1);
+        const [r, g, b] = imageData.data;
+        if (r > threshold && g > threshold && b > threshold) {
+          whiteCount++;
+        }
+      }
+      
+      return whiteCount >= samplePoints.length * 0.5;
+    };
+
+    /**
+     * Remueve el fondo blanco del canvas y lo vuelve transparente
+     */
+    const removeWhiteBackground = (canvas) => {
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const width = canvas.width;
+      const height = canvas.height;
+      
+      console.log('🔄 Procesando fondo blanco...');
+      
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const data = imageData.data;
+      
+      const tolerance = 15;
+      const whiteThreshold = 240;
+      
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+        
+        if (r > whiteThreshold && g > whiteThreshold && b > whiteThreshold && a > 0) {
+          const avgColor = (r + g + b) / 3;
+          const intensity = (avgColor - whiteThreshold) / (255 - whiteThreshold);
+          data[i + 3] = Math.round(a * (1 - intensity));
+        }
+      }
+      
+      ctx.putImageData(imageData, 0, 0);
+      console.log('✅ Fondo blanco procesado con transparencia');
+      return canvas;
+    };
+
+    /**
+     * Exporta el canvas como PNG transparente
+     */
+    const exportTransparentPNG = (canvas) => {
+      console.log('📦 Exportando PNG con canal alpha...');
+      const dataURL = canvas.toDataURL('image/png');
+      console.log('✅ PNG exportado');
+      return dataURL;
+    };
+
     const generatePrintFile = async () => {
-      console.log('🖼️ === INICIO EXPORTACIÓN ===');
+      console.log('🖼️ === INICIO EXPORTACIÓN DTF CON TRANSPARENCIA ===');
       console.log('📊 Total imágenes en canvas:', images.value.length);
       
       if (images.value.length === 0) {
@@ -1164,15 +1250,18 @@ export default {
         throw new Error(`No se pudo crear canvas de ${exportWidth}x${exportHeight}px. El navegador no tiene suficiente memoria.`);
       }
       
-      const ctx = canvas.getContext('2d', { willReadFrequently: false });
+      // ⭐ CAMBIO CRÍTICO: Canvas transparente
+      const ctx = canvas.getContext('2d', { 
+        willReadFrequently: true,
+        alpha: true
+      });
       
       if (!ctx) {
         throw new Error('No se pudo obtener contexto 2D del canvas');
       }
       
-      // Fondo blanco
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, exportWidth, exportHeight);
+      // ⭐ NO llenar con blanco - canvas comienza transparente
+      console.log('✅ Canvas creado con transparencia habilitada (sin fondo blanco)');
       
       let imagesDrawn = 0;
       let imagesSkipped = 0;
@@ -1209,6 +1298,10 @@ export default {
           console.log(`  📏 Tamaño: ${exportImgWidth} × ${exportImgHeight}`);
           
           if (exportImgWidth > 0 && exportImgHeight > 0) {
+            // Habilitar suavizado para mejor calidad
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
             ctx.drawImage(
               img.imageObj,
               exportX,
@@ -1237,36 +1330,19 @@ export default {
         throw new Error('No se pudo dibujar ninguna imagen. Verifica la consola para más detalles.');
       }
       
-      console.log('🎨 Convirtiendo canvas a dataURL...');
-      console.log('📏 Canvas final:', canvas.width, 'x', canvas.height, 'px');
-      console.log('🧪 Obteniendo pixel data para verificar...');
-      
-      // Verificar que el canvas tiene datos
-      try {
-        const imageData = ctx.getImageData(0, 0, Math.min(10, canvas.width), Math.min(10, canvas.height));
-        console.log('✓ Canvas tiene datos, primeros pixeles:', imageData.data.slice(0, 12));
-      } catch (e) {
-        console.error('❌ No se puede leer datos del canvas:', e.message);
+      // ⭐ Verificar y procesar fondo blanco si existe
+      console.log('🔍 Verificando si hay fondo blanco...');
+      if (hasWhiteBackground(canvas)) {
+        console.log('⚠️ Fondo blanco detectado, procesando...');
+        removeWhiteBackground(canvas);
+      } else {
+        console.log('✅ No se detectó fondo blanco o ya tiene transparencia');
       }
       
-      console.log('🔄 Llamando toDataURL...');
-      let dataURL;
-      try {
-        // PNG sin compresión = máxima calidad (sin pérdida) - ideal para DTF
-        dataURL = canvas.toDataURL('image/png');
-        console.log('✅ toDataURL exitoso');
-        console.log('📦 DataURL length:', dataURL.length);
-        console.log('📦 DataURL primeros chars:', dataURL.substring(0, 50));
-        console.log('✅ DataURL generado, tamaño:', Math.round(dataURL.length / 1024), 'KB');
-      } catch (e) {
-        console.error('❌ Error en toDataURL:', e.message);
-        throw new Error('No se pudo convertir canvas a imagen: ' + e.message);
-      }
-      
-      if (!dataURL || dataURL.length < 100) {
-        console.error('❌ dataURL vacío o muy pequeño');
-        throw new Error('Canvas generó dataURL vacío');
-      }
+      // ⭐ Exportar como PNG transparente
+      console.log('🎨 Convirtiendo canvas a PNG transparente...');
+      const dataURL = exportTransparentPNG(canvas);
+      console.log('✅ DataURL generado, tamaño:', Math.round(dataURL.length / 1024 / 1024), 'MB');
       
       return dataURL;
     };
@@ -1290,20 +1366,17 @@ export default {
           }
         }
 
-        console.log('🚀 Iniciando descarga...');
+        console.log('🚀 Iniciando descarga DTF con transparencia...');
         const dataURL = await generatePrintFile();
         
         if (!dataURL || dataURL === 'data:,') {
           throw new Error('Canvas vacío - no se generó ninguna imagen');
         }
         
-        console.log('📦 DataURL generado, tamaño:', Math.round(dataURL.length / 1024), 'KB');
-        
-        // Convertir dataURL a Blob para mejor manejo
-        const blob = await (await fetch(dataURL)).blob();
+        // Convertir DataURL a Blob
+        const response = await fetch(dataURL);
+        const blob = await response.blob();
         const url = URL.createObjectURL(blob);
-        
-        console.log('💾 Blob creado, tamaño:', Math.round(blob.size / 1024), 'KB');
         
         const link = document.createElement('a');
         link.href = url;
@@ -1315,7 +1388,7 @@ export default {
         link.click();
         document.body.removeChild(link);
         
-        // Limpiar ObjectURL
+        // Limpiar URL object
         setTimeout(() => URL.revokeObjectURL(url), 100);
         
         if (btn) {
@@ -1325,7 +1398,15 @@ export default {
 
         const fileSizeMB = (blob.size / 1024 / 1024).toFixed(2);
         const qualityMsg = exportDPI.value === 300 ? 'Máxima calidad' : exportDPI.value === 200 ? 'Excelente calidad' : 'Buena calidad';
-        alert(`✅ Descargado: ${filename}\n\nTamaño: ${fileSizeMB} MB\nDPI: ${exportDPI.value} (${qualityMsg})\n\n¡Listo para imprimir DTF!`);
+        
+        console.log('✅ EXPORTACIÓN COMPLETADA');
+        console.log('📋 Archivo:', filename);
+        console.log('📊 Tamaño:', fileSizeMB, 'MB');
+        console.log('📐 DPI:', exportDPI.value, `(${qualityMsg})`);
+        console.log('🎨 Formato: PNG con canal alpha (transparencia)');
+        
+        const message = `✅ DESCARGADO: ${filename}\n\n📊 Tamaño: ${fileSizeMB} MB\n📐 Resolución: ${Math.round(canvasWidthInches.value * exportDPI.value)} x ${Math.round(canvasHeightInches.value * exportDPI.value)} px @ ${exportDPI.value} DPI\n🎨 Formato: PNG transparente (sin fondo blanco)\n🖼️ Imágenes: ${images.value.length}\n\n✨ ¡Listo para impresión DTF profesional!`;
+        alert(message);
       } catch (error) {
         console.error('❌ Error completo:', error);
         alert('Error al exportar: ' + error.message);
@@ -1428,6 +1509,10 @@ export default {
       updateKonvaLayers,
       getResolutionClass,
       getResolutionMessage,
+      // Nuevas funciones de transparencia
+      hasWhiteBackground,
+      removeWhiteBackground,
+      exportTransparentPNG,
       // Zoom functions
       handleZoomIn,
       handleZoomOut,

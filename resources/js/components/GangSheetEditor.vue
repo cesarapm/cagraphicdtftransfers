@@ -67,6 +67,22 @@
         <p class="text-sm text-gray-400">PNG, JPG, JPEG, SVG (min 300×300px recommended)</p>
       </div>
 
+          <!-- Uploaded Images List -->
+    <div v-if="uploadedImages.length > 0" class="mt-4 bg-white rounded-lg shadow-sm p-4">
+      <h3 class="font-semibold mb-3 text-gray-800">Uploaded Images ({{ uploadedImages.length }})</h3>
+      <div class="grid grid-cols-6 gap-3">
+        <div v-for="img in uploadedImages" :key="img.id" 
+             class="border rounded-lg p-2 hover:shadow-md transition-shadow cursor-move"
+             draggable="true"
+             @dragstart="handleImageDragStart($event, img)"
+             @click="addImageToCanvas(img)">
+          <img :src="img.src" :alt="img.name" class="w-full h-20 object-contain mb-1" />
+          <p class="text-xs text-gray-600 truncate">{{ img.name }}</p>
+          <p class="text-xs text-gray-500">{{ (img.size / 1024).toFixed(1) }} KB</p>
+        </div>
+      </div>
+    </div>
+
       <!-- Image Settings -->
       <div v-if="selectedImage" class="mt-4 p-4 bg-gray-50 rounded-lg">
         <h3 class="font-semibold mb-3">Selected Image Settings</h3>
@@ -235,21 +251,7 @@
       </v-stage>
     </div>
 
-    <!-- Uploaded Images List -->
-    <div v-if="uploadedImages.length > 0" class="mt-4 bg-white rounded-lg shadow-sm p-4">
-      <h3 class="font-semibold mb-3 text-gray-800">Uploaded Images ({{ uploadedImages.length }})</h3>
-      <div class="grid grid-cols-6 gap-3">
-        <div v-for="img in uploadedImages" :key="img.id" 
-             class="border rounded-lg p-2 hover:shadow-md transition-shadow cursor-move"
-             draggable="true"
-             @dragstart="handleImageDragStart($event, img)"
-             @click="addImageToCanvas(img)">
-          <img :src="img.src" :alt="img.name" class="w-full h-20 object-contain mb-1" />
-          <p class="text-xs text-gray-600 truncate">{{ img.name }}</p>
-          <p class="text-xs text-gray-500">{{ (img.size / 1024).toFixed(1) }} KB</p>
-        </div>
-      </div>
-    </div>
+
 
     <!-- Stats Footer -->
     <div class="stats-footer mt-4 bg-white rounded-lg shadow-sm p-4 flex justify-between items-center">
