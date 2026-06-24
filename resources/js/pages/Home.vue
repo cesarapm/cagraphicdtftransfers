@@ -29,18 +29,67 @@
     <section class="info-section">
       <v-container>
         <div class="info-content" data-aos="fade-up">
-          <h2 class="info-title">The DTF Transfers Now Process</h2>
-          <p class="info-subtitle">Quick ordering • Fast turnaround • Ready to press.</p>
-          <div class="info-details">
-            <p>Ultra color (9 Color DTF)</p>
-            <p>CMYK - RGBO + WHITE</p>
-          </div>
+          <h1 class="info-main-title">DTF Transfers: Create Custom<br />Apparle Instantly</h1>
+          <p class="info-description">
+            Effortlessly apply your designs on any t-shirt, sweatshirt or fabric with outstanding durability!
+          </p>
+          <p class="info-highlight">No minimums. No setup fees, Next-day shipping!</p>
+          <p class="info-detailed-text">
+            Upload your design, get your DTF transfer, apply it in seconds, Get started and get your DTF Transfer sheets or DTF Gang Sheets now.
+          </p>
+          
+          <v-row class="info-buttons-container">
+            <v-col cols="12" sm="6" md="3">
+              <v-btn class="info-btn" size="x-large" elevation="0">
+                DTF BY SIZE
+              </v-btn>
+            </v-col>
+            <v-col cols="12" sm="6" md="3">
+              <v-btn class="info-btn" size="x-large" elevation="0">
+                BUILD A SHEET
+              </v-btn>
+            </v-col>
+            <v-col cols="12" sm="6" md="3">
+              <v-btn class="info-btn" size="x-large" elevation="0">
+                UPLOAD GANG SHEET
+              </v-btn>
+            </v-col>
+          </v-row>
         </div>
       </v-container>
     </section>
 
-    <!-- Separator Line -->
-    <div class="section-separator"></div>
+
+
+    <!-- Premium Quality Section -->
+    <section class="premium-section">
+      <div class="premium-background">
+        <v-container>
+          <div class="premium-content" data-aos="fade-up">
+            <h2 class="premium-title">Premium Quality. Next Day Shipping. Unlimited DTF Printing</h2>
+            
+            <p class="premium-text">
+              Effortlessly apply your designs on any t-shirt, sweatshirt or fabric with outstanding durability!
+            </p>
+            
+            <p class="premium-text">
+              Upload your design, get your DTF transfer, apply it in seconds.
+            </p>
+            
+            <p class="premium-text">
+              Get started and get your DTF Transfer sheets or DTF Gang Sheets Now.
+            </p>
+            
+            <div class="premium-image-wrapper" data-aos="zoom-in" data-aos-delay="200">
+              <img :src="ultraColorImage" alt="Ultra Color 9 Color DTF" class="premium-image" />
+            </div>
+          </div>
+        </v-container>
+      </div>
+ 
+    </section>
+
+
 
     <!-- How to Order Section -->
     <section class="how-to-order-section">
@@ -49,40 +98,40 @@
         
         <v-row class="steps-container">
           <!-- Step 1 -->
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="3">
             <div class="step-card" data-aos="fade-up" data-aos-delay="100">
               <div class="step-image">
-                <img :src="step1Image" alt="Upload or Build Your Gang Sheet" />
+                <img :src="step1Image" alt="Pick your size and Place your Order" />
               </div>
-              <h3 class="step-number">1 - Upload or Build Your Gang Sheet</h3>
+              <h3 class="step-title">Pick your size and<br />Place your Order</h3>
               <p class="step-description">
-                Upload your finished artwork or use our online builder to arrange multiple designs on one gang sheet. Make sure files are high-resolution for best results.
+                Simply upload your designs, choose your size, and click on pay! We'll handle everything else, transforming your design into a vibrant, full-color DTF transfer without any restrictions on colors or minimum order quantities.
               </p>
             </div>
           </v-col>
 
           <!-- Step 2 -->
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="3">
             <div class="step-card" data-aos="fade-up" data-aos-delay="200">
               <div class="step-image">
-                <img :src="step2Image" alt="We Print & Ship Fast" />
+                <img :src="step2Image" alt="We Print and Ship in 24 Hours" />
               </div>
-              <h3 class="step-number">2 - We Print & Ship Fast</h3>
+              <h3 class="step-title">We Print and Ship in<br />24 Hours</h3>
               <p class="step-description">
-                Once your order is placed, we print your transfers within 24 hours using premium film and CMYK-RGBO+WHITE ink.
+                Using our state of the art machines we print your DTF Heat Transfers and ship your order within 1 business day.
               </p>
             </div>
           </v-col>
 
           <!-- Step 3 -->
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="3">
             <div class="step-card" data-aos="fade-up" data-aos-delay="300">
               <div class="step-image">
-                <img :src="step3Image" alt="Press & Wear with Ease" />
+                <img :src="step3Image" alt="You press it" />
               </div>
-              <h3 class="step-number">3 - Press & Wear with Ease</h3>
+              <h3 class="step-title">You press it</h3>
               <p class="step-description">
-                Apply your transfer with a heat press for 12-15 seconds at the recommended settings. Your designs stay vibrant, stretchable, and last through 40-50+ washes.
+                Once you receive your transfers all you need to apply them is a bit of heat! Simply place the transfer sheet on your garment and heat press for 12 sec at 320F. You can peel our transfers HOT or cold!
               </p>
             </div>
           </v-col>
@@ -148,7 +197,7 @@
         <div class="feature-half feature-image-half" data-aos="fade-right">
           <img :src="dtfImage" alt="DTF Printing Process" class="feature-full-image" />
         </div>
-        <div class="feature-half feature-content-half" data-aos="fade-left">
+        <div class="feature-half feature-content-halfM" data-aos="fade-left">
           <div class="feature-content-wrapper">
             <h2 class="feature-title">DTF: DIRECT-TO-FILM TRANSFERS</h2>
             <p class="feature-text">
@@ -170,10 +219,10 @@
           <div class="feature-content-wrapper-blue">
             <h2 class="feature-title-white">DESIGN, PRINTING, WEBSITE, CUSTOMER CARE: ALL IN-HOUSE.</h2>
             <p class="feature-text-white">
-              From art and design to printing and customer care, everything happens under one roof in Northwest Illinois. Our experienced team brings years of hands - on print and production knowledge - every order handled with precision, care, and pride.
+              From art and design to printing and customer care, everything happens under one roof in Northwest Illinois. Our experienced team brings years of hands-on print and production knowledge - every order handled with precision, care, and pride.
             </p>
             <p class="feature-text-white">
-              Whether you're a small business, creator, or large brand, you'll get top-tier quora continuamos con esta sectionality, fast turnaround, and personal service on every order.
+              Whether you're a small business, creator, or large brand, you'll get top-tier quality, fast turnaround, and personal service on every order.
             </p>
           </div>
         </div>
@@ -338,7 +387,6 @@
         </div>
       </v-container>
     </section>
-
     <!-- FAQ Section -->
     <section class="faq-section">
       <v-container>
@@ -409,6 +457,56 @@
         </div>
       </v-container>
     </section>
+    <!-- Reviews Section -->
+    <section class="reviews-section">
+      <v-container>
+        <div class="reviews-header" data-aos="fade-up">
+          <h2 class="reviews-title">5 Star DTF Transfer Reviews</h2>
+          <p class="reviews-subtitle">Verified Feedback from Authentic Customers</p>
+        </div>
+
+        <v-row class="reviews-container">
+          <!-- Review 1 -->
+          <v-col cols="12" md="4">
+            <div class="review-card" data-aos="fade-up" data-aos-delay="100">
+              <div class="review-stars">★★★★★</div>
+              <p class="review-text">
+                "Outstanding quality! The DTF transfers arrived quickly and look absolutely perfect. Couldn't ask for better customer service."
+              </p>
+              <p class="review-author">- Sarah M.</p>
+            </div>
+          </v-col>
+
+          <!-- Review 2 -->
+          <v-col cols="12" md="4">
+            <div class="review-card" data-aos="fade-up" data-aos-delay="200">
+              <div class="review-stars">★★★★★</div>
+              <p class="review-text">
+                "Best DTF supplier we've worked with. Consistent quality, fast shipping, and they actually care about their customers."
+              </p>
+              <p class="review-author">- James K.</p>
+            </div>
+          </v-col>
+
+          <!-- Review 3 -->
+          <v-col cols="12" md="4">
+            <div class="review-card" data-aos="fade-up" data-aos-delay="300">
+              <div class="review-stars">★★★★★</div>
+              <p class="review-text">
+                "The colors are vibrant and the durability is incredible. We've sold dozens of items with their transfers - no complaints!"
+              </p>
+              <p class="review-author">- Miguel R.</p>
+            </div>
+          </v-col>
+        </v-row>
+      </v-container>
+    </section>
+
+
+
+
+
+
   </div>
 </template>
 
@@ -417,6 +515,33 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+
+// SEO Meta Tags
+onMounted(() => {
+  document.title = 'DTF Transfers - Custom Print Apparel Online | CA Graphic DTF';
+  
+  const updateMeta = (name, content, isProperty = false) => {
+    const selector = isProperty ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+    let meta = document.querySelector(selector);
+    if (meta) meta.remove();
+    
+    const newMeta = document.createElement('meta');
+    if (isProperty) {
+      newMeta.setAttribute('property', name);
+    } else {
+      newMeta.setAttribute('name', name);
+    }
+    newMeta.content = content;
+    document.head.appendChild(newMeta);
+  };
+  
+  updateMeta('description', 'Premium DTF transfers for custom apparel. Create press-ready DTF rolls online. No minimums, no setup fees, next-day shipping. Upload designs instantly.');
+  updateMeta('keywords', 'DTF transfers, direct-to-film, custom apparel, gang sheets, DTF printing, heat press transfers');
+  updateMeta('og:title', 'DTF Transfers - Custom Print Apparel Online | CA Graphic DTF', true);
+  updateMeta('og:description', 'Premium DTF transfers for custom apparel. Create press-ready DTF rolls online. No minimums, no setup fees, next-day shipping.', true);
+  updateMeta('og:type', 'website', true);
+  updateMeta('og:url', 'https://cagraphicdtftransfers.com', true);
+});
 
 // Usar rutas desde public directamente
 const logohome = '/images/home/logohome.webp'
@@ -434,6 +559,7 @@ const iconShipping = '/images/home/icon-shipping.webp'
 const iconEspanol = '/images/home/icon-espanol.webp'
 const iconSmallBiz = '/images/home/icon-smallbiz.webp'
 const iconSupport = '/images/home/icon-support.webp'
+const ultraColorImage = '/images/home/ultra-color-logo.webp'
 
 
 
@@ -539,42 +665,76 @@ onMounted(() => {
 /* Info Section */
 .info-section {
   background: #ffffff;
-  padding: 60px 0;
+  padding: 80px 0;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .info-content {
   text-align: center;
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
-.info-title {
-  font-size: 36px;
-  font-weight: 700;
+.info-main-title {
+  font-size: 48px;
+  font-weight: 900;
   color: #111827;
+  margin-bottom: 24px;
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+.info-description {
+  font-size: 18px;
+  color: #4b5563;
   margin-bottom: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.info-highlight {
+  font-size: 20px;
+  color: #111827;
+  font-weight: 700;
+  margin-bottom: 20px;
   letter-spacing: 0.5px;
 }
 
-.info-subtitle {
-  font-size: 18px;
-  color: #6b7280;
-  margin-bottom: 32px;
-  font-weight: 400;
-}
-
-.info-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.info-details p {
+.info-detailed-text {
   font-size: 16px;
-  color: #374151;
-  margin: 0;
-  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 48px;
+  line-height: 1.6;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.info-buttons-container {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 24px;
+}
+
+.info-btn {
+  background: #0ea5e9 !important;
+  color: #111827 !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+  padding: 16px 32px !important;
+  font-size: 18px !important;
+  border-radius: 8px !important;
+  width: 90% !important;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3) !important;
+  transition: all 0.3s ease !important;
+  text-transform: uppercase;
+}
+
+.info-btn:hover {
+  background: #0284c7 !important;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4) !important;
 }
 
 /* Animations */
@@ -600,67 +760,167 @@ onMounted(() => {
   }
 }
 
-/* Responsive */
+/* Responsive for info section */
 @media (max-width: 959px) {
-  .hero-section {
-    height: 450px;
+  .info-section {
+    padding: 60px 0;
   }
 
-  .hero-logo img {
-    height: 100px;
-  }
-
-  .hero-title {
+  .info-main-title {
     font-size: 36px;
   }
 
-  .hero-btn {
-    font-size: 14px !important;
-    padding: 20px 32px !important;
-  }
-
-  .info-title {
-    font-size: 28px;
-  }
-
-  .info-subtitle {
+  .info-description {
     font-size: 16px;
+  }
+
+  .info-highlight {
+    font-size: 18px;
+  }
+
+  .info-detailed-text {
+    font-size: 15px;
+    margin-bottom: 36px;
+  }
+
+  .info-btn {
+    font-size: 16px !important;
+    padding: 14px 28px !important;
   }
 }
 
 @media (max-width: 600px) {
-  .hero-section {
-    height: 400px;
-  }
-
-  .hero-logo img {
-    height: 180px;
-  }
-
-  .hero-title {
-    font-size: 28px;
-    margin-bottom: 30px;
-  }
-
-  .hero-btn {
-    font-size: 13px !important;
-    padding: 16px 24px !important;
-  }
-
   .info-section {
     padding: 40px 0;
   }
 
-  .info-title {
-    font-size: 24px;
+  .info-main-title {
+    font-size: 28px;
+    margin-bottom: 16px;
   }
 
-  .info-subtitle {
-    font-size: 15px;
-  }
-
-  .info-details p {
+  .info-description {
     font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .info-highlight {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+
+  .info-detailed-text {
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .info-buttons-container {
+    gap: 16px;
+    flex-direction: column;
+  }
+
+  .info-btn {
+    font-size: 14px !important;
+    padding: 12px 24px !important;
+  }
+}
+
+/* Premium Quality Section */
+.premium-section {
+  background: #000000;
+  color: white;
+  padding: 80px 0;
+  position: relative;
+}
+
+.premium-background {
+  width: 100%;
+}
+
+.premium-content {
+  text-align: center;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.premium-title {
+  font-size: 56px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 40px;
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+.premium-text {
+  font-size: 18px;
+  color: #e5e7eb;
+  margin-bottom: 20px;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.premium-image-wrapper {
+  margin-top: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.premium-image {
+  max-width: 400px;
+  max-height: 300px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(14, 165, 233, 0.3));
+}
+
+
+
+/* Responsive for premium section */
+@media (max-width: 959px) {
+  .premium-section {
+    padding: 60px 0;
+  }
+
+  .premium-title {
+    font-size: 40px;
+  }
+
+  .premium-text {
+    font-size: 16px;
+  }
+
+  .premium-image {
+    max-width: 350px;
+    max-height: 250px;
+  }
+}
+
+@media (max-width: 600px) {
+  .premium-section {
+    padding: 40px 0;
+  }
+
+  .premium-title {
+    font-size: 28px;
+    margin-bottom: 24px;
+  }
+
+  .premium-text {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .premium-image-wrapper {
+    margin-top: 40px;
+  }
+
+  .premium-image {
+    max-width: 280px;
+    max-height: 200px;
   }
 }
 
@@ -674,77 +934,149 @@ onMounted(() => {
 
 /* How to Order Section */
 .how-to-order-section {
-  background: #ffffff;
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #00bcd4 100%);
   padding: 80px 0;
 }
 
 .section-title {
   text-align: center;
-  font-size: 42px;
+  font-size: 48px;
   font-weight: 700;
-  color: #111827;
+  color: #ffffff;
   margin-bottom: 60px;
   letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .steps-container {
   display: flex;
   justify-content: center;
   align-items: stretch;
+  gap: 30px;
 }
 
 .step-card {
   background: #ffffff;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 32px 24px;
+  border: 6px solid #ffffff;
+  border-radius: 16px;
+  padding: 18px 14px;
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   transition: all 0.3s ease;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
 }
 
 .step-card:hover {
-  border-color: #0ea5e9;
-  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.15);
-  transform: translateY(-4px);
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
 }
 
 .step-image {
   width: 100%;
-  height: 200px;
+  height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 24px;
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 6px;
 }
 
 .step-image img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  border-radius: 17px;
 }
 
-.step-number {
-  font-size: 18px;
+.step-title {
+  font-size: 20px;
   font-weight: 700;
   color: #111827;
   margin-bottom: 16px;
   letter-spacing: 0.3px;
+  line-height: 1.3;
 }
 
 .step-description {
   font-size: 14px;
-  color: #6b7280;
+  color: #4b5563;
   line-height: 1.6;
   margin: 0;
+  font-weight: 400;
+}
+
+/* Responsive for how to order section */
+@media (max-width: 959px) {
+  .how-to-order-section {
+    padding: 60px 0;
+  }
+
+  .section-title {
+    font-size: 36px;
+    margin-bottom: 40px;
+  }
+
+  .steps-container {
+    gap: 20px;
+  }
+
+  .step-card {
+    margin-bottom: 24px;
+  }
+
+  .step-image {
+    height: 180px;
+  }
+
+  .step-title {
+    font-size: 18px;
+  }
+
+  .step-description {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 600px) {
+  .how-to-order-section {
+    padding: 40px 0;
+  }
+
+  .section-title {
+    font-size: 28px;
+    margin-bottom: 32px;
+  }
+
+  .steps-container {
+    gap: 16px;
+    flex-direction: column;
+  }
+
+  .step-card {
+    margin-bottom: 16px;
+  }
+
+  .step-image {
+    height: 160px;
+  }
+
+  .step-title {
+    font-size: 16px;
+  }
+
+  .step-description {
+    font-size: 12px;
+  }
 }
 
 /* Stats Section */
 .stats-section {
-  background: #111827;
+  background: #000000;
   padding: 80px 0;
   color: white;
 }
@@ -848,7 +1180,7 @@ onMounted(() => {
   }
 
   .step-image {
-    height: 160px;
+    height: 350px;
   }
 
   .step-number {
@@ -929,10 +1261,19 @@ onMounted(() => {
   border-radius: 0;
   box-shadow: none;
 }
+.feature-content-halfM {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  justify-content: center;
+  padding: 60px 80px;
+  background: #f9fafb;
+}
 
 .feature-content-half {
   display: flex;
   align-items: center;
+  text-align: right;
   justify-content: center;
   padding: 60px 80px;
   background: #f9fafb;
@@ -940,12 +1281,13 @@ onMounted(() => {
 
 .feature-content-blue-bg {
   background: #0ea5e9 !important;
-  padding: 60px 80px;
+  padding: 60px 20px;
 }
 
 .feature-content-wrapper,
 .feature-content-wrapper-blue {
-  max-width: 600px;
+  max-width: 100%;
+  width: 100%;
 }
 
 .feature-title {
@@ -969,20 +1311,23 @@ onMounted(() => {
 
 .feature-text {
   font-size: 16px;
-  color: #374151;
+  color: #0b0b0c;
   line-height: 1.8;
   margin-bottom: 20px;
 }
 
 .feature-text-white {
   font-size: 16px;
-  color: #ffffff;
+  color: #000000;
   line-height: 1.8;
   margin-bottom: 20px;
+  display: inline-block;
+  transform: scale(0.85, 1.4 );
+
 }
 
 .feature-tagline {
-  font-size: 18px;
+  font-size: 16px;
   color: #111827;
   font-weight: 600;
   margin-top: 24px;
@@ -1476,10 +1821,148 @@ onMounted(() => {
   }
 }
 
+/* Reviews Section */
+.reviews-section {
+  background: #ffffff;
+  padding: 80px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.reviews-header {
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto 60px;
+}
+
+.reviews-title {
+  font-size: 42px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.reviews-subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 400;
+}
+
+.reviews-container {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.review-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 32px 28px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  transition: all 0.3s ease;
+}
+
+.review-card:hover {
+  border-color: #0ea5e9;
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.15);
+  transform: translateY(-4px);
+}
+
+.review-stars {
+  font-size: 18px;
+  color: #fbbf24;
+  margin-bottom: 16px;
+  letter-spacing: 2px;
+}
+
+.review-text {
+  font-size: 15px;
+  color: #4b5563;
+  line-height: 1.7;
+  margin-bottom: 20px;
+  flex-grow: 1;
+  font-style: italic;
+}
+
+.review-author {
+  font-size: 14px;
+  color: #111827;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Responsive for reviews */
+@media (max-width: 959px) {
+  .reviews-section {
+    padding: 60px 0;
+  }
+
+  .reviews-title {
+    font-size: 32px;
+  }
+
+  .reviews-subtitle {
+    font-size: 15px;
+  }
+
+  .reviews-header {
+    margin-bottom: 40px;
+  }
+
+  .review-card {
+    margin-bottom: 24px;
+  }
+
+  .review-text {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .reviews-section {
+    padding: 40px 0;
+  }
+
+  .reviews-title {
+    font-size: 26px;
+    margin-bottom: 8px;
+  }
+
+  .reviews-subtitle {
+    font-size: 14px;
+  }
+
+  .review-card {
+    padding: 24px 20px;
+  }
+
+  .review-stars {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .review-text {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .review-author {
+    font-size: 13px;
+  }
+}
+
 /* FAQ Section */
 .faq-section {
   background: #ffffff;
   padding: 80px 0;
+
+  border-bottom: 3px solid #111827;
 }
 
 .faq-title {

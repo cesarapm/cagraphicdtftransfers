@@ -208,7 +208,7 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import GangSheetEditorFeet from '../components/GangSheetEditorFeet.vue';
 import GangSheetEditorInches from '../components/GangSheetEditorInches.vue';
 
@@ -219,6 +219,32 @@ export default {
     GangSheetEditorInches,
   },
   setup() {
+    // SEO Meta Tags
+    onMounted(() => {
+      document.title = 'DTF Gang Sheet Builder - Create Custom Transfer Sheets | CA Graphic DTF';
+      
+      const updateMeta = (name, content, isProperty = false) => {
+        const selector = isProperty ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+        let meta = document.querySelector(selector);
+        if (meta) meta.remove();
+        
+        const newMeta = document.createElement('meta');
+        if (isProperty) {
+          newMeta.setAttribute('property', name);
+        } else {
+          newMeta.setAttribute('name', name);
+        }
+        newMeta.content = content;
+        document.head.appendChild(newMeta);
+      };
+      
+      updateMeta('description', 'Build custom DTF gang sheets online. Upload designs, arrange them, and order press-ready sheets. No minimums, no setup fees.');
+      updateMeta('keywords', 'DTF gang sheet builder, custom transfer sheets, DTF printing, direct-to-film transfers');
+      updateMeta('og:title', 'DTF Gang Sheet Builder - Create Custom Transfer Sheets', true);
+      updateMeta('og:description', 'Build custom DTF gang sheets online. Upload designs, arrange them, and order press-ready sheets.', true);
+      updateMeta('og:url', 'https://cagraphicdtftransfers.com/build', true);
+    });
+
     const activeTab = ref('inches'); // Default to Inches tab
 
     return {

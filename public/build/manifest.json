@@ -15,6 +15,14 @@
     "file": "assets/materialdesignicons-webfont-Dp5v-WZN.woff2",
     "src": "node_modules/@mdi/font/fonts/materialdesignicons-webfont.woff2"
   },
+  "public/images/home/logohome.webp": {
+    "file": "assets/logohome-CF4iJnJ0.webp",
+    "src": "public/images/home/logohome.webp"
+  },
+  "public/images/logo.webp": {
+    "file": "assets/logo-DL-1Czjr.webp",
+    "src": "public/images/logo.webp"
+  },
   "resources/css/app.css": {
     "file": "assets/app-xOevPM4h.css",
     "src": "resources/css/app.css",
@@ -29,14 +37,15 @@
     "src": "resources/fonts/sanke.otf"
   },
   "resources/js/app.js": {
-    "file": "assets/app-DFnjk7lM.js",
+    "file": "assets/app-BruqbNQt.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "css": [
-      "assets/app-rJ3U9AAb.css"
+      "assets/app-C0J-uMj3.css"
     ],
     "assets": [
+      "assets/logohome-CF4iJnJ0.webp",
       "assets/materialdesignicons-webfont-CSr8KVlo.eot",
       "assets/materialdesignicons-webfont-Dp5v-WZN.woff2",
       "assets/materialdesignicons-webfont-PXm3-2wK.woff",

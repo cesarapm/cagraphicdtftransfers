@@ -24,9 +24,10 @@
     "dependencies": {
         "@fancyapps/ui": "^6.1.13",
         "@mdi/font": "^7.4.47",
+        "@vueuse/head": "^2.0.0",
         "konva": "^10.3.0",
         "pinia": "^3.0.4",
-        "vue": "^3.5.26",
+        "vue": "^3.5.38",
         "vue-konva": "^3.4.0",
         "vue-loader": "^17.4.2",
         "vue-router": "^4.6.4",

@@ -1,292 +1,516 @@
+<script setup>
+import { ref, onMounted } from 'vue';
+import logoImage from '../../../public/images/logo.webp';
+import logoHomeImage from '../../../public/images/home/logohome.webp';
+
+const formData = ref({
+  name: '',
+  email: '',
+  phone: '',
+  comment: ''
+});
+
+const isSubmitting = ref(false);
+const submitMessage = ref('');
+
+// SEO Meta Tags
+onMounted(() => {
+  document.title = 'Contact Us - CA Graphic DTF Transfers';
+  
+  const updateMeta = (name, content, isProperty = false) => {
+    const selector = isProperty ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+    let meta = document.querySelector(selector);
+    if (meta) meta.remove();
+    
+    const newMeta = document.createElement('meta');
+    if (isProperty) {
+      newMeta.setAttribute('property', name);
+    } else {
+      newMeta.setAttribute('name', name);
+    }
+    newMeta.content = content;
+    document.head.appendChild(newMeta);
+  };
+  
+  updateMeta('description', 'Get in touch with CA Graphic DTF. We\'re here to help with your DTF transfer questions and orders. Call us at (312) 843-4099.');
+  updateMeta('keywords', 'contact DTF, customer service, DTF transfers support, CA Graphic');
+  updateMeta('og:title', 'Contact Us - CA Graphic DTF Transfers', true);
+  updateMeta('og:description', 'Contact CA Graphic DTF for any questions or assistance with orders.', true);
+});
+
+const handleSubmit = async () => {
+  if (!formData.value.name || !formData.value.email || !formData.value.comment) {
+    submitMessage.value = 'Please fill in all required fields.';
+    return;
+  }
+
+  isSubmitting.value = true;
+  submitMessage.value = '';
+
+  try {
+    const response = await fetch('/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify(formData.value)
+    });
+
+    if (response.ok) {
+      submitMessage.value = 'Thank you! We\'ll get back to you soon.';
+      formData.value = { name: '', email: '', phone: '', comment: '' };
+    } else {
+      submitMessage.value = 'Error sending message. Please try again.';
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    submitMessage.value = 'Error sending message. Please try again.';
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+</script>
+
 <template>
   <div class="contact-page">
+    <!-- Hero Section -->
     <section class="contact-hero">
-      <v-container class="py-16">
-        <v-row justify="center">
-          <v-col cols="12" lg="9" class="text-center">
-            <span class="contact-kicker">Contacto</span>
-            <h1>Hablemos de la pieza que te esta buscando</h1>
-            <p>
-              Si quieres una pieza especial, una asesoria o conocer mas sobre IzaguirreQu,
-              estamos listas para escucharte.
-            </p>
-          </v-col>
-        </v-row>
-      </v-container>
+ 
     </section>
 
+    <!-- Contact Content -->
     <section class="contact-content">
-      <v-container class="py-14">
-        <v-row justify="center">
-          <v-col cols="12" lg="10">
-            <div class="contact-grid">
-              <article class="contact-card contact-card--primary">
-                <span class="mini-kicker">Escribenos</span>
-                <h2>Conecta con nuestro universo</h2>
-                <p>
-                  Cada simbolo guarda un secreto, y a veces una conversacion es el inicio de todo.
-                  Podemos ayudarte a elegir una joya, resolver dudas o recibir pedidos especiales.
-                </p>
+      <div class="contact-container">
+        <!-- Left Side - Logo -->
+        <div class="contact-left">
+          <img :src="logoHomeImage" alt="CA Graphic DTF Logo" class="contact-logo">
+        </div>
 
-                <div class="contact-list">
-                  <a class="contact-link" href="https://wa.me/5580091558?text=Hola,%20quiero%20informacion%20sobre%20IzaguirreQu" target="_blank" rel="noreferrer">
-                    <span class="contact-icon">WA</span>
-                    <div>
-                      <strong>WhatsApp</strong>
-                      <span>+52 558 009 1558</span>
-                    </div>
-                  </a>
+        <!-- Right Side - Contact Info -->
+        <div class="contact-right">
+          <h1 class="contact-title">Contact Us</h1>
+          
+          <div class="contact-subtitle-group">
+            <p class="contact-subtitle">Have any queries?</p>
+            <p class="contact-highlight">We're here to help.</p>
+          </div>
 
-                  <a class="contact-link" href="mailto:atencionaclientes@izaguirrequ.com">
-                    <span class="contact-icon">@</span>
-                    <div>
-                      <strong>Email</strong>
-                      <span>Atencionaclientes@izaguirrequ.com</span>
-                    </div>
-                  </a>
+          <div class="contact-info-section">
+            <h2 class="contact-section-title">Contact</h2>
+            <p class="contact-description">
+              Contact us with any questions<br>
+              or assistance with orders
+            </p>
+            <p class="contact-phone">(312) 843 - 4099</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-                  <div class="contact-link contact-link--static">
-                    <span class="contact-icon">MX</span>
-                    <div>
-                      <strong>Origen</strong>
-                      <span>Jardines de Bellavista, Tlanepantla Estado de México </span>
-                    </div>
-                  </div>
-                </div>
-              </article>
+    <!-- Contact Form Section -->
+    <section class="contact-form-section">
+      <div class="form-container">
+        <!-- Left Side - Form Info -->
+        <div class="form-info">
+          <p class="form-subtitle">Don't be a stranger!</p>
+          <h2 class="form-title">You tell us. We listen.</h2>
+          <p class="form-description">
+            Fill out our form and we will promptly<br>
+            get back to you
+          </p>
+        </div>
 
-              <article class="contact-card">
-                <span class="mini-kicker">Nuestra energia</span>
-                <h2>Lo que puedes esperar</h2>
-                <div class="expectation-list">
-                  <div class="expectation-item">
-                    <strong>Asesoria cercana</strong>
-                    <p>Te ayudamos a elegir una pieza alineada con tu gusto, momento y simbolismo.</p>
-                  </div>
-                  <div class="expectation-item">
-                    <strong>Detalle artesanal</strong>
-                    <p>Cada joya nace del respeto por el oficio y la belleza de lo hecho a mano.</p>
-                  </div>
-                  <div class="expectation-item">
-                    <strong>Conexiones reales</strong>
-                    <p>No buscamos vender rapido; buscamos que encuentres una pieza que te hable.</p>
-                  </div>
-                </div>
+        <!-- Right Side - Form -->
+        <div class="form-wrapper">
+          <div class="form-header">
+            <p class="form-header-text">QUESTION? COMMENT? GOOD JOKE?<br>WELL, DON'T KEEP IT TO YOURSELF</p>
+          </div>
 
-                <v-btn class="contact-cta" :to="{ name: 'ProductList' }" elevation="0">
-                  Ver coleccion
-                </v-btn>
-              </article>
+          <form @submit.prevent="handleSubmit" class="contact-form">
+            <div class="form-row">
+              <div class="form-group">
+                <input 
+                  v-model="formData.name" 
+                  type="text" 
+                  placeholder="Name" 
+                  required
+                >
+              </div>
+              <div class="form-group">
+                <input 
+                  v-model="formData.email" 
+                  type="email" 
+                  placeholder="Email" 
+                  required
+                >
+              </div>
             </div>
-          </v-col>
-        </v-row>
-      </v-container>
+
+            <div class="form-group">
+              <input 
+                v-model="formData.phone" 
+                type="tel" 
+                placeholder="Phone"
+              >
+            </div>
+
+            <div class="form-group">
+              <textarea 
+                v-model="formData.comment" 
+                placeholder="Comment"
+                rows="4"
+                required
+              ></textarea>
+            </div>
+
+            <button type="submit" :disabled="isSubmitting" class="submit-button">
+              SUBMIT
+            </button>
+
+            <p v-if="submitMessage" :class="submitMessage.includes('Thank you') ? 'success-message' : 'error-message'">
+              {{ submitMessage }}
+            </p>
+          </form>
+        </div>
+      </div>
     </section>
   </div>
 </template>
 
 <style scoped>
 .contact-page {
-  margin-top: 70px;
-  background: linear-gradient(180deg, #fbf8f4 0%, #f1ebe4 100%);
-  color: #5f5244;
+  background: #ffffff;
 }
 
+/* Hero Section */
 .contact-hero {
-  background:
-    radial-gradient(circle at top right, rgba(217, 200, 181, 0.42), transparent 30%),
-    linear-gradient(180deg, #f8f4ef 0%, #f3ece5 100%);
-}
-
-.contact-kicker,
-.mini-kicker {
-  display: inline-block;
-  padding: 0.45rem 1rem;
-  border-radius: 999px;
-  background: rgba(184, 151, 120, 0.12);
-  color: #8c745f;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-size: 0.78rem;
-}
-
-.contact-hero h1,
-.contact-card h2 {
-  color: #6b5b47;
-  margin: 1rem 0;
-}
-
-.contact-hero h1 {
-  font-size: clamp(2.5rem, 6vw, 4.4rem);
-}
-
-.contact-hero .text-center {
-  max-width: 760px;
-  margin-inline: auto;
-}
-
-.contact-hero p,
-.contact-card p,
-.expectation-item p,
-.contact-link span {
-  color: #7f6d5a;
-  line-height: 1.9;
-}
-
-.contact-grid {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 1.5rem;
-}
-
-.contact-card {
-  background: rgba(255, 252, 248, 0.88);
-  border: 1px solid rgba(184, 151, 120, 0.16);
-  border-radius: 28px;
-  padding: 2rem;
-  box-shadow: 0 18px 40px rgba(140, 116, 95, 0.08);
-}
-
-.contact-card--primary {
-  background: linear-gradient(180deg, rgba(255, 252, 248, 0.96), rgba(245, 239, 233, 0.94));
-}
-
-.contact-list,
-.expectation-list {
-  display: grid;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.contact-link,
-.contact-link--static,
-.expectation-item {
+  position: relative;
+  height: 500px;
+  background-image: url('/images/portadas/CONTACT-US.webp');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  padding: 1rem 1.1rem;
-  border-radius: 20px;
-  background: rgba(245, 239, 233, 0.74);
-  text-decoration: none;
-}
-
-.contact-link > div,
-.contact-link--static > div,
-.expectation-item > div,
-.contact-link span {
-  min-width: 0;
-}
-
-.contact-link strong,
-.expectation-item strong {
-  display: block;
-  color: #6b5b47;
-  margin-bottom: 0.35rem;
-}
-
-.contact-link span,
-.contact-card p,
-.expectation-item p {
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.contact-icon {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
-  border-radius: 50%;
-  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #d9c8b5 0%, #b89778 100%);
-  color: #fffaf4;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
+  overflow: hidden;
 }
 
-.contact-cta {
-  margin-top: 1.5rem;
-  background: linear-gradient(135deg, #8c745f, #a68b73) !important;
-  color: #ffffff !important;
-  border-radius: 999px !important;
-  letter-spacing: 0.08em;
+@media (max-width: 1024px) {
+  .contact-hero {
+    height: 400px;
+    background-attachment: scroll;
+  }
 }
 
-@media (max-width: 960px) {
-  .contact-grid {
+@media (max-width: 768px) {
+  .contact-hero {
+    height: 250px;
+    background-position: center right;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-hero {
+    height: 170px;
+    background-position: center center;
+  }
+}
+
+/* Contact Content Section */
+.contact-content {
+  padding: 80px 40px;
+  background: #ffffff;
+}
+
+.contact-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+/* Left Side - Logo */
+.contact-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-logo {
+  max-width: 100%;
+  height: auto;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.1));
+}
+
+/* Right Side - Content */
+.contact-right {
+  padding: 40px;
+  text-align: center;
+}
+
+.contact-title {
+  font-size: 42px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+  letter-spacing: -0.5px;
+}
+
+.contact-subtitle-group {
+  margin-bottom: 30px;
+}
+
+.contact-subtitle {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.contact-highlight {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.contact-info-section {
+  margin-top: 40px;
+}
+
+.contact-section-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+}
+
+.contact-description {
+  font-size: 15px;
+  color: #1a1a1a;
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+.contact-phone {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+/* Responsive Design */
+
+/* Contact Form Section */
+.contact-form-section {
+  padding: 80px 40px;
+  background: #f9f9f9;
+}
+
+.form-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: flex-start;
+}
+
+/* Left Side - Form Info */
+.form-info {
+  padding: 40px 0;
+}
+
+.form-subtitle {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.form-title {
+  font-size: 42px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+  line-height: 1.2;
+}
+
+.form-description {
+  font-size: 15px;
+  color: #666;
+  line-height: 1.8;
+}
+
+/* Right Side - Form */
+.form-wrapper {
+  background: white;
+  border: 2px solid #1a1a1a;
+  padding: 30px;
+}
+
+.form-header {
+  border-bottom: 2px solid #1a1a1a;
+  padding-bottom: 20px;
+  margin-bottom: 25px;
+}
+
+.form-header-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #999;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #1a1a1a;
+  box-shadow: 0 0 0 2px rgba(26, 26, 26, 0.05);
+}
+
+.submit-button {
+  padding: 14px 32px;
+  background: #0099ff;
+  color: white;
+  border: none;
+  border-radius: 0;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 12px;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #0078cc;
+}
+
+.submit-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.success-message {
+  color: #22a55a;
+  font-size: 14px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  background-color: #f0fdf4;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 14px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  background-color: #fef2f2;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .contact-content {
+    padding: 60px 20px;
+  }
+
+  .contact-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .contact-title {
+    font-size: 32px;
+  }
+
+  .contact-right {
+    padding: 30px;
+  }
+
+  .form-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .form-title {
+    font-size: 32px;
+  }
+
+  .form-row {
     grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 600px) {
-  .contact-page {
-    margin-top: 84px;
-  }
-
-  .contact-hero {
-    padding-top: 0.5rem;
-  }
-
-  .contact-hero h1 {
-    font-size: clamp(2rem, 11vw, 3rem);
-    line-height: 1.02;
-  }
-
-  .contact-hero p {
-    font-size: 0.98rem;
-  }
-
-  .contact-card {
-    padding: 1.5rem;
-    border-radius: 24px;
-  }
-
-  .contact-link,
-  .contact-link--static,
-  .expectation-item {
-    padding: 0.95rem;
-  }
-
-  .contact-link,
-  .contact-link--static {
-    align-items: center;
-  }
-
-  .contact-cta {
-    width: 100%;
+  .contact-form-section {
+    padding: 60px 20px;
   }
 }
 
-@media (max-width: 420px) {
-  .contact-content .py-14,
-  .contact-hero .py-16 {
-    padding-top: 2.25rem !important;
-    padding-bottom: 2.25rem !important;
+@media (max-width: 480px) {
+  .contact-content {
+    padding: 40px 16px;
   }
 
-  .contact-card {
-    padding: 1.1rem;
+  .contact-title {
+    font-size: 26px;
   }
 
-  .contact-link,
-  .contact-link--static,
-  .expectation-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+  .contact-section-title {
+    font-size: 20px;
   }
 
-  .contact-icon {
-    width: 38px;
-    height: 38px;
-    flex-basis: 38px;
+  .form-title {
+    font-size: 24px;
   }
 
-  .contact-kicker,
-  .mini-kicker {
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
+  .form-wrapper {
+    padding: 20px;
+  }
+
+  .form-header-text {
+    font-size: 11px;
   }
 }
 </style>

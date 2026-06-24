@@ -1,6 +1,7 @@
 import './bootstrap';
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
+import { createHead } from '@vueuse/head';
 import axios from 'axios';
 import App from './App.vue';
 import router from './router';
@@ -17,14 +18,20 @@ axios.defaults.headers.common['Accept'] = 'application/json';
 // Crear instancia de Pinia
 const pinia = createPinia();
 
+// Crear instancia de Head para SEO
+const head = createHead();
+
 // Crear la aplicación Vue
 const app = createApp(App);
 
 // Usar plugins
 app.use(pinia);
 app.use(router);
-app.use(vuetify);
+app.use(head);
+
+
 app.use(VueKonva);
+app.use(vuetify);
 
 // Make axios available globally
 app.config.globalProperties.$axios = axios;

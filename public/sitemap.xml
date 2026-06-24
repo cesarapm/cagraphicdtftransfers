@@ -24,14 +24,64 @@
     <priority>0.8</priority>
   </url>
   
-  <!-- Contacto -->
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+  <!-- Página Principal -->
   <url>
-    <loc>https://izaguirrequ.com/contacto</loc>
-    <lastmod>2026-05-07</lastmod>
+    <loc>https://cagraphicdtftransfers.com/</loc>
+    <lastmod>2026-06-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- DTF Gang Sheet Builder -->
+  <url>
+    <loc>https://cagraphicdtftransfers.com/build</loc>
+    <lastmod>2026-06-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- Upload DTF Transfers -->
+  <url>
+    <loc>https://cagraphicdtftransfers.com/upload</loc>
+    <lastmod>2026-06-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- Heat Press Guide -->
+  <url>
+    <loc>https://cagraphicdtftransfers.com/heat-press-guide</loc>
+    <lastmod>2026-06-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- About Us -->
+  <url>
+    <loc>https://cagraphicdtftransfers.com/about</loc>
+    <lastmod>2026-06-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  
 
+  <!-- Contact -->
+  <url>
+    <loc>https://cagraphicdtftransfers.com/contact</loc>
+    <lastmod>2026-06-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Products List -->
+  <url>
+    <loc>https://cagraphicdtftransfers.com/products</loc>
+    <lastmod>2026-06-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
 
 </urlset>

@@ -13,12 +13,21 @@ import PaymentPending from '../pages/PaymentPending.vue';
 import PaymentFailure from '../pages/PaymentFailure.vue';
 import CustomerOrders from '../pages/CustomerOrders.vue';
 import OrderTracking from '../pages/OrderTracking.vue';
-
+import HeatPress from '../pages/HeatPressGuide.vue';
+import PrivacyPolicy from '../pages/PrivacyPolicy.vue';
+import RefundPolicy from '../pages/RefundPolicy.vue';
+import ShippingPolicy from '../pages/ShippingPolicy.vue';
+import TermsOfService from '../pages/TermsofService.vue';
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: Home
+  },
+  {
+    path: '/heat-press-guide',
+    name: 'HeatPress',
+    component: HeatPress
   },
   {
     path: '/login',
@@ -44,7 +53,7 @@ const routes = [
     component: About
   },
   {
-    path: '/contacto',
+    path: '/contact',
     name: 'Contact',
     component: Contact
   },
@@ -78,7 +87,28 @@ const routes = [
     component: OrderTracking,
     props: true,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/privacy-policy',
+    name: 'PrivacyPolicy',
+    component: PrivacyPolicy
+  },
+  {
+    path: '/refund-policy',
+    name: 'RefundPolicy',
+    component: RefundPolicy
+  },
+  {
+    path: '/shipping-policy',
+    name: 'ShippingPolicy',
+    component: ShippingPolicy
+  },
+  {
+    path: '/terms-of-service',
+    name: 'TermsOfService',
+    component: TermsOfService
   }
+
 ];
 
 const router = createRouter({

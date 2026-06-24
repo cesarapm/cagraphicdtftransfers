@@ -2,16 +2,28 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://izaguirrequ.com/sitemap.xml
+Sitemap: https://cagraphicdtftransfers.com/sitemap.xml
 
-# Bloquear áreas administrativas
+# Bloquear áreas administrativas y sensibles
 Disallow: /admin
 Disallow: /admin/*
 Disallow: /api/
 Disallow: /storage/
+Disallow: /private/
+Disallow: /user/account
+Disallow: /checkout
+Disallow: /cart
+Disallow: /order-tracking
+Disallow: /payment-pending
+Disallow: /payment-success
+Disallow: /payment-failure
 
 # Permitir recursos públicos
 Allow: /css/
 Allow: /js/
 Allow: /images/
 Allow: /fonts/
+Allow: /build/
+
+# Configuración de crawl delay
+Crawl-delay: 1

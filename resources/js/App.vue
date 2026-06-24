@@ -131,6 +131,7 @@
               PRODUCTS
             </v-btn>
             <v-btn
+              :to="{ name: 'HeatPress' }"
               variant="text"
               class="nav-menu-link"
             >
@@ -206,6 +207,7 @@
         <v-list-item
           prepend-icon="mdi-iron"
           title="Heat Press Guide"
+          :to="{ name: 'HeatPress' }"
         ></v-list-item>
         <v-list-group value="dtf">
           <template v-slot:activator="{ props }">
@@ -294,18 +296,22 @@
 
     <!-- Footer -->
     <v-footer class="footer">
-      <v-container>
-        <v-row>
+      <v-container class="footer-container">
+        <v-row class="footer-content">
           <!-- Left Column: Links & Contact Info -->
           <v-col cols="12" md="6" class="footer-left">
+
+            <div class="footer-links-wrapper"> 
+
+            
+
             <h3 class="footer-section-title">SHOP TRANSFERS</h3>
             
             <div class="footer-nav-links">
-              <router-link to="/" class="footer-nav-link">UPLOAD A SHEET</router-link>
-              <span class="footer-separator">-</span>
-              <router-link to="/" class="footer-nav-link">Ultra color GANG SHEET</router-link>
-              <span class="footer-separator">-</span>
-              <router-link to="/" class="footer-nav-link">Ultra color</router-link>
+              <router-link to="/" class="footer-nav-link">UPLOAD A SHEET - Ultra color</router-link>
+            </div>
+            <div class="footer-nav-links">
+              <router-link to="/" class="footer-nav-link">BUILD A SHEET - Ultra color</router-link>
             </div>
             <div class="footer-nav-links">
               <router-link to="/" class="footer-nav-link">CUSTOM ART REQUEST</router-link>
@@ -316,70 +322,46 @@
 
             <div class="footer-contact-info">
               <h4 class="footer-contact-title">CALL US! 312.550.7158</h4>
-              <a href="mailto:contact@minaogtransfers.com" class="footer-contact-email">
-                contact@minaogtransfers.com
+              <a href="mailto:contact@cagraphicdtftransfers.com" class="footer-contact-email">
+                contact@cagraphicdtftransfers.com
               </a>
             </div>
 
-            <div class="footer-logo-wrapper">
-              <img :src="footerLogo" alt="CT Graphic DTF Transfers" class="footer-logo-image" />
+            <div class="footer-logo-wrapper-small">
+              <img :src="ultraColorLogo" alt="Ultra Color DTF" class="footer-logo-small" />
+            </div>
+
             </div>
           </v-col>
 
-          <!-- Right Column: Contact Form -->
-          <v-col cols="12" md="6" class="footer-right">
-            <h3 class="footer-form-title">QUESTION? COMMENT? GOOD JOKE?<br>WELL, DON'T KEEP IT TO YOURSELF!</h3>
-            
-            <form @submit.prevent="handleContactSubmit" class="footer-contact-form">
-              <div class="footer-form-row">
-                <v-text-field
-                  v-model="contactForm.name"
-                  placeholder="Name"
-                  variant="outlined"
-                  density="comfortable"
-                  hide-details
-                  class="footer-input footer-input-half"
-                ></v-text-field>
-                <v-text-field
-                  v-model="contactForm.email"
-                  placeholder="Email"
-                  type="email"
-                  variant="outlined"
-                  density="comfortable"
-                  hide-details
-                  class="footer-input footer-input-half"
-                ></v-text-field>
+          <!-- Center Column: Main Logo -->
+          <v-col cols="12" md="6" class="footer-center">
+            <div class="footer-center-wrapper">
+              <div class="footer-logo-wrapper-main">
+                <img :src="footerLogo" alt="CA Graphic DTF Transfers" class="footer-logo-main" />
               </div>
-              
-              <v-text-field
-                v-model="contactForm.phone"
-                placeholder="Phone"
-                variant="outlined"
-                density="comfortable"
-                hide-details
-                class="footer-input"
-              ></v-text-field>
-              
-              <v-textarea
-                v-model="contactForm.comment"
-                placeholder="Comment"
-                variant="outlined"
-                rows="5"
-                hide-details
-                class="footer-textarea"
-              ></v-textarea>
-              
-              <v-btn
-                type="submit"
-                class="footer-submit-btn"
-                size="large"
-                elevation="0"
-                block
-              >
-                SUBMIT
-              </v-btn>
-            </form>
+              <div class="footer-social-wrapper">
+                <a href="https://facebook.com" target="_blank" class="social-icon facebook-icon">
+                  <v-icon>mdi-facebook</v-icon>
+                  <span class="social-label">FACEBOOK</span>
+                </a>
+                <a href="https://instagram.com" target="_blank" class="social-icon instagram-icon">
+                  <v-icon>mdi-instagram</v-icon>
+                  <span class="social-label">INSTAGRAM</span>
+                </a>
+                <a href="https://tiktok.com" target="_blank" class="social-icon tiktok-icon">
+                  <v-icon>mdi-tiktok</v-icon>
+                  <span class="social-label">TIKTOK</span>
+                </a>
+                <a href="https://youtube.com" target="_blank" class="social-icon youtube-icon">
+                  <v-icon>mdi-youtube</v-icon>
+                  <span class="social-label">YOUTUBE</span>
+                </a>
+              </div>
+            </div>
           </v-col>
+
+
         </v-row>
 
         <!-- Bottom Copyright -->
@@ -388,7 +370,7 @@
             <p class="footer-copyright">Copyright   2026 cagraphicdtftransfers.com</p>
           </v-col>
           <v-col cols="12" md="6" class="text-right">
-            <p class="footer-powered">Powered by cagraphicclosers@hotmas.com</p>
+            <p class="footer-powered">Powered by cagraphicdesign@hotmail.com</p>
           </v-col>
         </v-row>
       </v-container>
@@ -411,6 +393,7 @@ let ticking = false;
 const scrollThreshold = 5;
 const logo = '/images/logo.webp';
 const footerLogo = '/images/home/logohome.webp';
+const ultraColorLogo = '/images/home/ultra-color-logo.webp';
 
 // Contact form
 const contactForm = ref({
@@ -772,8 +755,66 @@ header {
   padding: 60px 0 20px !important;
 }
 
+.footer-container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+@media (max-width: 600px) {
+  .footer-container {
+    padding: 0 15px;
+  }
+}
+
+.footer-content {
+  align-items: flex-start;
+  margin-bottom: 40px;
+
+}
+
 .footer-left {
-  padding-right: 40px;
+  padding-left: 40px;
+  padding-bottom: 20px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+@media (max-width: 959px) {
+  .footer-left {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    padding-bottom: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer-left {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+.footer-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40px;
+}
+.footer-links-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  margin-bottom: 32px;
+  width: 200px;
+}
+
+.footer-right {
+  padding-left: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .footer-section-title {
@@ -788,7 +829,7 @@ header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
@@ -802,7 +843,7 @@ header {
 }
 
 .footer-nav-link:hover {
-  color: #ffffff;
+  color: #0ea5e9;
 }
 
 .footer-separator {
@@ -831,79 +872,106 @@ header {
 }
 
 .footer-contact-email:hover {
-  color: #ffffff;
+  color: #0ea5e9;
 }
 
-.footer-logo-wrapper {
+.footer-logo-wrapper-small {
   margin-top: 32px;
 }
 
-.footer-logo-image {
-  max-width: 200px;
+@media (max-width: 600px) {
+  .footer-logo-wrapper-small {
+    margin-top: 16px;
+  }
+}
+
+.footer-logo-small {
+  max-width: 180px;
   height: auto;
 }
 
-.footer-right {
-  padding-left: 40px;
-}
-
-.footer-form-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 24px;
-  line-height: 1.4;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.footer-contact-form {
+.footer-center-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  width: 100%;
 }
 
-.footer-form-row {
+.footer-logo-wrapper-main {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  justify-content: center;
 }
 
-.footer-input-half {
-  flex: 1;
+.footer-logo-main {
+  max-width: 100%;
+  height: 280px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(14, 165, 233, 0.3));
 }
 
-.footer-input :deep(.v-field) {
-  background: #ffffff !important;
-  border-radius: 0 !important;
+/* Social Media Icons */
+.footer-social-wrapper {
+  display: flex;
+  flex-direction: row ;
+  gap: 24px;
+  align-items: center;
 }
 
-.footer-input :deep(.v-field__input) {
-  padding: 12px 16px;
-  font-size: 14px;
+.social-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: all 0.3s ease;
 }
 
-.footer-textarea :deep(.v-field) {
-  background: #ffffff !important;
-  border-radius: 0 !important;
-}
-
-.footer-textarea :deep(.v-field__input) {
-  padding: 12px 16px;
-  font-size: 14px;
-}
-
-.footer-submit-btn {
-  background: #0ea5e9 !important;
+.social-icon .v-icon {
+  width: 50px !important;
+  height: 50px !important;
+  font-size: 32px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
   color: #ffffff !important;
-  font-weight: 700 !important;
-  letter-spacing: 1px !important;
-  border-radius: 0 !important;
-  margin-top: 8px;
-  transition: all 0.3s ease !important;
 }
 
-.footer-submit-btn:hover {
+.facebook-icon .v-icon {
+  background: #0ea5e9;
+}
+
+.instagram-icon .v-icon {
+  background: #0ea5e9;
+}
+
+.tiktok-icon .v-icon {
+  background: #0ea5e9;
+}
+
+.youtube-icon .v-icon {
+  background: #0ea5e9;
+}
+
+.social-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: #d1d5db;
+  text-transform: uppercase;
+}
+
+.social-icon:hover .v-icon {
   background: #0284c7 !important;
+  transform: scale(1.1);
+}
+
+.social-icon:hover .social-label {
+  color: #0ea5e9;
 }
 
 .footer-bottom {
@@ -920,46 +988,199 @@ header {
 }
 
 /* Responsive Footer */
+@media (max-width: 1024px) {
+  .footer-left {
+    padding-right: 20px;
+  }
+
+  .footer-center {
+    padding: 0 20px;
+  }
+
+  .footer-right {
+    padding-left: 20px;
+  }
+
+  .footer-logo-main {
+    height: 220px;
+  }
+}
+
 @media (max-width: 959px) {
   .footer {
     padding: 40px 0 20px !important;
   }
 
+  .footer-container {
+    padding: 0;
+  }
+
+  .footer-content {
+    flex-direction: column;
+  }
+
   .footer-left,
+  .footer-center,
   .footer-right {
-    padding-left: 0;
-    padding-right: 0;
+    padding: 0 20px !important;
+    margin-bottom: 30px;
   }
 
   .footer-left {
-    margin-bottom: 40px;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .footer-links-wrapper {
+    align-items: center;
   }
 
   .footer-section-title {
     font-size: 18px;
+    text-align: center;
   }
 
-  .footer-form-title {
-    font-size: 13px;
+  .footer-nav-links {
+    justify-content: center;
+  }
+
+  .footer-contact-info {
+    text-align: center;
+  }
+
+  .footer-logo-wrapper-small {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .footer-logo-main {
+    height: 200px;
+  }
+
+  .footer-social-wrapper {
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .footer-center-wrapper {
+    gap: 24px;
   }
 
   .footer-bottom .text-right {
-    text-align: left !important;
+    text-align: center !important;
   }
 }
 
 @media (max-width: 600px) {
   .footer {
-    padding: 30px 0 20px !important;
+    padding: 25px 0 15px !important;
   }
 
-  .footer-form-row {
+  .footer-container {
+    padding: 0 15px;
+  }
+
+  .footer-left {
+    padding: 0 !important;
+    margin-bottom: 30px;
+    display: flex !important;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .footer-links-wrapper {
+    align-items: center;
+    width: 100%;
+    padding: 0 !important;
+  }
+
+  .footer-section-title {
+    font-size: 14px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .footer-nav-links {
+    margin-bottom: 8px;
+    gap: 4px;
+    justify-content: center;
+  }
+
+  .footer-nav-link {
+    font-size: 12px;
+  }
+
+  .footer-contact-title {
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .footer-contact-info {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .footer-contact-email {
+    font-size: 12px;
+  }
+
+  .footer-logo-wrapper-small {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .footer-logo-small {
+    max-width: 130px;
+  }
+
+  .footer-logo-main {
+    height: 120px;
+  }
+
+  .social-icon .v-icon {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 20px !important;
+  }
+
+  .social-label {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+  }
+
+  .footer-center-wrapper {
     gap: 12px;
   }
 
-  .footer-logo-image {
-    max-width: 150px;
+  .footer-social-wrapper {
+    gap: 12px;
+  }
+
+  .footer-copyright,
+  .footer-powered {
+    font-size: 10px;
+    text-align: center !important;
+  }
+
+  .footer-bottom {
+    margin-top: 20px;
+    padding-top: 15px;
+    text-align: center;
+  }
+
+  .footer-bottom .text-left,
+  .footer-bottom .text-right {
+    text-align: center !important;
   }
 }
 </style>
