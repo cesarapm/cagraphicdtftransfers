@@ -131,43 +131,8 @@
 </template>
 
 <script setup>
-// SEO Meta Tags - usando document.head directamente
-import { onMounted } from 'vue';
-
-onMounted(() => {
-  // Actualizar título
-  document.title = 'Heat Press Guide for DTF Transfers | CA Graphic DTF';
-  
-  // Crear/Actualizar meta tags
-  const metaTags = [
-    { name: 'description', content: 'Master heat pressing DTF transfers with our comprehensive guide. Learn temperature settings, techniques, and pro tips for perfect results every time.' },
-    { name: 'keywords', content: 'heat press guide, DTF transfers, heat pressing technique, temperature settings, direct-to-film' },
-    { property: 'og:title', content: 'Heat Press Guide for DTF Transfers | CA Graphic DTF' },
-    { property: 'og:description', content: 'Master heat pressing DTF transfers with our comprehensive guide. Learn temperature settings, techniques, and pro tips for perfect results every time.' },
-    { property: 'og:type', content: 'website' },
-    { property: 'twitter:title', content: 'Heat Press Guide for DTF Transfers | CA Graphic DTF' },
-    { property: 'twitter:description', content: 'Master heat pressing DTF transfers with our comprehensive guide.' }
-  ];
-
-  metaTags.forEach(tag => {
-    const selector = tag.property ? `meta[property="${tag.property}"]` : `meta[name="${tag.name}"]`;
-    let existing = document.querySelector(selector);
-    
-    if (existing) {
-      existing.remove();
-    }
-    
-    const newTag = document.createElement('meta');
-    if (tag.property) {
-      newTag.setAttribute('property', tag.property);
-      newTag.setAttribute('content', tag.content);
-    } else {
-      newTag.name = tag.name;
-      newTag.content = tag.content;
-    }
-    document.head.appendChild(newTag);
-  });
-});
+// Los meta tags se sirven desde Laravel (welcome.blade.php)
+// No es necesario modificarlos con JavaScript aquí
 </script>
 
 <style scoped>

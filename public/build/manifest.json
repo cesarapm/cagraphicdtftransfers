@@ -37,12 +37,12 @@
     "src": "resources/fonts/sanke.otf"
   },
   "resources/js/app.js": {
-    "file": "assets/app-CnLkU8dg.js",
+    "file": "assets/app-boFtuy7A.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "css": [
-      "assets/app-dU8JGwJ9.css"
+      "assets/app-C4l9_hWA.css"
     ],
     "assets": [
       "assets/logohome-CF4iJnJ0.webp",
