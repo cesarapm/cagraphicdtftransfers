@@ -321,7 +321,7 @@
             </div>
 
             <div class="footer-contact-info">
-              <h4 class="footer-contact-title">CALL US! 312.550.7158</h4>
+              <h4 class="footer-contact-title">CALL US! 312.843.4099</h4>
               <a href="mailto:contact@cagraphicdtftransfers.com" class="footer-contact-email">
                 contact@cagraphicdtftransfers.com
               </a>
@@ -362,6 +362,19 @@
           </v-col>
 
 
+        </v-row>
+
+           <v-row class="footer-bottom">
+          <v-col cols="12" class="politicas">
+            <a href="/privacy-policy" class="footer-nav-link">Privacy Policy</a>
+            <span class="footer-separator">|</span>
+            <a href="/terms-of-service" class="footer-nav-link">Terms of Service</a>
+            <span class="footer-separator">|</span>
+            <a href="/return-policy" class="footer-nav-link">Return Policy</a>  
+            <span class="footer-separator">|</span>
+            <a href="/shipping-policy" class="footer-nav-link">Shipping Policy</a>
+          </v-col>
+        
         </v-row>
 
         <!-- Bottom Copyright -->
@@ -509,6 +522,8 @@ header {
   transform: scale(1.1);
   box-shadow: 0 6px 30px rgba(37, 211, 102, 0.6) !important;
 }
+
+
 
 @media (max-width: 600px) {
   .whatsapp-float {
@@ -750,9 +765,28 @@ header {
 
 /* Footer */
 .footer {
-  background: #111827 !important;
+  background: #07080a !important;
   color: #ffffff !important;
   padding: 60px 0 20px !important;
+}
+
+
+.politicas {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+}
+
+.politicas a {
+  font-size: 20px;
+  color: #e6e8ed;
+  text-decoration: none;
+  margin: 0 8px;
+  font-weight: 800;
 }
 
 .footer-container {
@@ -764,6 +798,25 @@ header {
   .footer-container {
     padding: 0 15px;
   }
+  .politicas {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.politicas a {
+  font-size: 12px;
+  color: #e6e8ed;
+  text-decoration: none;
+  margin: 6px 8px;
+  font-weight: 800;
+}
+.politicas span {
+display: none;
+}
 }
 
 .footer-content {

@@ -136,24 +136,37 @@ import { onMounted } from 'vue';
 
 onMounted(() => {
   // Actualizar título
-  document.title = 'Heat Press Guide for DTF Transfers - CA Graphic DTF';
+  document.title = 'Heat Press Guide for DTF Transfers | CA Graphic DTF';
   
-  // Remover meta tags anteriores y agregar nuevos
-  let metaDescription = document.querySelector('meta[name="description"]');
-  if (metaDescription) metaDescription.remove();
-  
-  const newDescription = document.createElement('meta');
-  newDescription.name = 'description';
-  newDescription.content = 'Master heat pressing DTF transfers with our comprehensive guide. Learn temperature settings, techniques, and pro tips for perfect results every time.';
-  document.head.appendChild(newDescription);
-  
-  let metaKeywords = document.querySelector('meta[name="keywords"]');
-  if (metaKeywords) metaKeywords.remove();
-  
-  const newKeywords = document.createElement('meta');
-  newKeywords.name = 'keywords';
-  newKeywords.content = 'heat press guide, DTF transfers, heat pressing technique, temperature settings, direct-to-film';
-  document.head.appendChild(newKeywords);
+  // Crear/Actualizar meta tags
+  const metaTags = [
+    { name: 'description', content: 'Master heat pressing DTF transfers with our comprehensive guide. Learn temperature settings, techniques, and pro tips for perfect results every time.' },
+    { name: 'keywords', content: 'heat press guide, DTF transfers, heat pressing technique, temperature settings, direct-to-film' },
+    { property: 'og:title', content: 'Heat Press Guide for DTF Transfers | CA Graphic DTF' },
+    { property: 'og:description', content: 'Master heat pressing DTF transfers with our comprehensive guide. Learn temperature settings, techniques, and pro tips for perfect results every time.' },
+    { property: 'og:type', content: 'website' },
+    { property: 'twitter:title', content: 'Heat Press Guide for DTF Transfers | CA Graphic DTF' },
+    { property: 'twitter:description', content: 'Master heat pressing DTF transfers with our comprehensive guide.' }
+  ];
+
+  metaTags.forEach(tag => {
+    const selector = tag.property ? `meta[property="${tag.property}"]` : `meta[name="${tag.name}"]`;
+    let existing = document.querySelector(selector);
+    
+    if (existing) {
+      existing.remove();
+    }
+    
+    const newTag = document.createElement('meta');
+    if (tag.property) {
+      newTag.setAttribute('property', tag.property);
+      newTag.setAttribute('content', tag.content);
+    } else {
+      newTag.name = tag.name;
+      newTag.content = tag.content;
+    }
+    document.head.appendChild(newTag);
+  });
 });
 </script>
 
@@ -167,6 +180,19 @@ onMounted(() => {
   color: #ffffff;
   padding: 250px 20px;
   text-align: center;
+
+
+    position: relative;
+  height: 622px;
+
+ 
+  background-size: cover; /* ← cambia esto */
+  background-repeat: no-repeat;
+  background-position: center;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hero-section h1 {
@@ -423,7 +449,7 @@ onMounted(() => {
 /* Responsive */
 @media (max-width: 768px) {
   .hero-section {
-    padding: 8% 16px;
+    padding: 20% 16px;
     height: auto;
   }
 

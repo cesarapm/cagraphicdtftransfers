@@ -2,7 +2,7 @@
 import { onMounted } from 'vue';
 
 onMounted(() => {
-    document.title = 'Shipping Policy - CA Graphic DTF Transfers';
+    document.title = 'Shipping Policy | CA Graphic DTF Transfers';
 
     const updateMeta = (name, content, isProperty = false) => {
         const selector = isProperty ? `meta[property="${name}"]` : `meta[name="${name}"]`;

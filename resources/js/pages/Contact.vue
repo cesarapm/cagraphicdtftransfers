@@ -15,7 +15,7 @@ const submitMessage = ref('');
 
 // SEO Meta Tags
 onMounted(() => {
-  document.title = 'Contact Us - CA Graphic DTF Transfers';
+  document.title = 'Contact Us | CA Graphic DTF Transfers';
   
   const updateMeta = (name, content, isProperty = false) => {
     const selector = isProperty ? `meta[property="${name}"]` : `meta[name="${name}"]`;
@@ -34,7 +34,7 @@ onMounted(() => {
   
   updateMeta('description', 'Get in touch with CA Graphic DTF. We\'re here to help with your DTF transfer questions and orders. Call us at (312) 843-4099.');
   updateMeta('keywords', 'contact DTF, customer service, DTF transfers support, CA Graphic');
-  updateMeta('og:title', 'Contact Us - CA Graphic DTF Transfers', true);
+  updateMeta('og:title', 'Contact Us | CA Graphic DTF Transfers', true);
   updateMeta('og:description', 'Contact CA Graphic DTF for any questions or assistance with orders.', true);
 });
 
@@ -186,15 +186,16 @@ const handleSubmit = async () => {
 /* Hero Section */
 .contact-hero {
   position: relative;
-  height: 500px;
+  height: 622px;
+
   background-image: url('/images/portadas/CONTACT-US.webp');
-  background-size: cover;
+  background-size: cover; /* ← cambia esto */
+  background-repeat: no-repeat;
   background-position: center;
-  background-attachment: fixed;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
 @media (max-width: 1024px) {

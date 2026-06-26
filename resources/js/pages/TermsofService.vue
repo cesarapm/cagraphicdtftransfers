@@ -2,7 +2,7 @@
 import { onMounted } from 'vue';
 
 onMounted(() => {
-    document.title = 'Terms of Service - CA Graphic DTF Transfers';
+    document.title = 'Terms of Service | CA Graphic DTF Transfers';
 
     const updateMeta = (name, content, isProperty = false) => {
         const selector = isProperty ? `meta[property="${name}"]` : `meta[name="${name}"]`;
@@ -21,7 +21,7 @@ onMounted(() => {
 
     updateMeta('description', 'Terms of Service for CA Graphic DTF Transfers. Learn about our policies, user responsibilities, and legal agreements.');
     updateMeta('keywords', 'terms of service, user agreement, DTF transfers, CA Graphic');
-    updateMeta('og:title', 'Terms of Service - CA Graphic DTF Transfers', true);
+    updateMeta('og:title', 'Terms of Service | CA Graphic DTF Transfers', true);
     updateMeta('og:description', 'Terms of Service for CA Graphic DTF Transfers. Learn about our policies, user responsibilities, and legal agreements.', true);
 });
 </script>
