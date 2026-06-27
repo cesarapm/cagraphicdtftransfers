@@ -73,6 +73,13 @@ class MetaTags
             'keywords' => 'terms of service, user agreement, terms',
             'image' => 'https://cagraphicdtftransfers.com/og-image.png',
         ],
+
+        'dtf-transfers-size' => [
+            'title' => 'DTF Transfers Size | CA Graphic DTF Transfers',
+            'description' => 'Explore the size of DTF transfers available through CA Graphic DTF Transfers. Learn about the dimensions and options for your printing needs.',
+            'keywords' => 'DTF transfers size, transfer dimensions, printing options',
+            'image' => 'https://cagraphicdtftransfers.com/og-image.png',
+        ],
         
         // Auth Pages (no index)
         'login' => [

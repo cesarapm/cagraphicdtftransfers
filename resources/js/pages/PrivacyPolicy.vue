@@ -255,7 +255,7 @@ onMounted(() => {
                     <h2  class="section-title">Exercising Your CCPA Rights</h2>
                     <p>To submit a request regarding your personal information, please contact us:</p>
                     <p class="contact-info">
-                        <strong>Phone:</strong> 1-800-273-4644E<br>
+                        <strong>Phone:</strong> 1-312-843-4099<br>
                         <strong>Email:</strong> <a
                             href="mailto:contact@cagraphicdtftransfers.com">contact@cagraphicdtftransfers.com</a>
                     </p>

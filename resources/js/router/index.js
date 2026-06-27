@@ -18,6 +18,7 @@ import PrivacyPolicy from '../pages/PrivacyPolicy.vue';
 import RefundPolicy from '../pages/RefundPolicy.vue';
 import ShippingPolicy from '../pages/ShippingPolicy.vue';
 import TermsOfService from '../pages/TermsofService.vue';
+import DtfTransfersSize from '../pages/DtfTransfersSize.vue';
 const routes = [
   {
     path: '/',
@@ -107,6 +108,11 @@ const routes = [
     path: '/terms-of-service',
     name: 'TermsOfService',
     component: TermsOfService
+  },
+  {
+    path: '/dtf-transfers-size',
+    name: 'DtfTransfersSize',
+    component: DtfTransfersSize
   }
 
 ];

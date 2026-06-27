@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\PedidoController;
 use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\PaymentMethodsController;
 use App\Http\Controllers\Api\SheetSizeController;
+use App\Http\Controllers\Api\DtfSizeController;
 use App\Http\Controllers\GangSheetController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,9 @@ Route::get('/products', [ProductController::class, 'index']);
 // Sheet Sizes
 Route::get('/sheet-sizes', [SheetSizeController::class, 'index']);
 Route::get('/sheet-sizes/{unit}', [SheetSizeController::class, 'getByUnit']);
+
+// DTF Sizes
+Route::get('/dtf-sizes', [DtfSizeController::class, 'index']);
 
 // Gang Sheets - Public endpoints
 Route::post('/gang-sheets/save', [GangSheetController::class, 'store']);

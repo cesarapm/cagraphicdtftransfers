@@ -107,28 +107,7 @@ class GangSheet extends Model
         return round(($this->total_area / $sheetArea) * 100, 2);
     }
 
-    /**
-     * Calculate and set price based on dimensions and coverage
-     */
-    public function calculatePrice(): void
-    {
-        $pricing = DtfPricing::findByDimensions((float)$this->width, (float)$this->height);
-        
-        if (!$pricing) {
-            // If no exact match, calculate proportional price
-            $pricing = DtfPricing::where('is_active', true)->first();
-            if ($pricing) {
-                $area = (float)$this->width * (float)$this->height;
-                $pricePerSquareInch = $pricing->base_price / ($pricing->width * $pricing->height);
-                $this->price = round($area * $pricePerSquareInch, 2);
-            }
-            return;
-        }
 
-        $coveragePercentage = $this->getCoveragePercentage();
-        $this->coverage_percentage = $coveragePercentage;
-        $this->price = $pricing->calculatePrice($coveragePercentage);
-    }
 
     /**
      * Submit for approval

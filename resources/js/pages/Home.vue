@@ -40,7 +40,7 @@
           
           <v-row class="info-buttons-container">
             <v-col cols="12" sm="6" md="3">
-              <v-btn class="info-btn" size="x-large" elevation="0">
+            <v-btn :to="{ name: 'DtfTransfersSize' }" class="info-btn" size="x-large" elevation="0">
                 DTF BY SIZE
               </v-btn>
             </v-col>
