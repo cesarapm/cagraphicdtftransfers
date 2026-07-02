@@ -18,7 +18,7 @@
               </p>
 
               <div class="payment-state__actions">
-                <v-btn class="payment-state__btn payment-state__btn--solid" :to="{ name: 'ProductList' }" elevation="0">
+                <v-btn class="payment-state__btn payment-state__btn--solid" :to="{ name: 'DtfTransfersSize' }" elevation="0">
                   Seguir comprando
                 </v-btn>
                 <v-btn class="payment-state__btn" variant="outlined" :to="{ name: 'Home' }">

@@ -134,7 +134,7 @@ const handleLogin = async () => {
 
   try {
     await authStore.login(form.value);
-    const redirectTo = router.currentRoute.value.query.redirect || '/gang-sheet-builder';
+    const redirectTo = router.currentRoute.value.query.redirect || '/';
     router.push(redirectTo);
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Login error. Please check your credentials.';
@@ -147,9 +147,9 @@ const handleLogin = async () => {
 <style scoped>
 .auth-container {
   background: 
-    radial-gradient(circle at 20% 30%, rgba(217, 200, 181, 0.25), transparent 45%),
-    radial-gradient(circle at 80% 70%, rgba(184, 151, 120, 0.18), transparent 42%),
-    linear-gradient(135deg, #faf9f7 0%, #f5f3f0 100%);
+    radial-gradient(circle at 20% 30%, rgba(12, 159, 227, 0.15), transparent 45%),
+    radial-gradient(circle at 80% 70%, rgba(12, 159, 227, 0.1), transparent 42%),
+    linear-gradient(135deg, #f0f8ff 0%, #ffffff 100%);
   min-height: 100vh;
   padding: clamp(2rem, 5vw, 4rem) 1rem;
   display: flex;
@@ -165,20 +165,20 @@ const handleLogin = async () => {
 }
 
 .auth-card {
-  background: rgba(255, 252, 248, 0.95) !important;
-  border: 1px solid rgba(184, 151, 120, 0.15) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(12, 159, 227, 0.15) !important;
   border-radius: 24px !important;
   overflow: hidden;
   box-shadow: 
-    0 20px 50px rgba(140, 116, 95, 0.12),
-    0 8px 20px rgba(107, 91, 71, 0.08) !important;
+    0 20px 50px rgba(12, 159, 227, 0.08),
+    0 8px 20px rgba(12, 159, 227, 0.05) !important;
   backdrop-filter: blur(12px);
 }
 
 .auth-header {
   padding: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 3vw, 2rem) !important;
-  background: linear-gradient(135deg, rgba(255, 250, 244, 0.5), rgba(251, 247, 242, 0.3));
-  border-bottom: 1px solid rgba(184, 151, 120, 0.1);
+  background: linear-gradient(135deg, rgba(12, 159, 227, 0.08), rgba(12, 159, 227, 0.04));
+  border-bottom: 1px solid rgba(12, 159, 227, 0.1);
 }
 
 .auth-title {
@@ -188,7 +188,7 @@ const handleLogin = async () => {
 .title-accent {
   width: 80px;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #b89778, #8c745f, #b89778, transparent);
+  background: linear-gradient(90deg, transparent, #0C9FE3, #0080c5, #0C9FE3, transparent);
   margin: 0 auto 1.5rem;
   border-radius: 2px;
   position: relative;
@@ -201,7 +201,7 @@ const handleLogin = async () => {
   top: -3px;
   width: 5px;
   height: 5px;
-  background: #8c745f;
+  background: #0C9FE3;
   border-radius: 50%;
 }
 
@@ -212,7 +212,7 @@ const handleLogin = async () => {
   font-family: var(--font-brand), serif;
   font-size: clamp(1.8rem, 4vw, 2.2rem);
   font-weight: 500;
-  color: #6b5b47;
+  color: #0C9FE3;
   margin: 0 0 0.75rem;
   letter-spacing: -0.01em;
 }
@@ -220,7 +220,7 @@ const handleLogin = async () => {
 .subtitle-text {
   font-family: var(--font-brand), serif;
   font-size: clamp(1rem, 2vw, 1.1rem);
-  color: #8f7a65;
+  color: #0080c5;
   font-weight: 300;
   margin: 0;
 }
@@ -236,21 +236,21 @@ const handleLogin = async () => {
 
 :deep(.v-field) {
   border-radius: 12px !important;
-  background: rgba(255, 255, 255, 0.75) !important;
-  border: 1px solid rgba(184, 151, 120, 0.2) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(12, 159, 227, 0.2) !important;
   transition: all 0.3s ease;
 }
 
 :deep(.v-field:hover) {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(184, 151, 120, 0.35) !important;
-  box-shadow: 0 4px 12px rgba(140, 116, 95, 0.08);
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(12, 159, 227, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(12, 159, 227, 0.1);
 }
 
 :deep(.v-field--focused) {
   background: #ffffff !important;
-  border-color: #8c745f !important;
-  box-shadow: 0 4px 16px rgba(140, 116, 95, 0.12);
+  border-color: #0C9FE3 !important;
+  box-shadow: 0 4px 16px rgba(12, 159, 227, 0.15);
 }
 
 :deep(.v-field__input) {
@@ -262,16 +262,16 @@ const handleLogin = async () => {
 
 :deep(.v-label) {
   font-family: var(--font-brand), serif;
-  color: #7f6d5a;
+  color: #0080c5;
   font-weight: 400;
 }
 
 :deep(.v-field--focused .v-label) {
-  color: #6b5b47 !important;
+  color: #0C9FE3 !important;
 }
 
 :deep(.v-icon) {
-  color: #8c745f;
+  color: #0C9FE3;
 }
 
 :deep(.v-btn) {
@@ -289,14 +289,14 @@ const handleLogin = async () => {
 }
 
 :deep(.v-btn--variant-elevated) {
-  background: linear-gradient(135deg, #8c745f, #a68b73) !important;
-  box-shadow: 0 6px 20px rgba(140, 116, 95, 0.25) !important;
+  background: linear-gradient(135deg, #0C9FE3, #0080c5) !important;
+  box-shadow: 0 6px 20px rgba(12, 159, 227, 0.3) !important;
 }
 
 :deep(.v-btn--variant-elevated:hover) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(140, 116, 95, 0.35) !important;
-  background: linear-gradient(135deg, #a68b73, #8c745f) !important;
+  box-shadow: 0 8px 28px rgba(12, 159, 227, 0.4) !important;
+  background: linear-gradient(135deg, #0080c5, #0C9FE3) !important;
 }
 
 :deep(.v-checkbox .v-selection-control) {
@@ -305,11 +305,11 @@ const handleLogin = async () => {
 
 :deep(.v-checkbox .v-label) {
   font-size: 0.95rem;
-  color: #7f6d5a;
+  color: #0080c5;
 }
 
 :deep(.v-divider) {
-  border-color: rgba(184, 151, 120, 0.15) !important;
+  border-color: rgba(12, 159, 227, 0.15) !important;
 }
 
 :deep(.v-alert) {
@@ -318,18 +318,18 @@ const handleLogin = async () => {
 }
 
 .text-primary {
-  color: #8c745f !important;
+  color: #0C9FE3 !important;
   font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .text-primary:hover {
-  color: #6b5b47 !important;
+  color: #0080c5 !important;
 }
 
 .text-body-2 {
   font-family: var(--font-brand), serif;
-  color: #7f6d5a;
+  color: #0080c5;
 }
 
 .font-weight-medium {

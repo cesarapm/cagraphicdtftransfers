@@ -10,7 +10,9 @@ use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\PaymentMethodsController;
 use App\Http\Controllers\Api\SheetSizeController;
 use App\Http\Controllers\Api\DtfSizeController;
+use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\GangSheetController;
+use App\Http\Controllers\Api\DtfGangController;
 use Illuminate\Support\Facades\Route;
 
 // ⚠️ Public routes - No authentication required
@@ -24,6 +26,11 @@ Route::get('/sheet-sizes/{unit}', [SheetSizeController::class, 'getByUnit']);
 
 // DTF Sizes
 Route::get('/dtf-sizes', [DtfSizeController::class, 'index']);
+
+Route::get('/dtf-gangs', [DtfGangController::class, 'index']);
+
+// DTF Cart - Public endpoint for checkout
+Route::post('/checkout', [CartController::class, 'checkout']);
 
 // Gang Sheets - Public endpoints
 Route::post('/gang-sheets/save', [GangSheetController::class, 'store']);

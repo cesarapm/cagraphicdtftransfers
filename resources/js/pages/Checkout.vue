@@ -2,11 +2,11 @@
   <v-container class="checked-page">
     <h1 class="text-h3 mb-8">Finalizar Compra</h1>
 
-    <v-alert v-if="cartItems.length === 0" type="warning" class="mb-6">
-      Tu carrito está vacío. <router-link :to="{ name: 'ProductList' }">Ver productos</router-link>
+    <v-alert v-if="allCartItems.length === 0" type="warning" class="mb-6">
+      Tu carrito está vacío. <router-link :to="{ name: 'DtfTransfersSize' }">Ver productos</router-link>
     </v-alert>
 
-    <v-form v-else @submit.prevent="submitOrder">
+    <v-form v-else-if="allCartItems.length > 0" @submit.prevent="submitOrder">
       <v-row>
         <v-col cols="12" md="8">
           <!-- Información Personal -->
@@ -209,12 +209,23 @@
             <v-card-title>🛒 Tu Pedido</v-card-title>
             <v-divider></v-divider>
             <v-list density="compact">
-              <v-list-item v-for="item in cartItems" :key="item.id">
+              <!-- Items regulares -->
+              <v-list-item v-for="item in cartItems" :key="`regular-${item.id}`">
                 <v-list-item-title>
                   {{ item.name }} x{{ item.quantity }}
                 </v-list-item-title>
                 <template v-slot:append>
-                  <span>${{ (item.price * item.quantity).toFixed(2) }}</span>
+                  <span>${{ (Number(item.price) * item.quantity).toFixed(2) }}</span>
+                </template>
+              </v-list-item>
+
+              <!-- Items DTF -->
+              <v-list-item v-for="item in dtfCartItems" :key="`dtf-${item.id}`">
+                <v-list-item-title>
+                  {{ item.dtf_size?.name || 'DTF Transfer' }} x{{ item.quantity }}
+                </v-list-item-title>
+                <template v-slot:append>
+                  <span>${{ Number(item.totalPrice).toFixed(2) }}</span>
                 </template>
               </v-list-item>
             </v-list>
@@ -226,17 +237,17 @@
             <v-card-text>
               <div class="d-flex justify-space-between mb-2">
                 <span>Subtotal:</span>
-                <span>${{ subtotal.toFixed(2) }}</span>
+                <span>${{ Number(totalSubtotal).toFixed(2) }}</span>
               </div>
               <div class="d-flex justify-space-between mb-2">
                 <span>Envío:</span>
-                <span>${{ shippingCost.toFixed(2) }}</span>
+                <span>${{ Number(shippingCost).toFixed(2) }}</span>
               </div>
               <v-divider class="my-3"></v-divider>
               <div class="d-flex justify-space-between">
                 <span class="font-weight-bold text-h6">Total:</span>
                 <span class="font-weight-bold text-h5 text-success">
-                  ${{ total.toFixed(2) }}
+                  ${{ Number(total).toFixed(2) }}
                 </span>
               </div>
             </v-card-text>
@@ -384,7 +395,12 @@ import { useRouter } from 'vue-router';
 import { useCart } from '../composables/useCart';
 
 const router = useRouter();
-const { cartItems, subtotal, clearCart } = useCart();
+const { 
+  cartItems, 
+  dtfCartItems,
+  totalSubtotal, 
+  clearCart 
+} = useCart();
 
 const checkoutProfileStorageKey = 'ecommerce_checkout_profile';
 const checkoutOrdersStorageKey = 'ecommerce_checkout_orders';
@@ -405,8 +421,14 @@ const createEmptyForm = () => ({
 
 const form = ref(createEmptyForm());
 
-const shippingCost = computed(() => subtotal.value > 50 ? 0 : 10);
-const total = computed(() => subtotal.value + shippingCost.value);
+const shippingCost = computed(() => totalSubtotal.value > 50 ? 0 : 10);
+const total = computed(() => totalSubtotal.value + shippingCost.value);
+
+// Items combinados para referencia
+const allCartItems = computed(() => [
+  ...cartItems.value,
+  ...dtfCartItems.value
+]);
 
 // Método de pago seleccionado con su configuración
 const selectedPaymentMethod = computed(() => {
@@ -704,9 +726,10 @@ const openWhatsApp = () => {
 const buildTransferWhatsAppUrl = (order) => {
   const whatsappNumber = bankInfo.value?.whatsapp || '5580091558';
   
-  const itemsSummary = cartItems.value
-    .map(item => `- ${item.name} x${item.quantity}`)
-    .join('\n');
+  const itemsSummary = [
+    ...cartItems.value.map(item => `- ${item.name} x${item.quantity}`),
+    ...dtfCartItems.value.map(item => `- ${item.dtf_size?.name || 'DTF Transfer'} x${item.quantity}`)
+  ].join('\n');
 
   const message = [
     '¡Hola! Acabo de generar un pedido por transferencia.',
@@ -728,27 +751,49 @@ const buildTransferWhatsAppUrl = (order) => {
   return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 };
 
-const buildOrderPayload = () => ({
-  customer_first_name: form.value.firstName,
-  customer_last_name: form.value.lastName,
-  customer_email: form.value.email,
-  customer_phone: form.value.phone,
-  shipping_address: form.value.address,
-  shipping_city: form.value.city,
-  shipping_state: form.value.state,
-  shipping_zip_code: form.value.zipCode,
-  subtotal: subtotal.value,
-  shipping_cost: shippingCost.value,
-  total: total.value,
-  notes: form.value.notes,
-  save_customer_profile: form.value.saveCustomerProfile,
-  items: cartItems.value.map(item => ({
-    product_id: item.id,
-    product_name: item.name,
-    quantity: item.quantity,
-    unit_price: item.price
-  }))
-});
+const buildOrderPayload = () => {
+  const items = [];
+
+  // Agregar productos regulares
+  cartItems.value.forEach(item => {
+    items.push({
+      product_id: item.id,
+      product_name: item.name,
+      quantity: item.quantity,
+      unit_price: Number(item.price),
+      total: Number(item.price) * item.quantity
+    });
+  });
+
+  // Agregar items DTF
+  dtfCartItems.value.forEach(item => {
+    items.push({
+      product_id: item.dtf_size_id,
+      product_name: item.dtf_size?.name || 'DTF Transfer',
+      quantity: item.quantity,
+      unit_price: Number(item.unitPrice),
+      total: Number(item.totalPrice)
+    });
+  });
+
+  return {
+    customer_first_name: form.value.firstName,
+    customer_last_name: form.value.lastName,
+    customer_email: form.value.email,
+    customer_phone: form.value.phone,
+    shipping_address: form.value.address,
+    shipping_city: form.value.city,
+    shipping_state: form.value.state,
+    shipping_zip_code: form.value.zipCode,
+    subtotal: totalSubtotal.value,
+    shipping_cost: shippingCost.value,
+    total: total.value,
+    notes: form.value.notes,
+    save_customer_profile: form.value.saveCustomerProfile,
+    payment_method: form.value.paymentMethod,
+    items: items
+  };
+};
 
 const submitOrder = async () => {
   // Validar formulario
@@ -863,7 +908,7 @@ const submitOrder = async () => {
     scroll-behavior: smooth;
   }
 .checked-page{
-margin-top: 150px !important;
+margin-top: 30px !important;
 }
 
 .payment-option {

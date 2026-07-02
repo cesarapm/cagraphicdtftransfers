@@ -80,6 +80,12 @@ class MetaTags
             'keywords' => 'DTF transfers size, transfer dimensions, printing options',
             'image' => 'https://cagraphicdtftransfers.com/og-image.png',
         ],
+        'dtf-transfers-gang' => [
+            'title' => 'DTF Transfers Gang | CA Graphic DTF Transfers',
+            'description' => 'Learn about gang sheet options for DTF transfers at CA Graphic DTF Transfers. Optimize your printing with our gang sheet solutions.',
+            'keywords' => 'DTF transfers gang, gang sheet, printing optimization',
+            'image' => 'https://cagraphicdtftransfers.com/og-image.png',
+        ],
         
         // Auth Pages (no index)
         'login' => [
@@ -128,6 +134,14 @@ class MetaTags
             'title' => 'My Orders | CA Graphic DTF Transfers',
             'description' => 'View your order history and track your DTF transfer orders.',
             'keywords' => 'my orders, order history, order tracking',
+            'image' => 'https://cagraphicdtftransfers.com/og-image.png',
+            'index' => false,
+        ],
+
+        'cart' => [
+            'title' => 'Shopping Cart | CA Graphic DTF Transfers',
+            'description' => 'Review your shopping cart and proceed to checkout for your DTF transfer orders.',
+            'keywords' => 'shopping cart, checkout, DTF transfers',
             'image' => 'https://cagraphicdtftransfers.com/og-image.png',
             'index' => false,
         ],

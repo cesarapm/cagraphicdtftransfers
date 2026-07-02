@@ -4,15 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\DtfSize;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Pay;
+use App\Models\Product;
 use App\Services\MercadoPagoConfig;
 use App\Services\PayPalConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class PedidoController extends Controller
 {
@@ -213,11 +216,34 @@ class PedidoController extends Controller
 
     private function validateCheckoutPayload(Request $request): array
     {
-        return $request->validate([
-            'customer_first_name' => 'required|string|max:255',
-            'customer_last_name' => 'required|string|max:255',
-            'customer_email' => 'required|email|max:255',
-            'customer_phone' => 'required|string|max:30',
+        $isAuthenticated = auth()->check();
+
+        // Datos del cliente: requeridos si NO está autenticado
+        $customerRules = [
+            'customer_first_name' => $isAuthenticated ? 'nullable|string|max:255' : 'required|string|max:255',
+            'customer_last_name' => $isAuthenticated ? 'nullable|string|max:255' : 'required|string|max:255',
+            'customer_email' => $isAuthenticated ? 'nullable|email|max:255' : 'required|email|max:255',
+            'customer_phone' => $isAuthenticated ? 'nullable|string|max:30' : 'required|string|max:30',
+        ];
+
+        // Si está autenticado, usar datos del usuario autenticado
+        if ($isAuthenticated && auth()->user()) {
+            $user = auth()->user();
+            if (empty($request->input('customer_first_name'))) {
+                $request->merge(['customer_first_name' => $user->first_name ?? '']);
+            }
+            if (empty($request->input('customer_last_name'))) {
+                $request->merge(['customer_last_name' => $user->last_name ?? '']);
+            }
+            if (empty($request->input('customer_email'))) {
+                $request->merge(['customer_email' => $user->email ?? '']);
+            }
+            if (empty($request->input('customer_phone'))) {
+                $request->merge(['customer_phone' => $user->phone ?? '']);
+            }
+        }
+
+        return $request->validate(array_merge($customerRules, [
             'shipping_address' => 'required|string',
             'shipping_city' => 'required|string|max:100',
             'shipping_state' => 'required|string|max:100',
@@ -227,12 +253,15 @@ class PedidoController extends Controller
             'total' => 'required|numeric|min:0',
             'notes' => 'nullable|string',
             'save_customer_profile' => 'nullable|boolean',
+            'payment_method' => 'required|in:mercado_pago,paypal,transferencia',
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.type' => 'nullable|string|in:size,product,gang,custom', // Extensible types
+            'items.*.product_id' => 'required|integer',
             'items.*.product_name' => 'required|string|max:255',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
-        ], [
+            'items.*.image' => 'nullable|string',
+        ]), [
             'customer_first_name.required' => 'El nombre es obligatorio.',
             'customer_last_name.required' => 'El apellido es obligatorio.',
             'customer_email.required' => 'El correo electrónico es obligatorio.',
@@ -242,8 +271,11 @@ class PedidoController extends Controller
             'shipping_city.required' => 'La ciudad es obligatoria.',
             'shipping_state.required' => 'El estado es obligatorio.',
             'shipping_zip_code.required' => 'El código postal es obligatorio.',
+            'payment_method.required' => 'El método de pago es obligatorio.',
+            'payment_method.in' => 'El método de pago seleccionado no es válido.',
             'items.required' => 'Tu carrito está vacío.',
-            'items.*.product_id.exists' => 'Uno de los productos ya no está disponible.',
+            'items.min' => 'Tu carrito debe tener al menos un producto.',
+            'items.*.product_id.required' => 'Cada producto debe tener un ID válido.',
         ]);
     }
 
@@ -257,7 +289,22 @@ class PedidoController extends Controller
             $calculatedTotal = $calculatedSubtotal + $shippingCost + $tax;
             $customer = null;
 
-            if (!empty($validated['save_customer_profile'])) {
+            // Si está autenticado, usar el cliente autenticado
+            if (auth()->check() && auth()->user()) {
+                $customer = auth()->user();
+                // Actualizar datos del cliente si viene información
+                if (!empty($validated['customer_phone'])) {
+                    $customer->update([
+                        'phone' => $validated['customer_phone'],
+                        'address' => $validated['shipping_address'],
+                        'city' => $validated['shipping_city'],
+                        'state' => $validated['shipping_state'],
+                        'zip_code' => $validated['shipping_zip_code'],
+                        'last_ordered_at' => now(),
+                    ]);
+                }
+            } else {
+                // Si no está autenticado, buscar/crear cliente por email
                 $customer = Customer::updateOrCreate(
                     ['email' => strtolower((string) $validated['customer_email'])],
                     [
@@ -300,13 +347,108 @@ class PedidoController extends Controller
             ]);
 
             foreach ($validated['items'] as $item) {
-                OrderItem::create([
+                // Usar el campo 'type' para determinar qué tipo de item es
+                // Si no viene type, intentar detectar automáticamente
+                $itemType = $item['type'] ?? null;
+                $productId = null;
+                $dtfSizeId = null;
+                $dtfGangId = null;
+                
+                Log::info('🔍 PROCESSING ITEM FROM FRONTEND', [
+                    'received_product_id' => $item['product_id'] ?? 'NOT_PROVIDED',
+                    'received_type' => $itemType,
+                    'full_item' => $item,
+                ]);
+                
+                // Si no viene type, intentar detectar basándose en si existe en Product o DtfSize
+                if (empty($itemType)) {
+                    $product = Product::find($item['product_id']);
+                    if ($product) {
+                        $itemType = 'product';
+                        $productId = $item['product_id'];
+                    } else {
+                        $dtfSize = DtfSize::find($item['product_id']);
+                        if ($dtfSize) {
+                            $itemType = 'size';
+                            $dtfSizeId = $item['product_id'];
+                        } else {
+                            $itemType = 'unknown';
+                        }
+                    }
+                    
+                    Log::info('📝 Auto-detected item type (no type provided)', [
+                        'detected_type' => $itemType,
+                        'product_id' => $item['product_id'],
+                        'product_name' => $item['product_name'],
+                    ]);
+                } else {
+                    // Mapear el product_id al campo correcto según el tipo
+                    if ($itemType === 'size') {
+                        // DTF Transfer Sizes → dtf_size_id
+                        $dtfSizeId = $item['product_id'];
+                        $dtfSize = DtfSize::find($dtfSizeId);
+                        
+                        Log::info('📝 Processing DTF Size Item', [
+                            'dtf_size_id' => $dtfSizeId,
+                            'product_name' => $item['product_name'],
+                            'found_in_db' => $dtfSize ? 'Yes' : 'No',
+                        ]);
+                    } elseif ($itemType === 'gang') {
+                        // Gang Sheets → dtf_gang_id
+                        $dtfGangId = $item['product_id'];
+                        $dtfGang = \App\Models\DtfGang::find($dtfGangId);
+                        
+                        Log::info('📝 Processing Gang Sheet Item', [
+                            'dtf_gang_id' => $dtfGangId,
+                            'product_name' => $item['product_name'],
+                            'found_in_db' => $dtfGang ? 'Yes' : 'No',
+                        ]);
+                    } else {
+                        // Productos regulares (product, custom, etc.) → product_id
+                        $productId = $item['product_id'];
+                        $product = Product::find($productId);
+                        
+                        Log::info('📝 Processing Regular Product Item', [
+                            'product_id' => $productId,
+                            'item_type' => $itemType,
+                            'product_name' => $item['product_name'],
+                            'found_in_db' => $product ? 'Yes' : 'No',
+                        ]);
+                    }
+                }
+                
+                // Procesar imagen si existe
+                $imagePath = null;
+                if (!empty($item['image'])) {
+                    $imagePath = $this->saveDtfImage($item['image'], $order->id);
+                    Log::info('📸 Image saved', ['image_path' => $imagePath]);
+                }
+                
+                // Crear el OrderItem con los datos apropiados
+                $createdItem = OrderItem::create([
                     'order_id' => $order->id,
-                    'product_id' => $item['product_id'],
+                    'product_id' => $productId,
+                    'dtf_size_id' => $dtfSizeId,
+                    'dtf_gang_id' => $dtfGangId,
+                    'item_type' => $itemType,
                     'product_name' => $item['product_name'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'total' => (float) $item['unit_price'] * (int) $item['quantity'],
+                    'image' => $imagePath,
+                ]);
+                
+                Log::info('✅ OrderItem Created Successfully', [
+                    'order_item_id' => $createdItem->id,
+                    'item_type' => $createdItem->item_type,
+                    'product_id' => $createdItem->product_id,
+                    'dtf_size_id' => $createdItem->dtf_size_id,
+                    'dtf_gang_id' => $createdItem->dtf_gang_id,
+                    'product_name' => $createdItem->product_name,
+                    'quantity' => $createdItem->quantity,
+                    'unit_price' => $createdItem->unit_price,
+                    'total' => $createdItem->total,
+                    'image' => $createdItem->image,
                 ]);
             }
 
@@ -336,7 +478,7 @@ class PedidoController extends Controller
                 'title' => $item->product_name,
                 'quantity' => (int) $item->quantity,
                 'unit_price' => (float) $item->unit_price,
-                'currency_id' => 'MXN',
+                'currency_id' => 'USD',
             ])->values()->all(),
             'external_reference' => (string) $order->id,
             'notification_url' => $notificationUrl,
@@ -375,6 +517,13 @@ class PedidoController extends Controller
      */
     public function crearPedidoPayPal(Request $request)
     {
+
+
+    Log::info('Crear pedido PayPal request received', [
+            'user_id' => auth()->id(),
+            'session_id' => session()->getId(),
+            'request_data' => $request->all(),
+        ]);
         try {
             $validated = $this->validateCheckoutPayload($request);
             $order = $this->storeOrder($validated, 'paypal', 'pendiente_pago', 'pendiente');
@@ -530,15 +679,15 @@ class PedidoController extends Controller
                     'reference_id' => (string) $order->id,
                     'description' => 'Orden #' . $order->order_number,
                     'amount' => [
-                        'currency_code' => 'MXN',
+                        'currency_code' => 'USD',
                         'value' => number_format((float) $order->total, 2, '.', ''),
                         'breakdown' => [
                             'item_total' => [
-                                'currency_code' => 'MXN',
+                                'currency_code' => 'USD',
                                 'value' => number_format((float) $order->subtotal, 2, '.', ''),
                             ],
                             'shipping' => [
-                                'currency_code' => 'MXN',
+                                'currency_code' => 'USD',
                                 'value' => number_format((float) $order->shipping_cost, 2, '.', ''),
                             ],
                         ],
@@ -547,7 +696,7 @@ class PedidoController extends Controller
                         'name' => $item->product_name,
                         'quantity' => (string) $item->quantity,
                         'unit_amount' => [
-                            'currency_code' => 'MXN',
+                            'currency_code' => 'USD',
                             'value' => number_format((float) $item->unit_price, 2, '.', ''),
                         ],
                     ])->values()->all(),
@@ -638,5 +787,66 @@ class PedidoController extends Controller
             'error' => $response->json('message') ?: 'Error al capturar pago en PayPal',
             'details' => $response->json(),
         ];
+    }
+
+    /**
+     * Guardar imagen de orden item desde base64 a storage
+     * 
+     * @param string $base64Image Imagen en formato base64
+     * @param int $orderId ID de la orden
+     * @return string Ruta relativa del archivo guardado
+     */
+    private function saveDtfImage(string $base64Image, int $orderId): ?string
+    {
+        try {
+            // Validar que sea base64
+            if (!preg_match('/^data:image\/(\w+);base64,(.+)$/', $base64Image, $matches)) {
+                Log::warning('Invalid base64 image format for order item', [
+                    'order_id' => $orderId,
+                ]);
+                return null;
+            }
+
+            $imageType = $matches[1]; // webp, png, jpg, etc.
+            $imageData = $matches[2];
+            $decodedImage = base64_decode($imageData, true);
+
+            if ($decodedImage === false) {
+                Log::warning('Failed to decode base64 image for order item', [
+                    'order_id' => $orderId,
+                ]);
+                return null;
+            }
+
+            // Crear directorio si no existe (usando disk 'public')
+            $directory = 'orderitems';
+            if (!Storage::disk('public')->exists($directory)) {
+                Storage::disk('public')->makeDirectory($directory, 0755, true);
+            }
+
+            // Generar nombre único: orderitem_[order_id]_[timestamp].[ext]
+            $filename = 'orderitem_' . $orderId . '_' . time() . '.' . $imageType;
+            $path = $directory . '/' . $filename;
+
+            // Guardar el archivo en el disk 'public'
+            Storage::disk('public')->put($path, $decodedImage);
+
+            // Retornar la ruta relativa para guardar en BD
+            $relativePath = 'storage/orderitems/' . $filename;
+            
+            Log::info('✅ Image saved successfully', [
+                'order_id' => $orderId,
+                'file_path' => $relativePath,
+                'file_size' => strlen($decodedImage),
+            ]);
+
+            return $relativePath;
+        } catch (\Exception $exception) {
+            Log::error('Error saving order item image', [
+                'order_id' => $orderId,
+                'message' => $exception->getMessage(),
+            ]);
+            return null;
+        }
     }
 }

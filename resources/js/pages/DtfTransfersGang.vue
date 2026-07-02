@@ -15,7 +15,7 @@ const uploadedImage = ref(null);
 const imagePreview = ref(null);
 
 onMounted(() => {
-    document.title = 'DTF Transfers Size | CA Graphic DTF Transfers';
+    document.title = 'DTF Transfers Gang | CA Graphic DTF Transfers';
 
     const updateMeta = (name, content, isProperty = false) => {
         const selector = isProperty ? `meta[property="${name}"]` : `meta[name="${name}"]`;
@@ -32,10 +32,10 @@ onMounted(() => {
         document.head.appendChild(newMeta);
     };
 
-    updateMeta('description', 'Explore the size of DTF transfers available through CA Graphic DTF Transfers. Learn about the dimensions and options for your printing needs.');
-    updateMeta('keywords', 'DTF transfers size, transfer dimensions, printing options');
-    updateMeta('og:title', 'DTF Transfers Size | CA Graphic DTF Transfers', true);
-    updateMeta('og:description', 'Explore the size of DTF transfers available through CA Graphic DTF Transfers. Learn about the dimensions and options for your printing needs.', true);
+    updateMeta('description', 'Explore the gang options of DTF transfers available through CA Graphic DTF Transfers. Learn about the dimensions and options for your printing needs.');
+    updateMeta('keywords', 'DTF transfers gang, transfer dimensions, printing options');
+    updateMeta('og:title', 'DTF Transfers Gang | CA Graphic DTF Transfers', true);
+    updateMeta('og:description', 'Explore the gang options of DTF transfers available through CA Graphic DTF Transfers. Learn about the dimensions and options for your printing needs.', true);
 
     // Load cart items from localStorage
     const stored = localStorage.getItem('dtf_cart_items');
@@ -73,7 +73,7 @@ onMounted(() => {
             });
             
             cartItems.value = items;
-            // console.log('Loaded cart items from localStorage:', cartItems.value);
+            // console.log('Loaded cart items from localStorage:', cartItems.value); 
         } catch (error) {
             console.error('Error loading cart items:', error);
         }
@@ -85,7 +85,7 @@ onMounted(() => {
 const fetchSizes = async () => {
     loading.value = true;
     try {
-        const response = await axios.get('/api/dtf-sizes');
+        const response = await axios.get('/api/dtf-gangs');
         sizes.value = response.data.filter(size => size.is_active);
     } catch (error) {
         console.error('Error fetching sizes:', error);
@@ -145,6 +145,8 @@ const fallbackCopy = (text) => {
 
 // Cart Functions
 const addToCart = () => {
+    // console.log('🔥 addToCart() called');
+    
     if (!selectedSize.value || !uploadedImage.value) {
         alert('Please select a size and upload an image');
         return;
@@ -155,27 +157,40 @@ const addToCart = () => {
         return;
     }
 
+    // console.log('📌 selectedSize.value:', selectedSize.value);
+    // console.log('📌 selectedSize.value.id:', selectedSize.value.id);
+    // console.log('📌 selectedSize.value.name:', selectedSize.value.name);
+    // console.log('📌 selectedSize.value.price:', selectedSize.value.price);
+
     const cartItem = {
         id: Date.now(),
-        type: 'size', // 'size', 'gang', etc.
+        type: 'gang',
         product: {
-            id: selectedSize.value.id,
-            type: 'size',
+            id: selectedSize.value.id,  // ← CRITICAL: This is the gang sheet ID
+            type: 'gang',
             name: selectedSize.value.name,
             description: selectedSize.value.description || '',
             sku: selectedSize.value.sku || '',
-            category: 'dtf_size',
+            category: 'dtf_gang',
             width: selectedSize.value.width,
             height: selectedSize.value.height,
             unit: selectedSize.value.unit,
             price: selectedSize.value.price,
         },
         quantity: parseInt(quantity.value),
-        imagePreview: imagePreview.value, // Base64 string
-        imageFile: null, // Will be stored separately
+        imagePreview: imagePreview.value,
+        imageFile: null,
         unitPrice: Number(selectedSize.value.price) || 0,
         totalPrice: Number(selectedSize.value.price) * parseInt(quantity.value) || 0
     };
+
+    // console.log('✅ GANG CART ITEM CREATED:', {
+    //     id: cartItem.id,
+    //     type: cartItem.type,
+    //     'product.id': cartItem.product.id,
+    //     'product.name': cartItem.product.name,
+    //     'product.price': cartItem.product.price,
+    // });
 
     // Store the File object in a Map (not serializable)
     if (!window.dtfCartImageMap) {
@@ -189,17 +204,40 @@ const addToCart = () => {
     const serializableCart = cartItems.value.map(item => ({
         id: item.id,
         type: item.type,
-        product: item.product,
+        product: item.product,  // ← Must include full product object
         quantity: item.quantity,
         imagePreview: item.imagePreview,
         unitPrice: item.unitPrice,
         totalPrice: item.totalPrice
     }));
     
-    localStorage.setItem('dtf_cart_items', JSON.stringify(serializableCart));
+    // console.log('💾 ABOUT TO SAVE TO LOCALSTORAGE:');
+    // console.log('   Items count:', serializableCart.length);
+    serializableCart.forEach((item, idx) => {
+        // console.log(`   Item ${idx}:`, {
+        //     id: item.id,
+        //     type: item.type,
+        //     'product.id': item.product?.id,
+        //     'product.name': item.product?.name,
+        // });
+    });
     
-    // console.log('Item added to cart:', cartItem);
-    // console.log('Cart items:', cartItems.value);
+    const jsonString = JSON.stringify(serializableCart);
+    localStorage.setItem('dtf_cart_items', jsonString);
+    
+    // console.log('📝 RAW JSON SAVED TO LOCALSTORAGE:');
+    // console.log(jsonString);
+    
+    // console.log('✅ VERIFICATION - Reading back from localStorage:');
+    const readBack = JSON.parse(localStorage.getItem('dtf_cart_items'));
+    readBack.forEach((item, idx) => {
+        // console.log(`   Item ${idx}:`, {
+        //     id: item.id,
+        //     type: item.type,
+        //     'product.id': item.product?.id,
+        //     'product.name': item.product?.name,
+        // });
+    });
     
     resetForm();
     
@@ -437,7 +475,8 @@ const cartTotal = computed(() => {
                 >
                   <!-- {{ size.width }}" x {{ size.height }}" -->
 
-                  {{ Math.round(size.width) }}" x {{ Math.round(size.height) }}"
+                  <!-- {{ Math.round(size.width) }}" x {{ Math.round(size.height) }}" -->
+                  {{ size.name }}
                 </button>
               </div>
 
@@ -645,7 +684,7 @@ const cartTotal = computed(() => {
 .dtf-transfers-size-hero {
   position: relative;
   height: 622px;
-  background-image: url('/images/portadas/DTF_Transfers_SIZE.webp');
+  background-image: url('/images/portadas/DTF_Transfers_GANG.webp');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -986,7 +1025,7 @@ const cartTotal = computed(() => {
 
 .sizes-buttons {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 0.75rem;
 }
 

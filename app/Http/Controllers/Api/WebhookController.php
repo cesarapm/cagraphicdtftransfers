@@ -269,6 +269,9 @@ class WebhookController extends Controller
             case 'PAYMENT.CAPTURE.COMPLETED':
                 $this->handlePayPalPaymentCaptured($resource);
                 break;
+            case 'PAYMENT.CAPTURE.PENDING':
+                $this->handlePayPalPaymentPending($resource);
+                break;
             case 'PAYMENT.CAPTURE.DENIED':
             case 'PAYMENT.CAPTURE.DECLINED':
                 $this->handlePayPalPaymentFailed($resource);
@@ -314,6 +317,9 @@ class WebhookController extends Controller
      */
     protected function handlePayPalOrderApproved(array $resource): void
     {
+Log::info('Orden de PayPal aprobada recibida', $resource);
+
+
         $paypalOrderId = $resource['id'] ?? null;
 
         if (!$paypalOrderId) {
@@ -484,6 +490,65 @@ class WebhookController extends Controller
 
         // Enviar correos de confirmación
         $this->sendApprovedOrderMail($order->fresh('items'), $pay);
+    }
+
+    /**
+     * Manejar pago pendiente de PayPal (En revisión)
+     */
+    protected function handlePayPalPaymentPending(array $resource): void
+    {
+        $paypalOrderId = $resource['supplementary_data']['related_ids']['order_id'] ?? null;
+
+        if (!$paypalOrderId) {
+            Log::warning('Webhook de PayPal PENDING sin ID de orden relacionado');
+            return;
+        }
+
+        $order = Order::where('payment_id', $paypalOrderId)->first();
+
+        if (!$order) {
+            Log::warning('Orden de PayPal no encontrada para pago PENDING', ['paypal_order_id' => $paypalOrderId]);
+            return;
+        }
+
+        Log::info('Pago de PayPal pendiente de revisión', [
+            'order_id' => $order->id,
+            'paypal_order_id' => $paypalOrderId,
+            'reason' => $resource['status_details']['reason'] ?? 'PENDING_REVIEW',
+        ]);
+
+        // Crear o actualizar registro en la tabla pays con estado PENDING
+        $pay = Pay::updateOrCreate(
+            ['id_pago' => $paypalOrderId],
+            [
+                'order_id' => $order->id,
+                'payment_id' => $order->id,
+                'descripcion' => 'Pago PayPal Pendiente - Orden #' . $order->order_number,
+                'monto_transaccion' => $resource['amount']['value'] ?? $order->total,
+                'monto_recibido_neto' => $resource['seller_receivable_breakdown']['net_amount']['value'] ?? $resource['amount']['value'] ?? $order->total,
+                'monto_a_pagar' => $order->total,
+                'codigo_autorizacion' => $resource['id'] ?? null,
+                'estado' => 'pending_review',
+                'fecha_aprobacion' => now()->toDateTimeString(),
+                'fecha_creacion' => $resource['create_time'] ?? now()->toDateTimeString(),
+                'fecha_ultima_actualizacion' => $resource['update_time'] ?? now()->toDateTimeString(),
+                'metodo_pago' => 'paypal',
+                'numero_tarjeta' => null,
+                'ip_direccion' => null,
+                'url_notificacion' => null,
+            ]
+        );
+
+        // Actualizar el estado de la orden a pendiente de revisión
+        $order->update([
+            'payment_status' => 'pendiente_revision',
+            'order_status' => 'pendiente',
+        ]);
+
+        Log::info('Orden actualizada a estado PENDIENTE_REVISION', [
+            'order_id' => $order->id,
+            'payment_status' => 'pendiente_revision',
+        ]);
     }
 
     /**

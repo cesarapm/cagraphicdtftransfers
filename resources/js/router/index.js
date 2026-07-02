@@ -19,6 +19,9 @@ import RefundPolicy from '../pages/RefundPolicy.vue';
 import ShippingPolicy from '../pages/ShippingPolicy.vue';
 import TermsOfService from '../pages/TermsofService.vue';
 import DtfTransfersSize from '../pages/DtfTransfersSize.vue';
+import DtfTransfersGang from '../pages/DtfTransfersGang.vue';
+import Cart from '../pages/Cart.vue';
+import Checkout from '../pages/Checkout.vue';
 const routes = [
   {
     path: '/',
@@ -112,8 +115,29 @@ const routes = [
   {
     path: '/dtf-transfers-size',
     name: 'DtfTransfersSize',
-    component: DtfTransfersSize
-  }
+    component: DtfTransfersSize,
+    meta: { requiresAuth: true }
+  },
+
+  {
+    path: '/dtf-transfers-gang',
+    name: 'DtfTransfersGang',
+    component: DtfTransfersGang,
+    meta: { requiresAuth: true }
+  },
+
+  {
+    path: '/cart',
+    name: 'Cart',
+    component: Cart,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/checkout',
+    name: 'Checkout',
+    component: Checkout,
+    // meta: { requiresAuth: true }
+  } 
 
 ];
 

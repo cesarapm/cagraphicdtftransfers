@@ -7,6 +7,7 @@ use App\Filament\Resources\OrderResource;
 use App\Filament\Resources\ProductResource;
 use App\Filament\Resources\SheetSizeResource;
 use App\Filament\Resources\DtfSizeResource;
+use App\Filament\Resources\DtfGangResource;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -40,10 +41,10 @@ class AdminPanelProvider extends PanelProvider
             ->resources([
                 CustomerResource::class,
                 OrderResource::class,
-                ProductResource::class,
+                // ProductResource::class,
                 SheetSizeResource::class,
                 DtfSizeResource::class,
-                
+                DtfGangResource::class,
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

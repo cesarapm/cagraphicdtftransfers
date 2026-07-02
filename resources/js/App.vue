@@ -12,22 +12,10 @@
 
           <!-- Search Bar -->
           <div class="search-container d-none d-md-flex">
-            <v-text-field
-              v-model="searchQuery"
-              placeholder="Search products..."
-              variant="solo"
-              density="comfortable"
-              hide-details
-              flat
-              class="search-input"
-              prepend-inner-icon="mdi-magnify"
-            >
+            <v-text-field v-model="searchQuery" placeholder="Search products..." variant="solo" density="comfortable"
+              hide-details flat class="search-input" prepend-inner-icon="mdi-magnify">
             </v-text-field>
-            <v-btn
-              class="search-btn"
-              elevation="0"
-              @click="handleSearch"
-            >
+            <v-btn class="search-btn" elevation="0" @click="handleSearch">
               Search
             </v-btn>
           </div>
@@ -39,12 +27,7 @@
               <template v-if="authStore.isAuthenticated">
                 <v-menu>
                   <template v-slot:activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      icon
-                      variant="text"
-                      class="action-btn"
-                    >
+                    <v-btn v-bind="props" icon variant="text" class="action-btn">
                       <v-icon>mdi-account-circle</v-icon>
                     </v-btn>
                   </template>
@@ -69,12 +52,7 @@
                 </v-menu>
               </template>
               <template v-else>
-                <v-btn
-                  :to="{ name: 'Login' }"
-                  icon
-                  variant="text"
-                  class="action-btn"
-                >
+                <v-btn :to="{ name: 'Login' }" icon variant="text" class="action-btn">
                   <v-icon>mdi-account-circle</v-icon>
                 </v-btn>
               </template>
@@ -83,15 +61,8 @@
 
             <!-- Wishlist -->
             <div class="header-action-item">
-              <v-btn
-                icon
-                variant="text"
-                class="action-btn"
-              >
-                <v-badge
-                  content="0"
-                  color="#EF4444"
-                >
+              <v-btn icon variant="text" class="action-btn">
+                <v-badge content="0" color="#EF4444">
                   <v-icon>mdi-heart-outline</v-icon>
                 </v-badge>
               </v-btn>
@@ -100,11 +71,7 @@
 
             <!-- Cart -->
             <div class="header-action-item">
-              <v-btn
-                icon
-                variant="text"
-                class="action-btn"
-              >
+              <v-btn :to="{ name: 'Cart' }" icon variant="text" class="action-btn">
                 <v-icon>mdi-shopping</v-icon>
               </v-btn>
               <span class="action-label">CART</span>
@@ -112,10 +79,7 @@
           </div>
 
           <!-- Mobile Menu Toggle -->
-          <v-app-bar-nav-icon
-            class="d-md-none mobile-nav-toggle"
-            @click="drawer = !drawer"
-          ></v-app-bar-nav-icon>
+          <v-app-bar-nav-icon class="d-md-none mobile-nav-toggle" @click="drawer = !drawer"></v-app-bar-nav-icon>
         </v-container>
       </div>
 
@@ -123,34 +87,27 @@
       <div class="navbar-row-2 d-none d-md-block">
         <v-container class="navbar-menu-container">
           <div class="nav-menu">
-            <v-btn
-              :to="{ name: 'Home' }"
-              variant="text"
-              class="nav-menu-link"
-            >
+            <v-btn :to="{ name: 'Home' }" variant="text" class="nav-menu-link">
               PRODUCTS
             </v-btn>
-            <v-btn
-              :to="{ name: 'HeatPress' }"
-              variant="text"
-              class="nav-menu-link"
-            >
+            <v-btn :to="{ name: 'HeatPress' }" variant="text" class="nav-menu-link">
               HEAT PRESS GUIDE
             </v-btn>
-            <v-menu offset-y>
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  v-bind="props"
-                  variant="text"
-                  class="nav-menu-link"
-                >
+            <!-- <v-menu offset-y> -->
+              <!-- <template v-slot:activator="{ props }"> -->
+                <!-- <v-btn v-bind="props" variant="text" class="nav-menu-link">
                   DTF Transfers
                   <v-icon end>mdi-chevron-down</v-icon>
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item :to="{ name: 'Home' }">
-                  <v-list-item-title>All Products</v-list-item-title>
+                </v-btn> -->
+
+            <v-btn variant="text" :to="{name:'DtfTransfersSize'}"  class="nav-menu-link">
+              DTF Size
+              
+            </v-btn>
+              <!-- </template> -->
+              <!-- <v-list>
+                <v-list-item :to="{ name: 'DtfTransfersSize' }">
+                  <v-list-item-title>DTF Size</v-list-item-title>
                 </v-list-item>
                 <v-list-item>
                   <v-list-item-title>Custom Orders</v-list-item-title>
@@ -159,19 +116,15 @@
                   <v-list-item-title>Ready to Press</v-list-item-title>
                 </v-list-item>
               </v-list>
-            </v-menu>
-            <v-btn
-              variant="text"
-              class="nav-menu-link"
-            >
+            </v-menu> -->
+            <v-btn variant="text" class="nav-menu-link" :to="{ name: 'DtfTransfersGang' }">
               Upload Gang Sheet
             </v-btn>
-            <v-btn
-              :to="{ name: 'GangSheetBuilder' }"
-              variant="text"
-              class="nav-menu-link"
-            >
+            <v-btn :to="{ name: 'GangSheetBuilder' }" variant="text" class="nav-menu-link">
               Build Gang Sheet
+            </v-btn>
+                 <v-btn :to="{ name: 'Contact' }" variant="text" class="nav-menu-link">
+              Contact
             </v-btn>
           </div>
         </v-container>
@@ -179,70 +132,29 @@
     </header>
 
     <!-- Mobile Drawer -->
-    <v-navigation-drawer
-      v-model="drawer"
-      temporary
-      location="right"
-      class="drawerapp"
-    >
+    <v-navigation-drawer v-model="drawer" temporary location="right" class="drawerapp">
       <!-- Mobile Search -->
       <div class="pa-4">
-        <v-text-field
-          v-model="searchQuery"
-          placeholder="Search products..."
-          variant="outlined"
-          density="comfortable"
-          hide-details
-          prepend-inner-icon="mdi-magnify"
-          @keyup.enter="handleSearch"
-        ></v-text-field>
+        <v-text-field v-model="searchQuery" placeholder="Search products..." variant="outlined" density="comfortable"
+          hide-details prepend-inner-icon="mdi-magnify" @keyup.enter="handleSearch"></v-text-field>
       </div>
 
       <v-list>
-        <v-list-item
-          :to="{ name: 'Home' }"
-          prepend-icon="mdi-view-grid"
-          title="Products"
-        ></v-list-item>
-        <v-list-item
-          prepend-icon="mdi-iron"
-          title="Heat Press Guide"
-          :to="{ name: 'HeatPress' }"
-        ></v-list-item>
+        <v-list-item :to="{ name: 'Home' }" prepend-icon="mdi-view-grid" title="Products"></v-list-item>
+        <v-list-item prepend-icon="mdi-iron" title="Heat Press Guide" :to="{ name: 'HeatPress' }"></v-list-item>
         <v-list-group value="dtf">
           <template v-slot:activator="{ props }">
-            <v-list-item
-              v-bind="props"
-              prepend-icon="mdi-image-multiple"
-              title="DTF Transfers"
-            ></v-list-item>
+            <v-list-item v-bind="props" prepend-icon="mdi-image-multiple" title="DTF Transfers"></v-list-item>
           </template>
-          <v-list-item
-            :to="{ name: 'Home' }"
-            title="All Products"
-            class="pl-8"
-          ></v-list-item>
-          <v-list-item
-            title="Custom Orders"
-            class="pl-8"
-          ></v-list-item>
-          <v-list-item
-            title="Ready to Press"
-            class="pl-8"
-          ></v-list-item>
+          <v-list-item :to="{ name: 'Home' }" title="All Products" class="pl-8"></v-list-item>
+          <v-list-item title="Custom Orders" class="pl-8"></v-list-item>
+          <v-list-item title="Ready to Press" class="pl-8"></v-list-item>
         </v-list-group>
-        <v-list-item
-          prepend-icon="mdi-upload"
-          title="Upload Gang Sheet"
-        ></v-list-item>
-        <v-list-item
-          :to="{ name: 'GangSheetBuilder' }"
-          prepend-icon="mdi-grid"
-          title="Build Gang Sheet"
-        ></v-list-item>
-        
+        <v-list-item prepend-icon="mdi-upload" title="Upload Gang Sheet"></v-list-item>
+        <v-list-item :to="{ name: 'GangSheetBuilder' }" prepend-icon="mdi-grid" title="Build Gang Sheet"></v-list-item>
+
         <v-divider class="my-2"></v-divider>
-        
+
         <!-- Account Section -->
         <template v-if="authStore.isAuthenticated">
           <v-list-item>
@@ -250,28 +162,13 @@
               {{ authStore.customer?.email }}
             </v-list-item-title>
           </v-list-item>
-          <v-list-item
-            :to="{ name: 'CustomerOrders' }"
-            prepend-icon="mdi-package-variant-closed"
-            title="Mis Proyectos"
-          ></v-list-item>
-          <v-list-item
-            @click="handleLogout"
-            prepend-icon="mdi-logout"
-            title="Cerrar Sesión"
-          ></v-list-item>
+          <v-list-item :to="{ name: 'CustomerOrders' }" prepend-icon="mdi-package-variant-closed"
+            title="Mis Proyectos"></v-list-item>
+          <v-list-item @click="handleLogout" prepend-icon="mdi-logout" title="Cerrar Sesión"></v-list-item>
         </template>
         <template v-else>
-          <v-list-item
-            :to="{ name: 'Login' }"
-            prepend-icon="mdi-login"
-            title="Iniciar Sesión"
-          ></v-list-item>
-          <v-list-item
-            :to="{ name: 'Register' }"
-            prepend-icon="mdi-account-plus"
-            title="Registrarse"
-          ></v-list-item>
+          <v-list-item :to="{ name: 'Login' }" prepend-icon="mdi-login" title="Iniciar Sesión"></v-list-item>
+          <v-list-item :to="{ name: 'Register' }" prepend-icon="mdi-account-plus" title="Registrarse"></v-list-item>
         </template>
       </v-list>
     </v-navigation-drawer>
@@ -282,15 +179,9 @@
     </v-main>
 
     <!-- Botón flotante de WhatsApp -->
-    <v-btn
-      class="whatsapp-float"
-      color="#25D366"
-      size="x-large"
-      icon
-      elevation="8"
+    <v-btn class="whatsapp-float" color="#25D366" size="x-large" icon elevation="8"
       href="https://wa.me/13128434099?text=Hello%20CT%20Graphic%2C%20I%20have%20a%20question%20about%20your%20products."
-      target="_blank"
-    >
+      target="_blank">
       <v-icon size="32">mdi-whatsapp</v-icon>
     </v-btn>
 
@@ -301,35 +192,35 @@
           <!-- Left Column: Links & Contact Info -->
           <v-col cols="12" md="6" class="footer-left">
 
-            <div class="footer-links-wrapper"> 
+            <div class="footer-links-wrapper">
 
-            
 
-            <h3 class="footer-section-title">SHOP TRANSFERS</h3>
-            
-            <div class="footer-nav-links">
-              <router-link to="/" class="footer-nav-link">UPLOAD A SHEET - Ultra color</router-link>
-            </div>
-            <div class="footer-nav-links">
-              <router-link to="/" class="footer-nav-link">BUILD A SHEET - Ultra color</router-link>
-            </div>
-            <div class="footer-nav-links">
-              <router-link to="/" class="footer-nav-link">CUSTOM ART REQUEST</router-link>
-            </div>
-            <div class="footer-nav-links">
-              <router-link to="/" class="footer-nav-link">SEARCH</router-link>
-            </div>
 
-            <div class="footer-contact-info">
-              <h4 class="footer-contact-title">CALL US! 312.843.4099</h4>
-              <a href="mailto:contact@cagraphicdtftransfers.com" class="footer-contact-email">
-                contact@cagraphicdtftransfers.com
-              </a>
-            </div>
+              <h3 class="footer-section-title">SHOP TRANSFERS</h3>
 
-            <div class="footer-logo-wrapper-small">
-              <img :src="ultraColorLogo" alt="Ultra Color DTF" class="footer-logo-small" />
-            </div>
+              <div class="footer-nav-links">
+                <router-link to="/" class="footer-nav-link">UPLOAD A SHEET - Ultra color</router-link>
+              </div>
+              <div class="footer-nav-links">
+                <router-link to="/" class="footer-nav-link">BUILD A SHEET - Ultra color</router-link>
+              </div>
+              <div class="footer-nav-links">
+                <router-link to="/" class="footer-nav-link">CUSTOM ART REQUEST</router-link>
+              </div>
+              <div class="footer-nav-links">
+                <router-link to="/" class="footer-nav-link">SEARCH</router-link>
+              </div>
+
+              <div class="footer-contact-info">
+                <h4 class="footer-contact-title">CALL US! 312.843.4099</h4>
+                <a href="mailto:contact@cagraphicdtftransfers.com" class="footer-contact-email">
+                  contact@cagraphicdtftransfers.com
+                </a>
+              </div>
+
+              <div class="footer-logo-wrapper-small">
+                <img :src="ultraColorLogo" alt="Ultra Color DTF" class="footer-logo-small" />
+              </div>
 
             </div>
           </v-col>
@@ -364,23 +255,23 @@
 
         </v-row>
 
-           <v-row class="footer-bottom">
+        <v-row class="footer-bottom">
           <v-col cols="12" class="politicas">
             <a href="/privacy-policy" class="footer-nav-link">Privacy Policy</a>
             <span class="footer-separator">|</span>
             <a href="/terms-of-service" class="footer-nav-link">Terms of Service</a>
             <span class="footer-separator">|</span>
-            <a href="/return-policy" class="footer-nav-link">Return Policy</a>  
+            <a href="/return-policy" class="footer-nav-link">Return Policy</a>
             <span class="footer-separator">|</span>
             <a href="/shipping-policy" class="footer-nav-link">Shipping Policy</a>
           </v-col>
-        
+
         </v-row>
 
         <!-- Bottom Copyright -->
         <v-row class="footer-bottom">
           <v-col cols="12" md="6" class="text-left">
-            <p class="footer-copyright">Copyright   2026 cagraphicdtftransfers.com</p>
+            <p class="footer-copyright">Copyright 2026 cagraphicdtftransfers.com</p>
           </v-col>
           <v-col cols="12" md="6" class="text-right">
             <p class="footer-powered">Powered by cagraphicdesign@hotmail.com</p>
@@ -719,12 +610,14 @@ header {
 
 /* Main Content */
 .v-main {
-  padding-top: 160px !important; /* Espacio para el header fijo con dos filas */
+  padding-top: 160px !important;
+  /* Espacio para el header fijo con dos filas */
 }
 
 @media (max-width: 959px) {
   .v-main {
-    padding-top: 70px !important; /* Menos espacio en móvil donde solo hay una fila visible */
+    padding-top: 70px !important;
+    /* Menos espacio en móvil donde solo hay una fila visible */
   }
 }
 
@@ -798,25 +691,28 @@ header {
   .footer-container {
     padding: 0 15px;
   }
+
   .politicas {
-  text-align: center;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-.politicas a {
-  font-size: 12px;
-  color: #e6e8ed;
-  text-decoration: none;
-  margin: 6px 8px;
-  font-weight: 800;
-}
-.politicas span {
-display: none;
-}
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .politicas a {
+    font-size: 12px;
+    color: #e6e8ed;
+    text-decoration: none;
+    margin: 6px 8px;
+    font-weight: 800;
+  }
+
+  .politicas span {
+    display: none;
+  }
 }
 
 .footer-content {
@@ -854,6 +750,7 @@ display: none;
   justify-content: center;
   padding: 0 40px;
 }
+
 .footer-links-wrapper {
   display: flex;
   flex-direction: column;
@@ -968,7 +865,7 @@ display: none;
 /* Social Media Icons */
 .footer-social-wrapper {
   display: flex;
-  flex-direction: row ;
+  flex-direction: row;
   gap: 24px;
   align-items: center;
 }

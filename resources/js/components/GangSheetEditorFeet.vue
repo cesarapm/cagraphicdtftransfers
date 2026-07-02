@@ -365,7 +365,7 @@ export default {
         sheetWidth.value = parseFloat(selected.width);
         sheetHeight.value = parseFloat(selected.height);
         
-        console.log('📐 Cambiando tamaño:', sheetWidth.value, '×', sheetHeight.value, 'feet');
+        // console.log('📐 Cambiando tamaño:', sheetWidth.value, '×', sheetHeight.value, 'feet');
         
         // Limpiar imágenes del canvas al cambiar tamaño
         images.value = [];
@@ -378,7 +378,7 @@ export default {
         // Doble nextTick para asegurar que los computed se actualicen
         nextTick(() => {
           nextTick(() => {
-            console.log('📊 Canvas pixels:', canvasWidthPixels.value, '×', canvasHeightPixels.value);
+            // console.log('📊 Canvas pixels:', canvasWidthPixels.value, '×', canvasHeightPixels.value);
             updateStageSize();
           });
         });
@@ -394,8 +394,8 @@ export default {
       const containerWidth = editorContainer.value.clientWidth - 32;
       const containerHeight = editorContainer.value.clientHeight || 600;
       
-      console.log('📦 Container:', containerWidth, '×', containerHeight);
-      console.log('🎨 Canvas (pixels):', canvasWidthPixels.value, '×', canvasHeightPixels.value);
+      // console.log('📦 Container:', containerWidth, '×', containerHeight);
+      // console.log('🎨 Canvas (pixels):', canvasWidthPixels.value, '×', canvasHeightPixels.value);
       
       // Calcular zoom to fit
       zoom.zoomToFit(
@@ -407,7 +407,7 @@ export default {
       );
       
       const z = zoom.zoomLevel.value;
-      console.log('🔍 Zoom calculado:', z, '=', zoom.zoomPercentage.value);
+      // console.log('🔍 Zoom calculado:', z, '=', zoom.zoomPercentage.value);
       
       // Actualizar stage config SIN aplicar scale (el zoom se aplica en los cálculos)
       stageConfig.width = (canvasWidthPixels.value * z) + RULERSIZE;
@@ -415,7 +415,7 @@ export default {
       stageConfig.scaleX = 1; // NO aplicar zoom aquí
       stageConfig.scaleY = 1; // NO aplicar zoom aquí
       
-      console.log('📏 Stage final:', stageConfig.width, '×', stageConfig.height);
+      // console.log('📏 Stage final:', stageConfig.width, '×', stageConfig.height);
       
       nextTick(() => {
         updateKonvaLayers();
@@ -430,7 +430,7 @@ export default {
       const gridDetail = zoom.getGridDetail.value;
       const rulerDetail = zoom.getRulerDetail.value;
       
-      console.log('🎨 Actualizando layers con zoom:', z);
+      // console.log('🎨 Actualizando layers con zoom:', z);
       
       // Grid Layer - Rectángulo blanco del canvas
       if (gridLayer.value) {
@@ -454,7 +454,7 @@ export default {
         });
         
         gridLayerNode.add(canvasRectShape.value);
-        console.log('✅ Canvas rect:', canvasWidthPixels.value * z, '×', canvasHeightPixels.value * z);
+        // console.log('✅ Canvas rect :', canvasWidthPixels.value * z, '×', canvasHeightPixels.value * z);
         
         // Grid (opcional)
         if (showGrid.value) {
@@ -1022,10 +1022,10 @@ export default {
           }
         }
 
-        console.log('💾 Preparando datos para guardar con transparencia...');
+      // console.log('💾 Preparando datos para guardar con transparencia...');
         
         // ⭐ Generar PNG transparente
-        console.log('🎨 Generando imagen PNG con fondo transparente...');
+        // console.log('🎨 Generando imagen PNG con fondo transparente...');
         const pngDataURL = await generatePrintFile();
         
         if (!pngDataURL || pngDataURL === 'data:,') {
