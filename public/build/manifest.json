@@ -24,7 +24,7 @@
     "src": "public/images/logo.webp"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CbMtv5qV.css",
+    "file": "assets/app-BGg-WNdU.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -37,12 +37,12 @@
     "src": "resources/fonts/sanke.otf"
   },
   "resources/js/app.js": {
-    "file": "assets/app-BSHuG8WV.js",
+    "file": "assets/app-DimVL03f.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "css": [
-      "assets/app-CRtuLBZg.css"
+      "assets/app-DWNp-oBY.css"
     ],
     "assets": [
       "assets/logohome-CF4iJnJ0.webp",
