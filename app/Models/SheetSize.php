@@ -47,14 +47,20 @@ class SheetSize extends Model
 
     
     /**
-     * Get the promotion for this DtfSize
+     * Get the promotion for this SheetSize
      */
     public function promotion(): MorphOne
     {
         return $this->morphOne(Promotion::class, 'promotionable');
     }
 
-  
+    /**
+     * Get all promotions for this SheetSize
+     */
+    public function promotions(): MorphMany
+    {
+        return $this->morphMany(Promotion::class, 'promotionable');
+    }
 
     /**
      * Get active promotion if exists
