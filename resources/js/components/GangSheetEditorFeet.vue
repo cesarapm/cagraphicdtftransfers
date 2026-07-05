@@ -351,7 +351,7 @@ export default {
 
     const loadAvailableSizes = async () => {
       try {
-        const response = await fetch('/api/sheet-sizes/feet');
+        const response = await fetch('/api/sheet-sizes/by-unit/feet');
         const data = await response.json();
         availableSizes.value = data;
       } catch (error) {
@@ -1036,7 +1036,7 @@ export default {
         const pngResponse = await fetch(pngDataURL);
         const pngBlob = await pngResponse.blob();
         
-        console.log('✅ PNG generado:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
+        // console.log('✅ PNG generado:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
         
         const formData = new FormData();
         
@@ -1060,15 +1060,15 @@ export default {
         }));
         
         formData.append('images', JSON.stringify(imagesMetadata));
-        console.log('📊 Metadata:', imagesMetadata);
+        // console.log('📊 Metadata:', imagesMetadata);
         
         // ⭐ NUEVO: Enviar PNG transparente compilado
-        console.log('📦 Añadiendo PNG transparente compilado...');
+        // console.log('📦 Añadiendo PNG transparente compilado...');
         formData.append('gang_sheet_image', pngBlob, `gang-sheet-${sheetWidth.value}x${sheetHeight.value}ft-${exportDPI.value}dpi.png`);
-        console.log('📁 Archivo compilado:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
+        // console.log('📁 Archivo compilado:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
         
         // Agregar archivos originales como respaldo
-        console.log('📦 Preparando archivos originales para respaldo...');
+        // console.log('📦 Preparando archivos originales para respaldo...');
         let filesAdded = 0;
         
         for (let index = 0; index < images.value.length; index++) {
@@ -1077,15 +1077,15 @@ export default {
             if (btn) btn.textContent = `Preparando ${index + 1}/${images.value.length}...`;
             formData.append(`image_files[${index}]`, img.file);
             filesAdded++;
-            console.log(`✓ Archivo ${index + 1}: ${img.name} (${(img.file.size / 1024 / 1024).toFixed(2)}MB)`);
+            // console.log(`✓ Archivo ${index + 1}: ${img.name} (${(img.file.size / 1024 / 1024).toFixed(2)}MB)`);
           }
         }
         
-        console.log(`📁 Total archivos originales: ${filesAdded}`);
+        //  console.log(`📁 Total archivos originales: ${filesAdded}`);
         
         if (btn) btn.textContent = 'Guardando en servidor...';
 
-        console.log('🚀 Enviando a /api/gang-sheets/save...');
+        // console.log('🚀 Enviando a /api/gang-sheets/save...');
         
         const response = await fetch('/api/gang-sheets/save', {
           method: 'POST',
@@ -1095,7 +1095,7 @@ export default {
           body: formData,
         });
 
-        console.log('📡 Response status:', response.status);
+        // console.log('📡 Response status:', response.status);
         
         if (!response.ok) {
           const text = await response.text();
@@ -1104,9 +1104,9 @@ export default {
         }
         
         const data = await response.json();
-        console.log('✅ Response data:', data);
+        // console.log('✅ Response data:', data);
 
-        console.log('✅ GUARDADO EXITOSO');
+        // console.log('✅ GUARDADO EXITOSO');
         
         const message = `✅ Gang Sheet guardado exitosamente!\n\n📋 ID: ${data.data.id}\n📐 Tamaño: ${sheetWidth.value}ft x ${sheetHeight.value}ft\n📊 Imágenes: ${images.value.length}\n🎨 Formato: PNG transparente (sin fondo blanco)\n📝 DPI: ${exportDPI.value}\n\n¡Listo para producción!`;
         alert(message);
@@ -1162,7 +1162,7 @@ export default {
       const width = canvas.width;
       const height = canvas.height;
       
-      console.log('🔄 Procesando fondo blanco...');
+      // console.log('🔄 Procesando fondo blanco...');
       
       const imageData = ctx.getImageData(0, 0, width, height);
       const data = imageData.data;
@@ -1184,7 +1184,7 @@ export default {
       }
       
       ctx.putImageData(imageData, 0, 0);
-      console.log('✅ Fondo blanco procesado con transparencia');
+      // console.log('✅ Fondo blanco procesado con transparencia');
       return canvas;
     };
 
@@ -1192,15 +1192,15 @@ export default {
      * Exporta el canvas como PNG transparente
      */
     const exportTransparentPNG = (canvas) => {
-      console.log('📦 Exportando PNG con canal alpha...');
+      // console.log('📦 Exportando PNG con canal alpha...');
       const dataURL = canvas.toDataURL('image/png');
-      console.log('✅ PNG exportado');
+      // console.log('✅ PNG exportado');
       return dataURL;
     };
 
     const generatePrintFile = async () => {
-      console.log('🖼️ === INICIO EXPORTACIÓN DTF CON TRANSPARENCIA ===');
-      console.log('📊 Total imágenes en canvas:', images.value.length);
+      // console.log('🖼️ === INICIO EXPORTACIÓN DTF CON TRANSPARENCIA ===');
+      // console.log('📊 Total imágenes en canvas:', images.value.length);
       
       if (images.value.length === 0) {
         throw new Error('No hay imágenes en el canvas. Agrega imágenes primero.');
@@ -1215,9 +1215,9 @@ export default {
       const MAX_MEGAPIXELS = 250; // Límite seguro con margen
       let currentMegapixels = (exportWidth * exportHeight) / 1000000;
       
-      console.log('📏 Tamaño inicial:', exportWidth, 'x', exportHeight, 'px');
-      console.log('📐 DPI solicitado:', EXPORT_DPI);
-      console.log('💾 Megapixels:', currentMegapixels.toFixed(1), 'MP');
+      // console.log('📏 Tamaño inicial:', exportWidth, 'x', exportHeight, 'px');
+      // console.log('📐 DPI solicitado:', EXPORT_DPI);
+      // console.log('💾 Megapixels:', currentMegapixels.toFixed(1), 'MP');
       
       // Si excede el límite, reducir DPI automáticamente
       if (currentMegapixels > MAX_MEGAPIXELS) {
@@ -1228,12 +1228,12 @@ export default {
         currentMegapixels = (exportWidth * exportHeight) / 1000000;
         
         console.warn('⚠️ Canvas demasiado grande, reduciendo DPI automáticamente');
-        console.log('📐 DPI ajustado:', EXPORT_DPI);
-        console.log('📏 Tamaño ajustado:', exportWidth, 'x', exportHeight, 'px');
-        console.log('💾 Megapixels ajustados:', currentMegapixels.toFixed(1), 'MP');
+        // console.log('📐 DPI ajustado:', EXPORT_DPI);
+        // console.log('📏 Tamaño ajustado:', exportWidth, 'x', exportHeight, 'px');
+        // console.log('💾 Megapixels ajustados:', currentMegapixels.toFixed(1), 'MP');
       }
       
-      console.log('💾 Memoria estimada:', Math.round((exportWidth * exportHeight * 4) / 1024 / 1024), 'MB');
+      // console.log('💾 Memoria estimada:', Math.round((exportWidth * exportHeight * 4) / 1024 / 1024), 'MB');
       
       // Validar que el tamaño no sea excesivo
       const maxPixels = 50000 * 50000; // 2.5 gigapixels max
@@ -1261,14 +1261,14 @@ export default {
       }
       
       // ⭐ NO llenar con blanco - canvas comienza transparente
-      console.log('✅ Canvas creado con transparencia habilitada (sin fondo blanco)');
+      // console.log('✅ Canvas creado con transparencia habilitada (sin fondo blanco)');
       
       let imagesDrawn = 0;
       let imagesSkipped = 0;
       
       for (let idx = 0; idx < images.value.length; idx++) {
         const img = images.value[idx];
-        console.log(`\n📷 Imagen ${idx + 1}/${images.value.length}:`, img.name);
+        // console.log(`\n📷 Imagen ${idx + 1}/${images.value.length}:`, img.name);
         
         try {
           if (!img.imageObj) {
@@ -1277,11 +1277,11 @@ export default {
             continue;
           }
           
-          console.log('  ✓ imageObj existe');
-          console.log('  - complete:', img.imageObj.complete);
-          console.log('  - width:', img.imageObj.width);
-          console.log('  - height:', img.imageObj.height);
-          console.log('  - src:', img.imageObj.src?.substring(0, 50) + '...');
+          // console.log('  ✓ imageObj existe');
+          // console.log('  - complete:', img.imageObj.complete);
+          // console.log('  - width:', img.imageObj.width);
+          // console.log('  - height:', img.imageObj.height);
+          // console.log('  - src:', img.imageObj.src?.substring(0, 50) + '...');
           
           if (!img.imageObj.complete) {
             console.warn('  ⚠️ Imagen no completamente cargada');
@@ -1294,8 +1294,8 @@ export default {
           const exportImgWidth = Math.round(img.widthInches * EXPORT_DPI);
           const exportImgHeight = Math.round(img.heightInches * EXPORT_DPI);
           
-          console.log(`  📍 Posición: (${exportX}, ${exportY})`);
-          console.log(`  📏 Tamaño: ${exportImgWidth} × ${exportImgHeight}`);
+          // console.log(`  📍 Posición: (${exportX}, ${exportY})`);
+          // console.log(`  📏 Tamaño: ${exportImgWidth} × ${exportImgHeight}`);
           
           if (exportImgWidth > 0 && exportImgHeight > 0) {
             // Habilitar suavizado para mejor calidad
@@ -1309,7 +1309,7 @@ export default {
               exportImgWidth,
               exportImgHeight
             );
-            console.log('  ✅ Dibujada exitosamente');
+            // console.log('  ✅ Dibujada exitosamente');
             imagesDrawn++;
           } else {
             console.warn('  ⚠️ Dimensiones inválidas');
@@ -1321,28 +1321,28 @@ export default {
         }
       }
       
-      console.log('\n📊 RESUMEN:');
-      console.log('  ✅ Imágenes dibujadas:', imagesDrawn);
-      console.log('  ⚠️ Imágenes omitidas:', imagesSkipped);
-      console.log('  📊 Total:', images.value.length);
+      // console.log('\n📊 RESUMEN:');
+      // console.log('  ✅ Imágenes dibujadas:', imagesDrawn);
+      // console.log('  ⚠️ Imágenes omitidas:', imagesSkipped);
+      // console.log('  📊 Total:', images.value.length);
       
       if (imagesDrawn === 0) {
         throw new Error('No se pudo dibujar ninguna imagen. Verifica la consola para más detalles.');
       }
       
       // ⭐ Verificar y procesar fondo blanco si existe
-      console.log('🔍 Verificando si hay fondo blanco...');
+      // console.log('🔍 Verificando si hay fondo blanco...');
       if (hasWhiteBackground(canvas)) {
-        console.log('⚠️ Fondo blanco detectado, procesando...');
+        // console.log('⚠️ Fondo blanco detectado, procesando...');
         removeWhiteBackground(canvas);
       } else {
-        console.log('✅ No se detectó fondo blanco o ya tiene transparencia');
+        // console.log('✅ No se detectó fondo blanco o ya tiene transparencia');
       }
       
       // ⭐ Exportar como PNG transparente
-      console.log('🎨 Convirtiendo canvas a PNG transparente...');
+      // console.log('🎨 Convirtiendo canvas a PNG transparente...');
       const dataURL = exportTransparentPNG(canvas);
-      console.log('✅ DataURL generado, tamaño:', Math.round(dataURL.length / 1024 / 1024), 'MB');
+      // console.log('✅ DataURL generado, tamaño:', Math.round(dataURL.length / 1024 / 1024), 'MB');
       
       return dataURL;
     };
@@ -1366,7 +1366,7 @@ export default {
           }
         }
 
-        console.log('🚀 Iniciando descarga DTF con transparencia...');
+        // console.log('🚀 Iniciando descarga DTF con transparencia...');
         const dataURL = await generatePrintFile();
         
         if (!dataURL || dataURL === 'data:,') {
@@ -1399,11 +1399,11 @@ export default {
         const fileSizeMB = (blob.size / 1024 / 1024).toFixed(2);
         const qualityMsg = exportDPI.value === 300 ? 'Máxima calidad' : exportDPI.value === 200 ? 'Excelente calidad' : 'Buena calidad';
         
-        console.log('✅ EXPORTACIÓN COMPLETADA');
-        console.log('📋 Archivo:', filename);
-        console.log('📊 Tamaño:', fileSizeMB, 'MB');
-        console.log('📐 DPI:', exportDPI.value, `(${qualityMsg})`);
-        console.log('🎨 Formato: PNG con canal alpha (transparencia)');
+        // console.log('✅ EXPORTACIÓN COMPLETADA');
+        // console.log('📋 Archivo:', filename);
+        // console.log('📊 Tamaño:', fileSizeMB, 'MB');
+        // console.log('📐 DPI:', exportDPI.value, `(${qualityMsg})`);
+        // console.log('🎨 Formato: PNG con canal alpha (transparencia)');
         
         const message = `✅ DESCARGADO: ${filename}\n\n📊 Tamaño: ${fileSizeMB} MB\n📐 Resolución: ${Math.round(canvasWidthInches.value * exportDPI.value)} x ${Math.round(canvasHeightInches.value * exportDPI.value)} px @ ${exportDPI.value} DPI\n🎨 Formato: PNG transparente (sin fondo blanco)\n🖼️ Imágenes: ${images.value.length}\n\n✨ ¡Listo para impresión DTF profesional!`;
         alert(message);

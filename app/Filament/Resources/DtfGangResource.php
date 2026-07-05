@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DtfGangResource\Pages;
 use App\Filament\Resources\DtfGangResource\RelationManagers;
+use App\Filament\Resources\DtfGangResource\RelationManagers\PromotionsRelationManager;
 use App\Models\DtfGang;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -142,7 +143,7 @@ class DtfGangResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            PromotionsRelationManager::class,
         ];
     }
 

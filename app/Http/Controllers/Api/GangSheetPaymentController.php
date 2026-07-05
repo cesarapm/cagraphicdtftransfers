@@ -114,7 +114,7 @@ class GangSheetPaymentController extends Controller
             match ($event->type) {
                 'payment_intent.succeeded' => $this->handlePaymentSucceeded($event),
                 'payment_intent.payment_failed' => $this->handlePaymentFailed($event),
-                default => \Log::info('Unhandled webhook event: ' . $event->type),
+                // default => \Log::info('Unhandled webhook event: ' . $event->type),
             };
 
             return response()->json(['success' => true]);
@@ -140,7 +140,7 @@ class GangSheetPaymentController extends Controller
         // Actualizar orden a pagada
         $order->update(['status' => 'paid']);
 
-        \Log::info("Payment succeeded for gang sheet {$gangSheetId}");
+        // \Log::info("Payment succeeded for gang sheet {$gangSheetId}");
 
         // Generar imagen de alta resolución en background job
         // Para no bloquear el webhook, usamos un job asincrónico

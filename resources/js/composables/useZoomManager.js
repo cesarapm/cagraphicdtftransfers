@@ -5,12 +5,12 @@
 import { ref, computed } from 'vue';
 
 export function useZoomManager() {
-  const zoomLevel = ref(1); // 1 = 100%
+  const zoomLevel = ref(2.5); // 2.5 = 250% (default)
   const MIN_ZOOM = 0.25;   // 25%
-  const MAX_ZOOM = 8;       // 800%
+  const MAX_ZOOM = 4;       // 400%
 
   // Niveles de zoom predefinidos para botones
-  const ZOOM_PRESETS = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4, 6, 8];
+  const ZOOM_PRESETS = [0.25, 0.5, 0.75, 1, 1.5, 2, 2.5, 3, 3.5, 4];
 
   /**
    * Ajustar zoom manualmente

@@ -8,6 +8,7 @@ import Contact from '../pages/Contact.vue';
 import Login from '../pages/Login.vue';
 import Register from '../pages/Register.vue';
 import GangSheetBuilder from '../pages/GangSheetBuilder.vue';
+import GangSheetBuilderCanvas from '../pages/GangSheetBuilderCanvas.vue';
 import PaymentSuccess from '../pages/PaymentSuccess.vue';
 import PaymentPending from '../pages/PaymentPending.vue';
 import PaymentFailure from '../pages/PaymentFailure.vue';
@@ -49,6 +50,13 @@ const routes = [
     path: '/gang-sheet-builder',
     name: 'GangSheetBuilder',
     component: GangSheetBuilder,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/gang-sheet-builder-canvas/:sheetId',
+    name: 'GangSheetBuilderCanvas',
+    component: GangSheetBuilderCanvas,
+    props: true,
     meta: { requiresAuth: true }
   },
   {

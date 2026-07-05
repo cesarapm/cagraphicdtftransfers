@@ -25,7 +25,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('order_items', function (Blueprint $table) {
-            $table->dropColumnIfExists('dtf_gang_id');
+            if (Schema::hasColumn('order_items', 'dtf_gang_id')) {
+                $table->dropColumn('dtf_gang_id');
+            }
         });
     }
 };

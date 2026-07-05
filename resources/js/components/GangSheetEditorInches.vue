@@ -12,7 +12,7 @@
             Auto Build
           </button>
           <button @click="clearCanvas" class="btn-secondary">Clear All</button>
-          <button @click="downloadGangSheet($event)" class="btn-success">
+         <button @click="downloadGangSheet($event)" class="btn-success">
             <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
@@ -24,18 +24,27 @@
             </svg>
             Save to Server
           </button>
+          <button 
+            @click="addGangSheetToCart(lastSavedGangSheet)" 
+            class="btn-primary"
+          >
+            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+         Add to Cart
+          </button>
         </div>
       </div>
 
       <!-- Sheet Size & Quality Selector -->
       <div class="flex items-center gap-4 mb-4">
-        <label class="font-semibold text-gray-700">Sheet Size:</label>
+        <!-- <label class="font-semibold text-gray-700">Sheet Size:</label>
         <select v-model="selectedSizeId" @change="changeSheetSize" class="px-4 py-2 border rounded-lg">
           <option value="">-- Select a size --</option>
           <option v-for="size in availableSizes" :key="size.id" :value="size.id">
             {{ size.name }} - ${{ parseFloat(size.price).toFixed(2) }}
           </option>
-        </select>
+        </select> -->
         
         <label class="font-semibold text-gray-700 ml-4">Export Quality:</label>
         <select v-model="exportDPI" class="px-4 py-2 border rounded-lg">
@@ -251,7 +260,13 @@ import { createGuideLayer } from './konva/GuideLayer';
 
 export default {
   name: 'GangSheetEditorInches',
-  setup() {
+  props: {
+    sheetData: {
+      type: Object,
+      default: null
+    }
+  },
+  setup(props) {
     // Composables
     const converter = useUnitConverter();
     const zoom = useZoomManager();
@@ -323,6 +338,9 @@ export default {
     const verticalRulerShape = ref(null);
     const guidesShape = ref(null);
 
+    // Guardar último gang sheet guardado para botón de carrito
+    const lastSavedGangSheet = ref(null);
+
     const coveragePercentage = computed(() => {
       const totalAreaSqInches = canvasWidthInches.value * canvasHeightInches.value;
       const usedAreaSqInches = images.value.reduce((acc, img) => {
@@ -331,15 +349,17 @@ export default {
       return Math.round((usedAreaSqInches / totalAreaSqInches) * 100);
     });
 
-    const loadAvailableSizes = async () => {
-      try {
-        const response = await fetch('/api/sheet-sizes/inches');
-        const data = await response.json();
-        availableSizes.value = data;
-      } catch (error) {
-        console.error('Error loading sheet sizes:', error);
-      }
-    };
+    // const loadAvailableSizes = async () => {
+    //   try {
+    //     const response = await fetch('/api/sheet-sizes/by-unit/inches');
+    //     const data = await response.json();
+    //     availableSizes.value = data;
+
+    //     console.log('✅ Available sheet sizes loaded:', availableSizes.value);
+    //   } catch (error) {
+    //     console.error('Error loading sheet sizes:', error);
+    //   }
+    // };
 
     const changeSheetSize = () => {
       const selected = availableSizes.value.find(s => s.id == selectedSizeId.value);
@@ -347,7 +367,7 @@ export default {
         sheetWidth.value = parseFloat(selected.width);
         sheetHeight.value = parseFloat(selected.height);
         
-        console.log('📐 Cambiando tamaño:', sheetWidth.value, '×', sheetHeight.value, 'inches');
+        // console.log('📐 Cambiando tamaño:', sheetWidth.value, '×', sheetHeight.value, 'inches');
         
         // Limpiar imágenes del canvas al cambiar tamaño
         images.value = [];
@@ -360,7 +380,7 @@ export default {
         // Doble nextTick para asegurar que los computed se actualicen
         nextTick(() => {
           nextTick(() => {
-            console.log('📊 Canvas pixels:', canvasWidthPixels.value, '×', canvasHeightPixels.value);
+            // console.log('📊 Canvas pixels:', canvasWidthPixels.value, '×', canvasHeightPixels.value);
             updateStageSize();
           });
         });
@@ -376,8 +396,8 @@ export default {
       const containerWidth = editorContainer.value.clientWidth - 32;
       const containerHeight = editorContainer.value.clientHeight || 600;
       
-      console.log('📦 Container:', containerWidth, '×', containerHeight);
-      console.log('🎨 Canvas (pixels):', canvasWidthPixels.value, '×', canvasHeightPixels.value);
+      // console.log('📦 Container:', containerWidth, '×', containerHeight);
+      // console.log('🎨 Canvas (pixels):', canvasWidthPixels.value, '×', canvasHeightPixels.value);
       
       // Calcular zoom to fit
       zoom.zoomToFit(
@@ -389,7 +409,7 @@ export default {
       );
       
       const z = zoom.zoomLevel.value;
-      console.log('🔍 Zoom calculado:', z, '=', zoom.zoomPercentage.value);
+      // console.log('🔍 Zoom calculado:', z, '=', zoom.zoomPercentage.value);
       
       // Actualizar stage config SIN aplicar scale (el zoom se aplica en los cálculos)
       stageConfig.width = (canvasWidthPixels.value * z) + RULERSIZE;
@@ -397,7 +417,7 @@ export default {
       stageConfig.scaleX = 1; // NO aplicar zoom aquí
       stageConfig.scaleY = 1; // NO aplicar zoom aquí
       
-      console.log('📏 Stage final:', stageConfig.width, '×', stageConfig.height);
+      // console.log('📏 Stage final:', stageConfig.width, '×', stageConfig.height);
       
       nextTick(() => {
         updateKonvaLayers();
@@ -412,7 +432,7 @@ export default {
       const gridDetail = zoom.getGridDetail.value;
       const rulerDetail = zoom.getRulerDetail.value;
       
-      console.log('🎨 Actualizando layers con zoom:', z);
+      // console.log('🎨 Actualizando layers con zoom:', z);
       
       // Grid Layer - Rectángulo blanco del canvas
       if (gridLayer.value) {
@@ -436,7 +456,7 @@ export default {
         });
         
         gridLayerNode.add(canvasRectShape.value);
-        console.log('✅ Canvas rect:', canvasWidthPixels.value * z, '×', canvasHeightPixels.value * z);
+        // console.log('✅ Canvas rect:', canvasWidthPixels.value * z, '×', canvasHeightPixels.value * z);
         
         // Grid (opcional)
         if (showGrid.value) {
@@ -586,8 +606,8 @@ export default {
       for (const file of fileArray) {
         if (!file.type.match('image.*')) continue;
 
-        console.log(`📤 Procesando: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
-        console.log(`  ✅ Manteniendo resolución original al 100% - SIN optimización`);
+        // console.log(`📤 Procesando: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+        // console.log(`  ✅ Manteniendo resolución original al 100% - SIN optimización`);
         
         // SIN OPTIMIZACIÓN - Mantener siempre la resolución original para máxima calidad DTF
         const processedFile = file;
@@ -607,7 +627,7 @@ export default {
             file: processedFile, // Guardar el archivo optimizado
           };
           uploadedImages.value.push(imageData);
-          console.log(`  ✅ Imagen lista: ${img.width}x${img.height}px, ${(processedFile.size / 1024 / 1024).toFixed(2)}MB`);
+          // console.log(`  ✅ Imagen lista: ${img.width}x${img.height}px, ${(processedFile.size / 1024 / 1024).toFixed(2)}MB`);
         };
         img.onerror = () => {
           console.error('❌ Error cargando imagen:', file.name);
@@ -969,13 +989,13 @@ export default {
     const optimizeImage = async (file, maxSizeMB = 200) => {
       // Si el archivo ya es pequeño (<200MB), devolverlo sin cambios - MÁXIMA RESOLUCIÓN
       if (file.size <= maxSizeMB * 1024 * 1024) {
-        console.log(`  ✓ Archivo OK (sin optimizar): ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+        // console.log(`  ✓ Archivo OK (sin optimizar): ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
         return file;
       }
       
       // Si ya es JPEG y no es tan grande, devolverlo sin cambios - MÁXIMA RESOLUCIÓN
       if (file.type === 'image/jpeg' && file.size <= 300 * 1024 * 1024) {
-        console.log(`  ✓ JPEG OK (sin optimizar): ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+        // console.log(`  ✓ JPEG OK (sin optimizar): ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
         return file;
       }
       
@@ -987,8 +1007,8 @@ export default {
             // MANTENER resolución original - no redimensionar
             const width = img.width;
             const height = img.height;
-            
-            console.log(`  🔧 Optimizando: ${file.name} (${width}x${height}px, ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+            // console.log(`  🔧 Optimizando: ${file.name} (${width}x${height}px, ${(file.size / 1024 / 1024).toFixed(2)}MB)`)    ;
+            // console.log(`  🔧 Optimizando: ${file.name} (${width}x${height}px, ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
             
             // Crear canvas con dimensiones originales
             const canvas = document.createElement('canvas');
@@ -1004,7 +1024,7 @@ export default {
                   type: 'image/jpeg',
                   lastModified: Date.now()
                 });
-                console.log(`  ✓ Optimizado: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(optimizedFile.size / 1024 / 1024).toFixed(2)}MB (${width}x${height}px, calidad 100%)`);
+                // console.log(`  ✓ Optimizado: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(optimizedFile.size / 1024 / 1024).toFixed(2)}MB (${width}x${height}px, calidad 100%)`);
                 resolve(optimizedFile);
               } else {
                 reject(new Error('Error al optimizar imagen'));
@@ -1038,21 +1058,23 @@ export default {
           }
         }
 
-        console.log('💾 Preparando datos para guardar con transparencia...');
+        // console.log('💾 Preparando datos para guardar con transparencia...');
         
         // ⭐ Generar PNG transparente
-        console.log('🎨 Generando imagen PNG con fondo transparente...');
-        const pngDataURL = await generatePrintFile();
-        
-        if (!pngDataURL || pngDataURL === 'data:,') {
-          throw new Error('No se pudo generar la imagen PNG');
+        // console.log('🎨 Generando imagen PNG con fondo transparente...');
+        let pngBlob;
+        try {
+          pngBlob = await generatePrintFile();
+        } catch (error) {
+          console.error('❌ Error en generatePrintFile:', error);
+          throw new Error('Error generando PNG: ' + error.message);
         }
         
-        // Convertir DataURL a Blob
-        const pngResponse = await fetch(pngDataURL);
-        const pngBlob = await pngResponse.blob();
+        if (!pngBlob || pngBlob.size === 0) {
+          throw new Error('No se pudo generar la imagen PNG (retorno vacío)');
+        }
         
-        console.log('✅ PNG generado:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
+        // console.log('✅ PNG generado:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
         
         const formData = new FormData();
         
@@ -1078,41 +1100,41 @@ export default {
         // Enviar metadata como JSON string
         formData.append('images', JSON.stringify(imagesMetadata));
         
-        console.log('📊 Metadata:', imagesMetadata);
+        // console.log('📊 Metadata:', imagesMetadata);
         
         // ⭐ CAMBIO: Enviar PNG transparente compilado en lugar de archivos individuales
-        console.log('📦 Añadiendo PNG transparente compilado...');
+        // console.log('📦 Añadiendo PNG transparente compilado...');
         formData.append('gang_sheet_image', pngBlob, `gang-sheet-${sheetWidth.value}x${sheetHeight.value}in-${exportDPI.value}dpi.png`);
         
-        console.log('📁 Archivo compilado:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
+        // console.log('📁 Archivo compilado:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
         
         // Agregar archivos de imagen originales también (por si el backend los necesita)
-        console.log('📦 Preparando archivos originales para respaldo...');
+        // console.log('📦 Preparando archivos originales para respaldo...');
         let filesAdded = 0;
         
         for (let index = 0; index < images.value.length; index++) {
           const img = images.value[index];
           if (img.file) {
-            if (btn) btn.textContent = `Preparando ${index + 1}/${images.value.length}...`;
+            if (btn) btn.textContent = `Preparing ${index + 1}/${images.value.length}...`;
             formData.append(`image_files[${index}]`, img.file);
             filesAdded++;
-            console.log(`✓ Archivo ${index + 1}: ${img.name} (${(img.file.size / 1024 / 1024).toFixed(2)}MB)`);
+            // console.log(`✓ Archivo ${index + 1}: ${img.name} (${(img.file.size / 1024 / 1024).toFixed(2)}MB)`);
           }
         }
         
-        console.log(`📁 Total archivos originales: ${filesAdded}`);
+        // console.log(`📁 Total archivos originales: ${filesAdded}`);
         
-        if (btn) btn.textContent = 'Guardando en servidor...';
+        if (btn) btn.textContent = 'Save in progress...';
 
-        console.log('🚀 Enviando a /api/gang-sheets/save...');
-        console.log('📋 Contenido FormData:');
-        console.log('  - width:', sheetWidth.value);
-        console.log('  - height:', sheetHeight.value);
-        console.log('  - unit: inches');
-        console.log('  - format: png (con transparencia)');
-        console.log('  - dpi:', exportDPI.value);
-        console.log('  - gang_sheet_image:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
-        console.log('  - image_files:', filesAdded, 'archivos');
+        // console.log('🚀 Enviando a /api/gang-sheets/save...');
+        // console.log('📋 Contenido FormData:');
+        // console.log('  - width:', sheetWidth.value);
+        // console.log('  - height:', sheetHeight.value);
+        // console.log('  - unit: inches');
+        // console.log('  - format: png (con transparencia)');
+        // console.log('  - dpi:', exportDPI.value);
+        // console.log('  - gang_sheet_image:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
+        // console.log('  - image_files:', filesAdded, 'archivos');
         
         const response = await fetch('/api/gang-sheets/save', {
           method: 'POST',
@@ -1122,7 +1144,7 @@ export default {
           body: formData,
         });
 
-        console.log('📡 Response status:', response.status);
+        // console.log('📡 Response status:', response.status);
         
         if (!response.ok) {
           const text = await response.text();
@@ -1131,18 +1153,46 @@ export default {
         }
         
         const data = await response.json();
-        console.log('✅ Response data:', data);
+        // console.log('✅ Response data:', data);
+        // console.log('📋 data.data:', data.data);
+        // console.log('� Precios en respuesta:');
+        // console.log('  - data.data.price:', data.data?.price);
+        // console.log('  - data.data.original_price:', data.data?.original_price);
+        // console.log('  - data.data.final_price:', data.data?.final_price);
+        // console.log('  - data.data.discount:', data.data?.discount);
+        // console.log('�🔍 Tipo de data:', typeof data);
+        // console.log('🔍 Tipo de data.data:', typeof data.data);
+        // console.log('📌 data.data.id:', data.data?.id);
 
-        console.log('✅ GUARDADO EXITOSO');
-        console.log('📋 ID Gang Sheet:', data.data.id);
+        // console.log('✅ GUARDADO EXITOSO');
+        // console.log('📋 ID Gang Sheet:', data.data.id);
+        
+        // Guardar para poder agregar a carrito después
+        lastSavedGangSheet.value = data.data;
+        // console.log('💾 lastSavedGangSheet asignado:', lastSavedGangSheet.value);
+        // console.log('✅ Validación: ¿lastSavedGangSheet es válido?', lastSavedGangSheet.value && lastSavedGangSheet.value.id);
+        
+        // ⭐ DEBUG: Verificar que los precios se asignaron correctamente
+        // console.log('🔍 DEBUG - Precios en lastSavedGangSheet:');
+        // console.log('  ├─ id:', lastSavedGangSheet.value.id);
+        // console.log('  ├─ price:', lastSavedGangSheet.value.price);
+        // console.log('  ├─ original_price:', lastSavedGangSheet.value.original_price);
+        // console.log('  ├─ final_price:', lastSavedGangSheet.value.final_price);
+        // console.log('  └─ discount:', lastSavedGangSheet.value.discount);
+        
+        // También verificar raw values
+        // console.log('🔍 DEBUG - Raw data.data object keys:', Object.keys(data.data));
+        // console.log('🔍 DEBUG - Full data.data:', JSON.stringify(data.data, null, 2));
         
         const message = `✅ Gang Sheet guardado exitosamente!
         
-📋 ID: ${data.data.id}
+📋 ID: ${data.data?.id || 'NO ID'}
 📐 Tamaño: ${sheetWidth.value}" × ${sheetHeight.value}"
 📊 Imágenes: ${images.value.length}
 🎨 Formato: PNG transparente (sin fondo blanco)
 📝 DPI: ${exportDPI.value}
+
+� Ahora haz clic en "Agregar a Carrito" para agregarlo al carrito
 
 ¡Listo para producción!`;
         
@@ -1161,6 +1211,240 @@ export default {
           btn.disabled = false;
         }
       }
+    };
+
+    /**
+     * Agrega el Gang Sheet guardado al carrito de localStorage
+     * Para integrarse con el flujo de checkout como un tipo especial de item
+     */
+    const addGangSheetToCart = async (gangSheetData) => {
+      // DEBUG: Loguear exactamente qué se recibe
+    //   console.log('🛒 === AGREGAR A CARRITO ===');
+    // console.log('📦 Data recibida:', gangSheetData);    
+    //   console.log('🔍 Tipo:', typeof gangSheetData);
+    //   console.log('📌 lastSavedGangSheet.value:', lastSavedGangSheet.value);
+      let idganshet = gangSheetData?.id || lastSavedGangSheet.value?.id;
+      // Validación más explícita
+      if (!gangSheetData) {
+        console.error('❌ gangSheetData es null/undefined');
+        alert('⚠️ Primero debes guardar el Gang Sheet haciendo clic en "Save to Server"\n\nVerifica que veas el mensaje verde de "¡Guardado exitosamente!"');
+        return;
+      }
+      
+      if (typeof gangSheetData !== 'object') {
+        console.error('❌ gangSheetData no es un objeto:', typeof gangSheetData);
+        alert('❌ Error: Los datos del Gang Sheet no son válidos. Intenta guardar de nuevo.');
+        return;
+      }
+      
+      if (!gangSheetData.id) {
+        console.error('❌ gangSheetData.id es falsy:', gangSheetData.id);
+        console.error('📋 Contenido de gangSheetData:', Object.keys(gangSheetData || {}));
+        alert(`❌ El Gang Sheet no tiene un ID válido. 
+
+      Datos recibidos: ${JSON.stringify(gangSheetData).substring(0, 100)}
+
+        Intenta guardar de nuevo haciendo clic en "Save to Server"`);
+        return;
+      }
+      
+      // console.log('✅ Validación pasada');
+      
+      // 💰 OBTENER PRECIOS - ESTRATEGIA SMART CON PROMOCIONES
+      let unitPrice = 0;
+      let originalPrice = 0;
+      let discount = null;
+      let finalPrice = 0;
+      
+      // 🔍 PASO 1: Buscar precios en props.sheetData (viene del padre con promociones)
+      // console.log('🔍 Buscando precios en props.sheetData...');
+      if (props.sheetData) {
+        // console.log('📋 props.sheetData disponible');
+        // console.log('  ├─ price:', props.sheetData.price);
+        // console.log('  ├─ active_promotion:', props.sheetData.active_promotion);
+        // console.log('  └─ promotion:', props.sheetData.promotion);
+        
+        // Obtener precio base
+        const basePrice = parseFloat(props.sheetData.price) || 0;
+        
+        // 🎟️ Buscar promoción en active_promotion o promotion
+        const promo = props.sheetData.promotion || props.sheetData.active_promotion;
+        
+        if (promo && promo.discount_type) {
+          // ✅ HAY PROMOCIÓN ACTIVA
+          // console.log('🎟️ PROMOCIÓN ENCONTRADA:');
+          // console.log('  ├─ discount_type:', promo.discount_type);
+          // console.log('  ├─ discount_value:', promo.discount_value);
+          // console.log('  ├─ discount_amount:', promo.discount_amount);
+          // console.log('  └─ final_price:', promo.final_price);
+          
+          originalPrice = basePrice;
+          finalPrice = parseFloat(promo.final_price) || basePrice;
+          unitPrice = finalPrice;
+          discount = {
+            type: promo.discount_type,
+            value: parseFloat(promo.discount_value),
+            description: promo.descripcion || promo.titulo || `${promo.discount_type === 'percentage' ? promo.discount_value + '%' : '$' + promo.discount_value} OFF`,
+          };
+          
+          // Merge props.sheetData con descuento
+          gangSheetData = { 
+            ...gangSheetData, 
+            ...props.sheetData,
+            original_price: originalPrice,
+            final_price: finalPrice,
+            discount: discount,
+            price: finalPrice
+          };
+        } else if (basePrice > 0) {
+          // ✅ NO HAY PROMOCIÓN, SOLO PRECIO BASE
+          // console.log('💰 SIN PROMOCIÓN - Usando precio base');
+          originalPrice = basePrice;
+          finalPrice = basePrice;
+          unitPrice = basePrice;
+          
+          gangSheetData = { 
+            ...gangSheetData, 
+            ...props.sheetData,
+            original_price: originalPrice,
+            final_price: finalPrice,
+            price: finalPrice
+          };
+        }
+      }
+      
+      // 🔄 PASO 2: Si no hay precios en props, obtener del servidor
+      if (!finalPrice && !gangSheetData.final_price && !gangSheetData.price) {
+        // console.log('🔄 Precios no encontrados en props, obteniendo del servidor para ID:', gangSheetData.id);
+        try {
+          const priceResponse = await fetch(`/api/gang-sheets/${gangSheetData.id}`);
+          if (priceResponse.ok) {
+            const priceData = await priceResponse.json();
+            if (priceData.data) {
+              // ⭐ Merge datos del servidor con gangSheetData
+              gangSheetData = { ...gangSheetData, ...priceData.data };
+              // console.log('✅ Precios obtenidos del servidor:', {
+              //   original_price: gangSheetData.original_price,
+              //   final_price: gangSheetData.final_price,
+              //   discount: gangSheetData.discount,
+              // });
+            }
+          } else {
+            console.warn('⚠️ Error al obtener precios del servidor');
+          }
+        } catch (error) {
+          console.error('❌ Error obteniendo precios del servidor:', error);
+        }
+      }
+      
+      // Procesar precios obtenidos (fallback si no se encontraron antes)
+      if (!finalPrice) {
+        // Si hay precio final (con descuento aplicado), usarlo
+        if (gangSheetData.final_price) {
+          unitPrice = parseFloat(gangSheetData.final_price);
+          originalPrice = parseFloat(gangSheetData.original_price || gangSheetData.price || 0);
+          finalPrice = unitPrice;
+          discount = gangSheetData.discount || null;
+        } 
+        // Si solo hay precio (sin descuento)
+        else if (gangSheetData.price) {
+          unitPrice = parseFloat(gangSheetData.price);
+          originalPrice = unitPrice;
+          finalPrice = unitPrice;
+        }
+      }
+      
+      // console.log('✅ Precio procesado:');
+      // console.log('  - Precio original: $' + originalPrice.toFixed(2));
+      // console.log('  - Descuento:', discount);
+      // console.log('  - Precio final: $' + finalPrice.toFixed(2));
+      
+      // Crear item en FORMATO CONSISTENTE como los items de tipo "size"
+      const cartItem = {
+        id: 'gang-sheet-' + Date.now(),
+        type: 'gang_sheet',
+        product: {
+          id: gangSheetData.id,
+          type: 'gang_sheet',
+          name: `Gang Sheet ${sheetWidth.value}" × ${sheetHeight.value}" (${images.value.length} imágenes)`,
+          width: sheetWidth.value,
+          height: sheetHeight.value,
+          unit: 'inches',
+          dpi: exportDPI.value,
+          imageCount: images.value.length,
+          price: finalPrice,
+          originalPrice: originalPrice,
+          discount: discount,
+          category: 'gang_sheet_design',
+        },
+        quantity: 1,
+        imagePreview: null,
+        unitPrice: finalPrice,
+        totalPrice: finalPrice * 1,
+        // Datos adicionales para referencia en checkout
+        product_id: gangSheetData.id,
+        product_name: `Gang Sheet ${sheetWidth.value}" × ${sheetHeight.value}" (${images.value.length} imágenes)`,
+
+        gangSheetid: idganshet, // Guardar todo el objeto para referencia futura
+      };
+
+      // console.log('🛒 Item estructurado:', cartItem);
+
+      // Leer carrito actual
+      let cart = [];
+      const stored = localStorage.getItem('dtf_cart_items');
+      if (stored) {
+        try {
+          cart = JSON.parse(stored);
+        } catch (e) {
+          console.warn('⚠️ Error parsing existing cart:', e);
+          cart = [];
+        }
+      }
+
+      // Agregar nuevo item
+      cart.push(cartItem);
+      
+      // Guardar en localStorage
+      localStorage.setItem('dtf_cart_items', JSON.stringify(cart));
+      
+      // console.log('✅ Gang sheet added to cart. Total items:', cart.length);
+      // console.log('📋 Updated cart:', cart);
+      // console.log('📦 Cart item being saved:', JSON.stringify(cartItem, null, 2));
+      // console.log('💾 Verificación - Leyendo localStorage nuevamente:');
+      const cartFromStorage = JSON.parse(localStorage.getItem('dtf_cart_items') || '[]');
+      const lastItemInStorage = cartFromStorage[cartFromStorage.length - 1];
+      // console.log('  ├─ Total items en storage:', cartFromStorage.length);
+      // console.log('  ├─ Último item guardado:', lastItemInStorage);
+      // console.log('  ├─ unitPrice del último:', lastItemInStorage?.unitPrice);
+      // console.log('  └─ totalPrice del último:', lastItemInStorage?.totalPrice);
+      
+      // Mostrar confirmación visual
+      let confirmationMsg = `✅ ¡Gang Sheet agregado al carrito!
+
+📊 Tamaño: ${sheetWidth.value}" × ${sheetHeight.value}"
+📝 Imágenes: ${images.value.length}
+📐 DPI: ${exportDPI.value}`;
+
+      if (discount) {
+        confirmationMsg += `\n\n🎟️ DESCUENTO APLICADO:
+${discount.description || `${discount.type === 'percentage' ? discount.value + '%' : '$' + discount.value} OFF`}
+Precio original: $${originalPrice.toFixed(2)}
+💰 Precio final: $${finalPrice.toFixed(2)}`;
+      } else {
+        confirmationMsg += `\n\n💰 Precio: $${finalPrice.toFixed(2)}`;
+      }
+
+      confirmationMsg += `\n\nTotal items en carrito: ${cart.length}
+
+👉 Redirigiendo a tu carrito en 3 segundos...`;
+
+      alert(confirmationMsg);
+      
+      // Redirigir a carrito después de 3 segundos
+      setTimeout(() => {
+        window.location.href = '/cart';
+      }, 3000);
     };
 
     /**
@@ -1205,7 +1489,7 @@ export default {
       const width = canvas.width;
       const height = canvas.height;
       
-      console.log('🔄 Procesando fondo blanco...');
+      // console.log('🔄 Procesando fondo blanco...');
       
       // Obtener todos los datos de píxeles
       const imageData = ctx.getImageData(0, 0, width, height);
@@ -1234,7 +1518,7 @@ export default {
       
       // Aplicar los cambios
       ctx.putImageData(imageData, 0, 0);
-      console.log('✅ Fondo blanco procesado con transparencia');
+      // console.log('✅ Fondo blanco procesado con transparencia');
       
       return canvas;
     };
@@ -1242,19 +1526,37 @@ export default {
     /**
      * Exporta el canvas como PNG transparente de máxima calidad
      */
-    const exportTransparentPNG = (canvas) => {
-      console.log('📦 Exportando PNG con canal alpha...');
+    const exportTransparentPNG = async (canvas) => {
+      // console.log('📦 Exportando PNG con canal alpha (usando toBlob para eficiencia de memoria)...');
+      // console.log('   Canvas size:', canvas.width, '×', canvas.height);
       
-      // Exportar como PNG (soporta transparencia sin pérdida)
-      const dataURL = canvas.toDataURL('image/png');
-      
-      console.log('✅ PNG exportado, tamaño:', Math.round(dataURL.length / 1024 / 1024), 'MB');
-      return dataURL;
+      try {
+        // Usar toBlob() en lugar de toDataURL() - mucho más eficiente en memoria
+        return new Promise((resolve, reject) => {
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                console.error('❌ canvas.toBlob retornó null');
+                reject(new Error('canvas.toBlob retornó null'));
+                return;
+              }
+              
+              // console.log('✅ Blob PNG generado, tamaño:', (blob.size / 1024 / 1024).toFixed(2), 'MB');
+              resolve(blob);
+            },
+            'image/png',
+            1.0 // calidad máxima para PNG (no afecta sin pérdida)
+          );
+        });
+      } catch (error) {
+        console.error('❌ Error en exportTransparentPNG:', error);
+        throw error;
+      }
     };
 
     const generatePrintFile = async () => {
-      console.log('🖼️ === INICIO EXPORTACIÓN DTF CON TRANSPARENCIA ===');
-      console.log('📊 Total imágenes en canvas:', images.value.length);
+      // console.log('🖼️ === INICIO EXPORTACIÓN DTF CON TRANSPARENCIA ===');
+      // console.log('📊 Total imágenes en canvas:', images.value.length);
       
       if (images.value.length === 0) {
         throw new Error('No hay imágenes en el canvas. Agrega imágenes primero.');
@@ -1269,9 +1571,9 @@ export default {
       const MAX_MEGAPIXELS = 250; // Límite seguro con margen
       let currentMegapixels = (exportWidth * exportHeight) / 1000000;
       
-      console.log('📏 Tamaño inicial:', exportWidth, 'x', exportHeight, 'px');
-      console.log('📐 DPI solicitado:', EXPORT_DPI);
-      console.log('💾 Megapixels:', currentMegapixels.toFixed(1), 'MP');
+      // console.log('📏 Tamaño inicial:', exportWidth, 'x', exportHeight, 'px');
+      // console.log('📐 DPI solicitado:', EXPORT_DPI);
+      // console.log('💾 Megapixels:', currentMegapixels.toFixed(1), 'MP');
       
       // Si excede el límite, reducir DPI automáticamente
       if (currentMegapixels > MAX_MEGAPIXELS) {
@@ -1282,12 +1584,12 @@ export default {
         currentMegapixels = (exportWidth * exportHeight) / 1000000;
         
         console.warn('⚠️ Canvas demasiado grande, reduciendo DPI automáticamente');
-        console.log('📐 DPI ajustado:', EXPORT_DPI);
-        console.log('📏 Tamaño ajustado:', exportWidth, 'x', exportHeight, 'px');
-        console.log('💾 Megapixels ajustados:', currentMegapixels.toFixed(1), 'MP');
+        // console.log('📐 DPI ajustado:', EXPORT_DPI);
+        // console.log('📏 Tamaño ajustado:', exportWidth, 'x', exportHeight, 'px');
+        // console.log('💾 Megapixels ajustados:', currentMegapixels.toFixed(1), 'MP');
       }
       
-      console.log('💾 Memoria estimada:', Math.round((exportWidth * exportHeight * 4) / 1024 / 1024), 'MB');
+      // console.log('💾 Memoria estimada:', Math.round((exportWidth * exportHeight * 4) / 1024 / 1024), 'MB');
       
       const maxPixels = 50000 * 50000;
       if (exportWidth * exportHeight > maxPixels) {
@@ -1315,14 +1617,14 @@ export default {
       
       // ⭐ NO llenar con blanco - dejar canvas con transparencia (RGBA)
       // El canvas comienza con todos los píxeles transparentes por defecto
-      console.log('✅ Canvas creado con transparencia habilitada (sin fondo blanco)');
+      // console.log('✅ Canvas creado con transparencia habilitada (sin fondo blanco)');
       
       let imagesDrawn = 0;
       let imagesSkipped = 0;
       
       for (let idx = 0; idx < images.value.length; idx++) {
         const img = images.value[idx];
-        console.log(`\n📷 Imagen ${idx + 1}/${images.value.length}:`, img.name);
+        // console.log(`\n📷 Imagen ${idx + 1}/${images.value.length}:`, img.name);
         
         try {
           if (!img.imageObj) {
@@ -1331,11 +1633,11 @@ export default {
             continue;
           }
           
-          console.log('  ✓ imageObj existe');
-          console.log('  - complete:', img.imageObj.complete);
-          console.log('  - width:', img.imageObj.width);
-          console.log('  - height:', img.imageObj.height);
-          console.log('  - src:', img.imageObj.src?.substring(0, 50) + '...');
+          // console.log('  ✓ imageObj existe');
+          // console.log('  - complete:', img.imageObj.complete);
+          // console.log('  - width:', img.imageObj.width);
+          // console.log('  - height:', img.imageObj.height);
+          // console.log('  - src:', img.imageObj.src?.substring(0, 50) + '...');
           
           if (!img.imageObj.complete) {
             console.warn('  ⚠️ Imagen no completamente cargada');
@@ -1348,8 +1650,8 @@ export default {
           const exportImgWidth = Math.round(img.widthInches * EXPORT_DPI);
           const exportImgHeight = Math.round(img.heightInches * EXPORT_DPI);
           
-          console.log(`  📍 Posición: (${exportX}, ${exportY})`);
-          console.log(`  📏 Tamaño: ${exportImgWidth} × ${exportImgHeight}`);
+          // console.log(`  📍 Posición: (${exportX}, ${exportY})`);
+          // console.log(`  📏 Tamaño: ${exportImgWidth} × ${exportImgHeight}`);
           
           if (exportImgWidth > 0 && exportImgHeight > 0) {
             // Habilitar suavizado (anti-aliasing) para mejor calidad
@@ -1363,7 +1665,7 @@ export default {
               exportImgWidth,
               exportImgHeight
             );
-            console.log('  ✅ Dibujada exitosamente');
+            // console.log('  ✅ Dibujada exitosamente');
             imagesDrawn++;
           } else {
             console.warn('  ⚠️ Dimensiones inválidas');
@@ -1375,30 +1677,51 @@ export default {
         }
       }
       
-      console.log('\n📊 RESUMEN:');
-      console.log('  ✅ Imágenes dibujadas:', imagesDrawn);
-      console.log('  ⚠️ Imágenes omitidas:', imagesSkipped);
-      console.log('  📊 Total:', images.value.length);
+      // console.log('\n📊 RESUMEN:');
+      // console.log('  ✅ Imágenes dibujadas:', imagesDrawn);
+      // console.log('  ⚠️ Imágenes omitidas:', imagesSkipped);
+      // console.log('  📊 Total:', images.value.length);
       
       if (imagesDrawn === 0) {
         throw new Error('No se pudo dibujar ninguna imagen. Verifica la consola para más detalles.');
       }
       
+      // ⭐ DEBUG: Verificar contenido del canvas ANTES de procesar
+      // console.log('🔍 Verificando contenido del canvas...');
+      const debugCtx = canvas.getContext('2d', { willReadFrequently: true });
+      const debugImageData = debugCtx.getImageData(0, 0, canvas.width, canvas.height);
+      let hasPixels = false;
+      for (let i = 3; i < debugImageData.data.length; i += 4) {
+        if (debugImageData.data[i] > 0) {
+          hasPixels = true;
+          break;
+        }
+      }
+      // console.log('   Canvas tiene píxeles:', hasPixels);
+      // console.log('   Canvas size:', canvas.width, '×', canvas.height);
+      
       // ⭐ Verificar y procesar fondo blanco si existe
-      console.log('🔍 Verificando si hay fondo blanco...');
+      // console.log('🔍 Verificando si hay fondo blanco...');
       if (hasWhiteBackground(canvas)) {
-        console.log('⚠️ Fondo blanco detectado, procesando...');
+        // console.log('⚠️ Fondo blanco detectado, procesando...');
         removeWhiteBackground(canvas);
       } else {
-        console.log('✅ No se detectó fondo blanco o ya tiene transparencia');
+        // console.log('✅ No se detectó fondo blanco o ya tiene transparencia');
       }
       
-      // ⭐ Exportar como PNG transparente
-      console.log('🎨 Convirtiendo canvas a PNG transparente...');
-      const dataURL = exportTransparentPNG(canvas);
-      console.log('✅ DataURL generado, tamaño:', Math.round(dataURL.length / 1024 / 1024), 'MB');
+      // ⭐ Exportar como PNG transparente (ahora retorna Blob en lugar de DataURL)
+      // console.log('🎨 Convirtiendo canvas a PNG transparente...');
+      let pngBlob;
+      try {
+        pngBlob = await exportTransparentPNG(canvas);
+      } catch (error) {
+        console.error('❌ Error en exportTransparentPNG:', error);
+        throw new Error('No se pudo generar PNG: ' + error.message);
+      }
       
-      return dataURL;
+      // console.log('✅ Blob PNG generado, tamaño:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
+      
+      return pngBlob;
     };
 
     const downloadGangSheet = async (event) => {
@@ -1420,16 +1743,14 @@ export default {
           }
         }
 
-        console.log('🚀 Iniciando descarga DTF con transparencia...');
-        const dataURL = await generatePrintFile();
+        // console.log('🚀 Iniciando descarga DTF con transparencia...');
+        const blob = await generatePrintFile();
         
-        if (!dataURL || dataURL === 'data:,') {
+        if (!blob || blob.size === 0) {
           throw new Error('Canvas vacío - no se generó ninguna imagen');
         }
         
-        // Convertir DataURL a Blob
-        const response = await fetch(dataURL);
-        const blob = await response.blob();
+        // Crear URL del Blob (mucho más eficiente que DataURL)
         const url = URL.createObjectURL(blob);
         
         const link = document.createElement('a');
@@ -1453,11 +1774,11 @@ export default {
         const fileSizeMB = (blob.size / 1024 / 1024).toFixed(2);
         const qualityMsg = exportDPI.value === 300 ? 'Máxima calidad' : exportDPI.value === 200 ? 'Excelente calidad' : 'Buena calidad';
         
-        console.log('✅ EXPORTACIÓN COMPLETADA');
-        console.log('📋 Archivo:', filename);
-        console.log('📊 Tamaño:', fileSizeMB, 'MB');
-        console.log('📐 DPI:', exportDPI.value, `(${qualityMsg})`);
-        console.log('🎨 Formato: PNG con canal alpha (transparencia)');
+        // console.log('✅ EXPORTACIÓN COMPLETADA');
+        // console.log('📋 Archivo:', filename);
+        // console.log('📊 Tamaño:', fileSizeMB, 'MB');
+        // console.log('📐 DPI:', exportDPI.value, `(${qualityMsg})`);
+        // console.log('🎨 Formato: PNG con canal alpha (transparencia)');
         
         const message = `✅ DESCARGADO: ${filename}
         
@@ -1538,8 +1859,43 @@ export default {
     };
 
     onMounted(() => {
-      loadAvailableSizes();
-      updateStageSize();
+      // console.log('🔧 GangSheetEditorInches mounted');
+      // console.log('   props.sheetData:', props.sheetData);
+      
+      // loadAvailableSizes();
+
+
+      
+      // Si recibimos sheetData del padre, usarlo directamente
+      if (props.sheetData) {
+        const w = parseFloat(props.sheetData.width) || 264;
+        const h = parseFloat(props.sheetData.height) || 120;
+        sheetWidth.value = w;
+        sheetHeight.value = h;
+        // console.log('✅ Sheet dimensions loaded from parent:', w, '×', h);
+        // console.log('   canvasWidthInches:', canvasWidthInches.value);
+        // console.log('   canvasHeightInches:', canvasHeightInches.value);
+      } else {
+        console.warn('⚠️ sheetData is null/undefined, using defaults');
+      }
+      
+      // 🎯 Inicializar zoom a 250% (default) en lugar de calcular automáticamente
+      zoom.setZoom(2.5);
+      // console.log('🎯 Zoom inicial establecido:', zoom.zoomPercentage.value);
+      
+      // Actualizar stage config con el zoom predefinido
+      nextTick(() => {
+        const z = zoom.zoomLevel.value;
+        stageConfig.width = (canvasWidthPixels.value * z) + RULERSIZE;
+        stageConfig.height = (canvasHeightPixels.value * z) + RULERSIZE;
+        stageConfig.scaleX = 1;
+        stageConfig.scaleY = 1;
+        // console.log('📏 Stage initialized with 250% zoom');
+        nextTick(() => {
+          updateKonvaLayers();
+        });
+      });
+      
       window.addEventListener('resize', updateStageSize);
     });
     
@@ -1548,6 +1904,35 @@ export default {
         updateKonvaLayers();
       });
     });
+    
+    // Detectar cambios en sheetData desde el padre
+    watch(() => props.sheetData, (newData) => {
+      // console.log('👁️ sheetData watcher triggered');
+      // console.log('   newData:', newData);
+      
+      if (newData) {
+        const w = parseFloat(newData.width) || 264;
+        const h = parseFloat(newData.height) || 120;
+        sheetWidth.value = w;
+        sheetHeight.value = h;
+        // console.log('📐 Sheet dimensions updated:', w, '×', h);
+        
+        // Actualizar canvas y limpiar imágenes
+        images.value = [];
+        selectedImage.value = null;
+        if (transformer.value) {
+          const transformerNode = transformer.value.getNode();
+          transformerNode.nodes([]);
+        }
+        
+        // Recalcular stage
+        nextTick(() => {
+          updateStageSize();
+        });
+      } else {
+        console.warn('⚠️ newData is null/undefined in watch');
+      }
+    }, { deep: true });
 
     return {
       converter,
@@ -1578,6 +1963,7 @@ export default {
       transformerLayer,
       rulersLayer,
       gridLayer,
+      lastSavedGangSheet,
       coveragePercentage,
       changeSheetSize,
       handleFileUpload,
@@ -1596,6 +1982,7 @@ export default {
       autoBuild,
       saveGangSheet,
       downloadGangSheet,
+      addGangSheetToCart,
       generatePrintFile,
       handleWheel,
       updateKonvaLayers,

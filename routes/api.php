@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\DtfSizeController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\GangSheetController;
 use App\Http\Controllers\Api\DtfGangController;
+use App\Http\Controllers\Api\DiscountCodeController;
 use Illuminate\Support\Facades\Route;
 
 // ⚠️ Public routes - No authentication required
@@ -20,26 +21,34 @@ Route::get('/products/featured', [ProductController::class, 'featured']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/products', [ProductController::class, 'index']);
 
-// Sheet Sizes
+// Sheet Sizes - ORDER MATTERS! Specific routes first
+Route::get('/sheet-sizes/{id}', [SheetSizeController::class, 'show'])->where('id', '[0-9]+');
+Route::get('/sheet-sizes/by-unit/{unit}', [SheetSizeController::class, 'getByUnit']);
 Route::get('/sheet-sizes', [SheetSizeController::class, 'index']);
-Route::get('/sheet-sizes/{unit}', [SheetSizeController::class, 'getByUnit']);
 
 // DTF Sizes
 Route::get('/dtf-sizes', [DtfSizeController::class, 'index']);
 
 Route::get('/dtf-gangs', [DtfGangController::class, 'index']);
 
+// Promotions - Public (view active promotions)
+Route::get('/promotions', [PromotionController::class, 'index']);
+Route::get('/promotions/{type}/{id}', [PromotionController::class, 'getForItem']);
+
 // DTF Cart - Public endpoint for checkout
 Route::post('/checkout', [CartController::class, 'checkout']);
 
 // Gang Sheets - Public endpoints
-Route::post('/gang-sheets/save', [GangSheetController::class, 'store']);
-Route::get('/gang-sheets/{id}/download', [GangSheetController::class, 'downloadFinal']); // Descarga pública (después de pagar)
-Route::get('/gang-sheets/{id}/test-generate', [GangSheetController::class, 'testGenerateImage']); // Testing sin pago
+Route::post('/gang-sheets/save', [GangSheetController::class, 'save']);
+Route::get('/gang-sheets/{id}', [GangSheetController::class, 'show']);
+Route::get('/gang-sheets/{id}/download', [GangSheetController::class, 'download']); // Descargar PNG
 
 // Métodos de pago
 Route::get('/payment-methods', [PaymentMethodsController::class, 'index']);
 Route::get('/payment-methods/bank-info', [PaymentMethodsController::class, 'getBankInfo']);
+
+// Códigos de descuento - Public validation
+Route::post('/discount-codes/validate', [DiscountCodeController::class, 'validate']);
 
 // ⚠️ Webhook de Mercado Pago - DEBE estar fuera del middleware de autenticación
 Route::post('/mercado-pago/webhook', [WebhookController::class, 'handleWebhook']);
@@ -73,6 +82,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/clientes/pedidos/acceso', [CustomerOrderAccessController::class, 'requestCode']);
     Route::post('/clientes/pedidos/verificar', [CustomerOrderAccessController::class, 'verifyCode']);
     Route::delete('/ordenes/{id}', [PedidoController::class, 'ordenescancelar']);
+
+    // Promotions - Protected (admin endpoints)
+    Route::prefix('promotions')->group(function () {
+        Route::post('/{type}/{id}', [PromotionController::class, 'store']);
+        Route::delete('/{type}/{id}', [PromotionController::class, 'destroy']);
+    });
+
+    // Descuentos - Protected (registrar uso)
+    Route::post('/discount-codes/{discountCode}/use', [DiscountCodeController::class, 'markAsUsed']);
 });
 
 // Ruta pública para cancelar orden cuando el pago falla

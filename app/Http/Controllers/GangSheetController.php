@@ -40,10 +40,10 @@ class GangSheetController extends Controller
      */
     public function store(Request $request)
     {
-        \Log::info("=== STORE REQUEST START ===");
-        \Log::info("Has image_files: " . ($request->hasFile('image_files') ? 'YES' : 'NO'));
+        // \Log::info("=== STORE REQUEST START ===");
+        // \Log::info("Has image_files: " . ($request->hasFile('image_files') ? 'YES' : 'NO'));
         if ($request->hasFile('image_files')) {
-            \Log::info("Number of image_files: " . count($request->file('image_files')));
+            // \Log::info("Number of image_files: " . count($request->file('image_files')));
         }
         
         $validated = $request->validate([
@@ -61,7 +61,7 @@ class GangSheetController extends Controller
 
         // Decode images from JSON string
         $imagesData = json_decode($validated['images'], true);
-        \Log::info("Decoded images count: " . count($imagesData ?? []));
+        // \Log::info("Decoded images count: " . count($imagesData ?? []));
         
         if (!is_array($imagesData) || empty($imagesData)) {
             return response()->json([
@@ -75,7 +75,7 @@ class GangSheetController extends Controller
             $imageFiles = $request->file('image_files');
             $storagePaths = [];
             $basePath = 'gang-sheets/' . uniqid() . '/'; // Single directory for all images
-            \Log::info("Created basePath: {$basePath}");
+            // \Log::info("Created basePath: {$basePath}");
             
             foreach ($imageFiles as $index => $file) {
                 if ($file && $file->isValid()) {
@@ -88,7 +88,7 @@ class GangSheetController extends Controller
                         $storagePaths[$index] = $storagePath;
                         
                         // Log storage
-                        \Log::info("Stored image[{$index}]: {$storagePath} (basePath={$basePath})");
+                        // \Log::info("Stored image[{$index}]: {$storagePath} (basePath={$basePath})");
                     } catch (\Exception $e) {
                         \Log::warning("Failed to store image file at index {$index}: " . $e->getMessage());
                     }
@@ -101,7 +101,7 @@ class GangSheetController extends Controller
                     // Store both path and remove any base64 data
                     $imageData['path'] = $storagePaths[$index];
                     unset($imageData['base64']);
-                    \Log::info("Assigned path to image[{$index}]: " . $storagePaths[$index]);
+                    // \Log::info("Assigned path to image[{$index}]: " . $storagePaths[$index]);
                 }
             }
         }
@@ -338,9 +338,9 @@ class GangSheetController extends Controller
      */
     public function testGenerateImage($id)
     {
-        \Log::info("=== TEST GENERATE IMAGE START (ID: {$id}) ===");
+        // \Log::info("=== TEST GENERATE IMAGE START (ID: {$id}) ===");
         $gangSheet = GangSheet::findOrFail($id);
-        \Log::info("Found gang sheet, images_data: " . json_encode($gangSheet->images_data));
+        // \Log::info("Found gang sheet, images_data: " . json_encode($gangSheet->images_data));
 
         try {
             $gangSheet->update(['status' => 'processing']);
@@ -356,8 +356,8 @@ class GangSheetController extends Controller
             $filePath = Storage::disk('public')->path($finalPath);
             $fileSize = filesize($filePath);
 
-            \Log::info("=== TEST GENERATE IMAGE SUCCESS ===");
-            \Log::info("Final path: {$finalPath}, Size: {$fileSize} bytes");
+            // \Log::info("=== TEST GENERATE IMAGE SUCCESS ===");
+            // \Log::info("Final path: {$finalPath}, Size: {$fileSize} bytes");
 
             return response()->json([
                 'success' => true,
@@ -386,10 +386,10 @@ class GangSheetController extends Controller
      */
     public function downloadFinal($id)
     {
-        \Log::info("=== DOWNLOAD FINAL START (ID: {$id}) ===");
+        // \Log::info("=== DOWNLOAD FINAL START (ID: {$id}) ===");
         
         $gangSheet = GangSheet::findOrFail($id);
-        \Log::info("Gang sheet found. final_path: " . ($gangSheet->final_path ?? 'NULL'));
+        // \Log::info("Gang sheet found. final_path: " . ($gangSheet->final_path ?? 'NULL'));
 
         if (!$gangSheet->final_path || !Storage::disk('public')->exists($gangSheet->final_path)) {
             \Log::error("Final path does not exist: " . ($gangSheet->final_path ?? 'NULL'));
@@ -399,10 +399,10 @@ class GangSheetController extends Controller
         $filePath = Storage::disk('public')->path($gangSheet->final_path);
         $fileSize = filesize($filePath);
         
-        \Log::info("File path: {$filePath}");
-        \Log::info("File size: {$fileSize} bytes");
-        \Log::info("File exists: " . (file_exists($filePath) ? 'YES' : 'NO'));
-        \Log::info("File is readable: " . (is_readable($filePath) ? 'YES' : 'NO'));
+        // \Log::info("File path: {$filePath}");
+        // \Log::info("File size: {$fileSize} bytes");
+        // \Log::info("File exists: " . (file_exists($filePath) ? 'YES' : 'NO'));
+        // \Log::info("File is readable: " . (is_readable($filePath) ? 'YES' : 'NO'));
         
         return response()->download(
             $filePath,
@@ -450,9 +450,9 @@ class GangSheetController extends Controller
      */
     private function generateWithGD(GangSheet $gangSheet, int $widthPixels, int $heightPixels, int $dpi)
     {
-        \Log::info("=== GENERATE WITH GD START ===");
-        \Log::info("Dimensions: {$widthPixels}x{$heightPixels}px @ {$dpi}DPI");
-        \Log::info("Gang Sheet ID: {$gangSheet->id}, Images count: " . count($gangSheet->images_data ?? []));
+        // \Log::info("=== GENERATE WITH GD START ===");
+        // \Log::info("Dimensions: {$widthPixels}x{$heightPixels}px @ {$dpi}DPI");
+        // \Log::info("Gang Sheet ID: {$gangSheet->id}, Images count: " . count($gangSheet->images_data ?? []));
         
         // Create blank image with white background
         $image = imagecreatetruecolor($widthPixels, $heightPixels);
@@ -461,10 +461,10 @@ class GangSheetController extends Controller
         
         // Process each image
         $imagesData = $gangSheet->images_data ?? [];
-        \Log::info("Processing " . count($imagesData) . " images");
+        // \Log::info("Processing " . count($imagesData) . " images");
         
         foreach ($imagesData as $index => $imageData) {
-            \Log::info("Processing image[{$index}]: " . json_encode($imageData));
+            // \Log::info("Processing image[{$index}]: " . json_encode($imageData));
             
             // All dimensions from frontend are in INCHES (x, y, width, height)
             // We need to convert to pixels at the export DPI
@@ -479,19 +479,19 @@ class GangSheetController extends Controller
             $scaledWidth = (int)($width * $dpi);
             $scaledHeight = (int)($height * $dpi);
             
-            \Log::info("Converted: x={$scaledX}, y={$scaledY}, width={$scaledWidth}, height={$scaledHeight} (from {$x}in x {$y}in x {$width}in x {$height}in)");
+            // \Log::info("Converted: x={$scaledX}, y={$scaledY}, width={$scaledWidth}, height={$scaledHeight} (from {$x}in x {$y}in x {$width}in x {$height}in)");
             
             $sourceImage = null;
             
             // Try to load from stored file path FIRST (more efficient)
             if (!empty($imageData['path'])) {
-                \Log::info("Checking path: " . $imageData['path']);
+                // \Log::info("Checking path: " . $imageData['path']);
                 if (Storage::disk('public')->exists($imageData['path'])) {
                     try {
                         $realPath = Storage::disk('public')->path($imageData['path']);
-                        \Log::info("Real path: {$realPath}");
+                        // \Log::info("Real path: {$realPath}");
                         $sourceImage = $this->loadImageGD($realPath);
-                        \Log::info("✓ Loaded image from path: {$imageData['path']}");
+                        // \Log::info("✓ Loaded image from path: {$imageData['path']}");
                     } catch (\Exception $e) {
                         \Log::warning('✗ Failed to load image from path: ' . $e->getMessage());
                     }
@@ -505,7 +505,7 @@ class GangSheetController extends Controller
             // Fallback to base64 data URL if file not available
             if (!$sourceImage && !empty($imageData['base64'])) {
                 $sourceImage = $this->loadImageFromBase64($imageData['base64']);
-                \Log::info("✓ Loaded image from base64 (fallback)");
+                // \Log::info("✓ Loaded image from base64 (fallback)");
             }
             
             // Paste image if loaded successfully
@@ -523,7 +523,7 @@ class GangSheetController extends Controller
                         imagesx($sourceImage),
                         imagesy($sourceImage)
                     );
-                    \Log::info("✓ Pasted image at ({$scaledX}, {$scaledY}) size {$scaledWidth}x{$scaledHeight}");
+                    // \Log::info("✓ Pasted image at ({$scaledX}, {$scaledY}) size {$scaledWidth}x{$scaledHeight}");
                     imagedestroy($sourceImage);
                 } catch (\Exception $e) {
                     \Log::warning('✗ Failed to paste image: ' . ($imageData['name'] ?? 'unknown'));
@@ -545,10 +545,10 @@ class GangSheetController extends Controller
         $pngResult = imagepng($image, $path, 9); // 9 = maximum compression
         imagedestroy($image);
         
-        \Log::info("=== GENERATE WITH GD END ===");
-        \Log::info("PNG save result: " . ($pngResult ? 'SUCCESS' : 'FAILED'));
-        \Log::info("PNG file path: {$path}");
-        \Log::info("PNG file size: " . filesize($path) . " bytes");
+        // \Log::info("=== GENERATE WITH GD END ===");
+        // \Log::info("PNG save result: " . ($pngResult ? 'SUCCESS' : 'FAILED'));
+        // \Log::info("PNG file path: {$path}");
+        // \Log::info("PNG file size: " . filesize($path) . " bytes");
         
         return 'exports/' . $filename;
     }

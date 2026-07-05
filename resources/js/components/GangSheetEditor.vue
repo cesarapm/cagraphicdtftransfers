@@ -745,7 +745,7 @@ export default {
         if (response.ok) {
           const result = await response.json();
           alert('Gang sheet saved successfully!');
-          console.log('Saved:', result);
+          // console.log('Saved:', result);
         } else {
           alert('Error saving gang sheet');
         }

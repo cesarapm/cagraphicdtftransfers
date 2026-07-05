@@ -60,4 +60,12 @@ class Customer extends Authenticatable
     {
         return $this->hasMany(GangSheet::class);
     }
+
+    /**
+     * Get the discount codes used by the customer
+     */
+    public function discountCodeUsages(): HasMany
+    {
+        return $this->hasMany(DiscountCodeUsage::class);
+    }
 }

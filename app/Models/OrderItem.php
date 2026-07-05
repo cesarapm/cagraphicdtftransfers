@@ -12,6 +12,8 @@ class OrderItem extends Model
         'product_id',
         'dtf_size_id',
         'dtf_gang_id',
+        'sheet_size_id',
+        'gang_sheet_id',
         'item_type',
         'product_name',
         'quantity',
@@ -33,5 +35,25 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function dtfSize(): BelongsTo
+    {
+        return $this->belongsTo(DtfSize::class);
+    }
+
+    public function dtfGang(): BelongsTo
+    {
+        return $this->belongsTo(DtfGang::class);
+    }
+
+    public function sheetSize(): BelongsTo
+    {
+        return $this->belongsTo(SheetSize::class);
+    }
+
+    public function gangSheet(): BelongsTo
+    {
+        return $this->belongsTo(GangSheet::class);
     }
 }

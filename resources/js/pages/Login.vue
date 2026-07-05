@@ -147,9 +147,9 @@ const handleLogin = async () => {
 <style scoped>
 .auth-container {
   background: 
-    radial-gradient(circle at 20% 30%, rgba(12, 159, 227, 0.15), transparent 45%),
-    radial-gradient(circle at 80% 70%, rgba(12, 159, 227, 0.1), transparent 42%),
-    linear-gradient(135deg, #f0f8ff 0%, #ffffff 100%);
+    radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.1), transparent 45%),
+    radial-gradient(circle at 80% 70%, rgba(14, 165, 233, 0.08), transparent 42%),
+    linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   min-height: 100vh;
   padding: clamp(2rem, 5vw, 4rem) 1rem;
   display: flex;
@@ -165,20 +165,20 @@ const handleLogin = async () => {
 }
 
 .auth-card {
-  background: rgba(255, 255, 255, 0.98) !important;
-  border: 1px solid rgba(12, 159, 227, 0.15) !important;
+  background: rgba(255, 255, 255, 0.99) !important;
+  border: 1px solid rgba(14, 165, 233, 0.12) !important;
   border-radius: 24px !important;
   overflow: hidden;
   box-shadow: 
-    0 20px 50px rgba(12, 159, 227, 0.08),
-    0 8px 20px rgba(12, 159, 227, 0.05) !important;
+    0 20px 50px rgba(14, 165, 233, 0.06),
+    0 8px 20px rgba(14, 165, 233, 0.03) !important;
   backdrop-filter: blur(12px);
 }
 
 .auth-header {
   padding: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 3vw, 2rem) !important;
-  background: linear-gradient(135deg, rgba(12, 159, 227, 0.08), rgba(12, 159, 227, 0.04));
-  border-bottom: 1px solid rgba(12, 159, 227, 0.1);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.06), rgba(14, 165, 233, 0.03));
+  border-bottom: 1px solid rgba(14, 165, 233, 0.08);
 }
 
 .auth-title {
@@ -188,7 +188,7 @@ const handleLogin = async () => {
 .title-accent {
   width: 80px;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #0C9FE3, #0080c5, #0C9FE3, transparent);
+  background: linear-gradient(90deg, transparent, #0ea5e9, #0284c7, #0ea5e9, transparent);
   margin: 0 auto 1.5rem;
   border-radius: 2px;
   position: relative;
@@ -201,7 +201,7 @@ const handleLogin = async () => {
   top: -3px;
   width: 5px;
   height: 5px;
-  background: #0C9FE3;
+  background: #0ea5e9;
   border-radius: 50%;
 }
 
@@ -212,7 +212,7 @@ const handleLogin = async () => {
   font-family: var(--font-brand), serif;
   font-size: clamp(1.8rem, 4vw, 2.2rem);
   font-weight: 500;
-  color: #0C9FE3;
+  color: #111827;
   margin: 0 0 0.75rem;
   letter-spacing: -0.01em;
 }
@@ -220,7 +220,7 @@ const handleLogin = async () => {
 .subtitle-text {
   font-family: var(--font-brand), serif;
   font-size: clamp(1rem, 2vw, 1.1rem);
-  color: #0080c5;
+  color: #4b5563;
   font-weight: 300;
   margin: 0;
 }
@@ -236,21 +236,21 @@ const handleLogin = async () => {
 
 :deep(.v-field) {
   border-radius: 12px !important;
-  background: rgba(255, 255, 255, 0.85) !important;
-  border: 1px solid rgba(12, 159, 227, 0.2) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(14, 165, 233, 0.15) !important;
   transition: all 0.3s ease;
 }
 
 :deep(.v-field:hover) {
   background: rgba(255, 255, 255, 0.95) !important;
-  border-color: rgba(12, 159, 227, 0.4) !important;
-  box-shadow: 0 4px 12px rgba(12, 159, 227, 0.1);
+  border-color: rgba(14, 165, 233, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.08);
 }
 
 :deep(.v-field--focused) {
   background: #ffffff !important;
-  border-color: #0C9FE3 !important;
-  box-shadow: 0 4px 16px rgba(12, 159, 227, 0.15);
+  border-color: #0ea5e9 !important;
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.12);
 }
 
 :deep(.v-field__input) {
@@ -262,16 +262,16 @@ const handleLogin = async () => {
 
 :deep(.v-label) {
   font-family: var(--font-brand), serif;
-  color: #0080c5;
+  color: #4b5563;
   font-weight: 400;
 }
 
 :deep(.v-field--focused .v-label) {
-  color: #0C9FE3 !important;
+  color: #0ea5e9 !important;
 }
 
 :deep(.v-icon) {
-  color: #0C9FE3;
+  color: #0ea5e9;
 }
 
 :deep(.v-btn) {
@@ -289,14 +289,14 @@ const handleLogin = async () => {
 }
 
 :deep(.v-btn--variant-elevated) {
-  background: linear-gradient(135deg, #0C9FE3, #0080c5) !important;
-  box-shadow: 0 6px 20px rgba(12, 159, 227, 0.3) !important;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.25) !important;
 }
 
 :deep(.v-btn--variant-elevated:hover) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(12, 159, 227, 0.4) !important;
-  background: linear-gradient(135deg, #0080c5, #0C9FE3) !important;
+  box-shadow: 0 8px 28px rgba(14, 165, 233, 0.35) !important;
+  background: linear-gradient(135deg, #0284c7, #0ea5e9) !important;
 }
 
 :deep(.v-checkbox .v-selection-control) {
@@ -309,7 +309,7 @@ const handleLogin = async () => {
 }
 
 :deep(.v-divider) {
-  border-color: rgba(12, 159, 227, 0.15) !important;
+  border-color: rgba(14, 165, 233, 0.1) !important;
 }
 
 :deep(.v-alert) {
@@ -318,18 +318,18 @@ const handleLogin = async () => {
 }
 
 .text-primary {
-  color: #0C9FE3 !important;
+  color: #0ea5e9 !important;
   font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .text-primary:hover {
-  color: #0080c5 !important;
+  color: #0284c7 !important;
 }
 
 .text-body-2 {
   font-family: var(--font-brand), serif;
-  color: #0080c5;
+  color: #4b5563;
 }
 
 .font-weight-medium {

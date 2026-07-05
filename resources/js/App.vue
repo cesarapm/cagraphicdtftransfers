@@ -93,30 +93,13 @@
             <v-btn :to="{ name: 'HeatPress' }" variant="text" class="nav-menu-link">
               HEAT PRESS GUIDE
             </v-btn>
-            <!-- <v-menu offset-y> -->
-              <!-- <template v-slot:activator="{ props }"> -->
-                <!-- <v-btn v-bind="props" variant="text" class="nav-menu-link">
-                  DTF Transfers
-                  <v-icon end>mdi-chevron-down</v-icon>
-                </v-btn> -->
+         
 
             <v-btn variant="text" :to="{name:'DtfTransfersSize'}"  class="nav-menu-link">
-              DTF Size
+              DTF by Size
               
             </v-btn>
-              <!-- </template> -->
-              <!-- <v-list>
-                <v-list-item :to="{ name: 'DtfTransfersSize' }">
-                  <v-list-item-title>DTF Size</v-list-item-title>
-                </v-list-item>
-                <v-list-item>
-                  <v-list-item-title>Custom Orders</v-list-item-title>
-                </v-list-item>
-                <v-list-item>
-                  <v-list-item-title>Ready to Press</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu> -->
+
             <v-btn variant="text" class="nav-menu-link" :to="{ name: 'DtfTransfersGang' }">
               Upload Gang Sheet
             </v-btn>
@@ -309,7 +292,7 @@ const contactForm = ref({
 
 const handleContactSubmit = () => {
   // Implement contact form submission
-  console.log('Contact form submitted:', contactForm.value);
+  // console.log('Contact form submitted:', contactForm.value);
   // Here you would send the form data to your backend
   // Reset form after submission
   contactForm.value = {
@@ -323,7 +306,7 @@ const handleContactSubmit = () => {
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
     // Implement search functionality
-    console.log('Searching for:', searchQuery.value);
+    // console.log('Searching for:', searchQuery.value);
   }
 };
 

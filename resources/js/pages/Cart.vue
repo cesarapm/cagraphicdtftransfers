@@ -325,6 +325,65 @@
             </v-radio-group>
           </div>
 
+          <!-- Discount Code Section -->
+          <div class="mb-6">
+            <h3 class="text-h6 mb-4">🎟️ Discount Code</h3>
+            
+            <div v-if="!discountApplied" class="d-flex gap-2">
+              <v-text-field
+                v-model="discountCode"
+                label="Discount Code"
+                placeholder="Ej: SUMMER2024"
+                variant="outlined"
+                density="compact"
+                :disabled="discountLoading"
+                @keyup.enter="validateDiscountCode"
+              ></v-text-field>
+              <v-btn
+                color="primary"
+                :loading="discountLoading"
+                @click="validateDiscountCode"
+                class="align-self-end"
+              >
+                Apply
+              </v-btn>
+            </div>
+
+            <!-- Error message -->
+            <v-alert
+              v-if="discountError"
+              type="error"
+              variant="tonal"
+              closable
+              class="mt-3"
+              @close="discountError = ''"
+            >
+              {{ discountError }}
+            </v-alert>
+
+            <!-- Discount applied -->
+            <v-alert
+              v-if="discountApplied && appliedDiscount"
+              type="success"
+              variant="tonal"
+              class="mt-3"
+            >
+              <div class="d-flex justify-space-between align-center">
+                <div>
+                  <strong>{{ appliedDiscount.code }}</strong> applied!
+                  <br>
+                  <small>Discount: ${{ appliedDiscount.discount_amount.toFixed(2) }}</small>
+                </div>
+                <v-btn
+                  icon="mdi-close"
+                  variant="text"
+                  size="small"
+                  @click="removeDiscountCode"
+                ></v-btn>
+              </div>
+            </v-alert>
+          </div>
+
           <!-- Order Summary -->
           <div class="bg-primary-lighten-5 pa-4 rounded mb-4">
             <h3 class="text-h6 mb-3">📦 Order Summary</h3>
@@ -332,15 +391,19 @@
               <span>Subtotal:</span>
               <span>${{ Number(totalAmount).toFixed(2) }}</span>
             </div>
+            <div v-if="appliedDiscount" class="d-flex justify-space-between mb-2 text-success">
+              <span>Discount ({{ appliedDiscount.code }}):</span>
+              <span>-${{ appliedDiscount.discount_amount.toFixed(2) }}</span>
+            </div>
             <div class="d-flex justify-space-between mb-2">
               <span>Shipping:</span>
-              <span>${{ (Number(totalAmount) > 50 ? 0 : 10).toFixed(2) }}</span>
+              <span>${{ (Number(totalWithDiscount) > 50 ? 0 : 10).toFixed(2) }}</span>
             </div>
             <v-divider class="my-2"></v-divider>
             <div class="d-flex justify-space-between font-weight-bold text-h6">
               <span>Total:</span>
               <span class="text-success">
-                ${{ (Number(totalAmount) + (Number(totalAmount) > 50 ? 0 : 10)).toFixed(2) }}
+                ${{ (parseFloat(totalWithDiscount) + (Number(totalWithDiscount) > 50 ? 0 : 10)).toFixed(2) }}
               </span>
             </div>
           </div>
@@ -402,6 +465,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCart } from '../composables/useCart';
+import axios from 'axios';
 
 const router = useRouter();
 const { cartItems, removeFromCart, updateQuantity, subtotal, clearCart } = useCart();
@@ -443,6 +507,13 @@ const orderTotal = ref(0);
 const successMessage = ref('');
 const errorMessage = ref('');
 
+// Discount code state
+const discountCode = ref('');
+const appliedDiscount = ref(null); // { code_id, code, discount_amount, final_price }
+const discountError = ref('');
+const discountLoading = ref(false);
+const discountApplied = ref(false);
+
 // Load DTF cart items
 onMounted(() => {
   const stored = localStorage.getItem('dtf_cart_items');
@@ -481,12 +552,17 @@ onMounted(() => {
             },
             quantity: item.quantity,
             imagePreview: item.imagePreview,
-            unitPrice: item.unitPrice,
-            totalPrice: item.totalPrice
+            unitPrice: Number(item.unitPrice) || 0,
+            totalPrice: Number(item.totalPrice) || 0
           };
         }
         // Otherwise, return as-is (already new structure)
-        // console.log(`   → Using new structure (no migration needed)`);
+        // But ensure prices are numbers
+        return {
+          ...item,
+          unitPrice: Number(item.unitPrice) || 0,
+          totalPrice: Number(item.totalPrice) || 0
+        };
         return item;
       });
       
@@ -514,6 +590,14 @@ const totalAmount = computed(() => {
 });
 
 const shippingCost = computed(() => Number(totalAmount.value) > 50 ? 0 : 10);
+
+const totalWithDiscount = computed(() => {
+  const base = parseFloat(totalAmount.value) || 0;
+  if (appliedDiscount.value) {
+    return (base - appliedDiscount.value.discount_amount).toFixed(2);
+  }
+  return base.toFixed(2);
+});
 
 // Load user profile from authenticated customer
 const loadUserProfile = async () => {
@@ -607,6 +691,56 @@ const loadPaymentMethods = async () => {
   } finally {
     loadingPaymentMethods.value = false;
   }
+};
+
+// Discount Code Methods
+const validateDiscountCode = async () => {
+  if (!discountCode.value.trim()) {
+    discountError.value = 'Ingresa un código de descuento';
+    return;
+  }
+
+  discountLoading.value = true;
+  discountError.value = '';
+
+  try {
+    const response = await axios.post('/api/discount-codes/validate', {
+      code: discountCode.value.trim().toUpperCase(),
+      subtotal: totalAmount.value, // Total sin descuento
+    });
+
+    appliedDiscount.value = {
+      code_id: response.data.code_id,
+      code: response.data.code,
+      discount_type: response.data.discount_type,
+      discount_value: response.data.discount_value,
+      discount_amount: response.data.discount_amount,
+      final_price: response.data.final_price,
+    };
+
+    discountApplied.value = true;
+    discountError.value = '';
+  } catch (error) {
+    appliedDiscount.value = null;
+    discountApplied.value = false;
+
+    if (error.response?.status === 404) {
+      discountError.value = 'Código de descuento no encontrado.';
+    } else if (error.response?.status === 422) {
+      discountError.value = error.response.data.errors?.[0] || 'Código inválido.';
+    } else {
+      discountError.value = 'Error al validar el código.';
+    }
+  } finally {
+    discountLoading.value = false;
+  }
+};
+
+const removeDiscountCode = () => {
+  discountCode.value = '';
+  appliedDiscount.value = null;
+  discountApplied.value = false;
+  discountError.value = '';
 };
 
 // Dialog controls
@@ -710,6 +844,14 @@ const buildOrderPayload = () => {
         console.error(`  🔴 CRITICAL ERROR: Gang sheet without product.id! Item:`, item);
         console.error(`      Full item.product object:`, item.product);
       }
+    } else if (itemType === 'gang_sheet') {
+      // Custom Gang Sheet Designs from GangSheetEditorInches
+      productId = item.product_id || item.product?.id;
+      // console.log(`  💾 GANG_SHEET: product_id=${item.product_id}, product.id=${item.product?.id}, final productId=${productId}`);
+      if (!productId) {
+        console.error(`  🔴 CRITICAL ERROR: Gang sheet design without product_id! Item:`, item);
+        console.error(`      Full item object:`, JSON.stringify(item, null, 2));
+      }
     } else {
       productId = item.product?.id || item.dtf_size_id;
       // console.log(`  💾 OTHER (${itemType}): product.id=${item.product?.id}, dtf_size_id=${item.dtf_size_id}, final productId=${productId}`);
@@ -718,11 +860,12 @@ const buildOrderPayload = () => {
     const dtfItem = {
       type: itemType,
       product_id: productId,  // Will be null if not found, which is correct for backend to handle
-      product_name: item.product?.name || item.dtf_size?.name || 'DTF Transfer',
+      product_name: item.product?.name || item.product_name || item.dtf_size?.name || 'DTF Transfer',
       quantity: item.quantity,
       unit_price: Number(item.unitPrice),
       total: Number(item.totalPrice),
-      image: item.imagePreview || null
+      image: item.imagePreview || null,
+      gangSheetid: item.gangSheetid || null
     };
     // console.log(`✅ DTF Item ${index} (formatted):`, dtfItem);
     items.push(dtfItem);
@@ -738,8 +881,10 @@ const buildOrderPayload = () => {
     shipping_state: checkoutForm.value.state,
     shipping_zip_code: checkoutForm.value.zipCode,
     subtotal: totalAmount.value,
+    discount_code_id: appliedDiscount.value?.code_id || null,
+    discount_amount: appliedDiscount.value?.discount_amount || 0,
     shipping_cost: shippingCost.value,
-    total: totalAmount.value + shippingCost.value,
+    total: parseFloat(totalWithDiscount.value) + shippingCost.value,
     notes: checkoutForm.value.notes,
     save_customer_profile: checkoutForm.value.saveProfile,
     payment_method: checkoutForm.value.paymentMethod,
@@ -824,6 +969,21 @@ const submitOrder = async () => {
     orderNumber.value = result.order.order_number;
     orderTotal.value = Number(result.order.total).toFixed(2);
 
+    // Register discount code usage for authenticated customers
+    if (appliedDiscount.value && token) {
+      try {
+        await axios.post(
+          `/api/discount-codes/${appliedDiscount.value.code_id}/use`,
+          {},
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        // console.log('✅ Discount code usage registered');
+      } catch (error) {
+        console.warn('⚠️ Could not register discount usage:', error.response?.data?.message);
+        // Continue anyway - order was already created
+      }
+    }
+
     // Handle Mercado Pago
     if (checkoutForm.value.paymentMethod === 'mercado_pago') {
       if (result.checkout_url) {
@@ -859,6 +1019,8 @@ const closeSuccessDialog = () => {
   clearCart();
   dtfCartItems.value = [];
   localStorage.removeItem('dtf_cart_items');
+  // Reset discount
+  removeDiscountCode();
   router.push({ name: 'Home' });
 };
 </script>

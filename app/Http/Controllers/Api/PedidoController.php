@@ -170,7 +170,7 @@ class PedidoController extends Controller
             $formattedOrders = $orders->map(function ($order) {
                 // Generar etiqueta de estado según payment_status
                 $status_label = '⏳ Pendiente de pago';
-                
+
                 if ($order->payment_status === 'pagado') {
                     $status_label = '✅ Pagado';
                 } elseif ($order->payment_status === 'rechazado') {
@@ -255,12 +255,14 @@ class PedidoController extends Controller
             'save_customer_profile' => 'nullable|boolean',
             'payment_method' => 'required|in:mercado_pago,paypal,transferencia',
             'items' => 'required|array|min:1',
-            'items.*.type' => 'nullable|string|in:size,product,gang,custom', // Extensible types
+            'items.*.type' => 'nullable|string|in:size,product,gang,gang_sheet,custom', // Extensible types
             'items.*.product_id' => 'required|integer',
             'items.*.product_name' => 'required|string|max:255',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.image' => 'nullable|string',
+            'items.*.gangSheetid' => 'nullable|integer', // Para gang sheets personalizadas
+
         ]), [
             'customer_first_name.required' => 'El nombre es obligatorio.',
             'customer_last_name.required' => 'El apellido es obligatorio.',
@@ -276,6 +278,7 @@ class PedidoController extends Controller
             'items.required' => 'Tu carrito está vacío.',
             'items.min' => 'Tu carrito debe tener al menos un producto.',
             'items.*.product_id.required' => 'Cada producto debe tener un ID válido.',
+
         ]);
     }
 
@@ -283,7 +286,7 @@ class PedidoController extends Controller
     {
         return DB::transaction(function () use ($validated, $paymentMethod, $paymentStatus, $orderStatus) {
             $calculatedSubtotal = collect($validated['items'])
-                ->sum(fn (array $item) => (float) $item['unit_price'] * (int) $item['quantity']);
+                ->sum(fn(array $item) => (float) $item['unit_price'] * (int) $item['quantity']);
             $shippingCost = (float) $validated['shipping_cost'];
             $tax = 0;
             $calculatedTotal = $calculatedSubtotal + $shippingCost + $tax;
@@ -353,13 +356,15 @@ class PedidoController extends Controller
                 $productId = null;
                 $dtfSizeId = null;
                 $dtfGangId = null;
-                
-                Log::info('🔍 PROCESSING ITEM FROM FRONTEND', [
-                    'received_product_id' => $item['product_id'] ?? 'NOT_PROVIDED',
-                    'received_type' => $itemType,
-                    'full_item' => $item,
-                ]);
-                
+                $sheetSizeId = null;
+                $gangSheetId = null;
+
+                // Log::info('🔍 PROCESSING ITEM FROM FRONTEND', [
+                //     'received_product_id' => $item['product_id'] ?? 'NOT_PROVIDED',
+                //     'received_type' => $itemType,
+                //     'full_item' => $item,
+                // ]);
+
                 // Si no viene type, intentar detectar basándose en si existe en Product o DtfSize
                 if (empty($itemType)) {
                     $product = Product::find($item['product_id']);
@@ -375,61 +380,141 @@ class PedidoController extends Controller
                             $itemType = 'unknown';
                         }
                     }
-                    
-                    Log::info('📝 Auto-detected item type (no type provided)', [
-                        'detected_type' => $itemType,
-                        'product_id' => $item['product_id'],
-                        'product_name' => $item['product_name'],
-                    ]);
+
+                    // Log::info('📝 Auto-detected item type (no type provided)', [
+                    //     'detected_type' => $itemType,
+                    //     'product_id' => $item['product_id'],
+                    //     'product_name' => $item['product_name'],
+                    // ]);
                 } else {
+                    // Inicializar todas las variables a null
+                    $productId = null;
+                    $dtfSizeId = null;
+                    $dtfGangId = null;
+                    $sheetSizeId = null;
+                    $gangSheetId = null;
+
                     // Mapear el product_id al campo correcto según el tipo
                     if ($itemType === 'size') {
                         // DTF Transfer Sizes → dtf_size_id
                         $dtfSizeId = $item['product_id'];
                         $dtfSize = DtfSize::find($dtfSizeId);
-                        
-                        Log::info('📝 Processing DTF Size Item', [
-                            'dtf_size_id' => $dtfSizeId,
-                            'product_name' => $item['product_name'],
-                            'found_in_db' => $dtfSize ? 'Yes' : 'No',
-                        ]);
+
+                        // Log::info('📝 Processing DTF Size Item', [
+                        //     'dtf_size_id' => $dtfSizeId,
+                        //     'product_name' => $item['product_name'],
+                        //     'found_in_db' => $dtfSize ? 'Yes' : 'No',
+                        // ]);
+
+                        if (!$dtfSize) {
+                            Log::error('❌ DTF Size not found', [
+                                'dtf_size_id' => $dtfSizeId,
+                                'product_name' => $item['product_name'],
+                            ]);
+                            throw new \Exception("DTF Size with ID {$dtfSizeId} not found in the system.");
+                        }
                     } elseif ($itemType === 'gang') {
                         // Gang Sheets → dtf_gang_id
                         $dtfGangId = $item['product_id'];
                         $dtfGang = \App\Models\DtfGang::find($dtfGangId);
+
+                        // Log::info('📝 Processing Gang Sheet Item', [
+                        //     'dtf_gang_id' => $dtfGangId,
+                        //     'product_name' => $item['product_name'],
+                        //     'found_in_db' => $dtfGang ? 'Yes' : 'No',
+                        // ]);
+
+                        if (!$dtfGang) {
+                            Log::error('❌ DtfGang not found', [
+                                'dtf_gang_id' => $dtfGangId,
+                                'product_name' => $item['product_name'],
+                            ]);
+                            throw new \Exception("Gang with ID {$dtfGangId} not found in the system.");
+                        }
+                    } elseif ($itemType === 'gang_sheet') {
+                        // Check if it's a custom gang sheet design or a predefined size
+                        $sheetSizeId = $item['product_id'];
                         
-                        Log::info('📝 Processing Gang Sheet Item', [
-                            'dtf_gang_id' => $dtfGangId,
-                            'product_name' => $item['product_name'],
-                            'found_in_db' => $dtfGang ? 'Yes' : 'No',
-                        ]);
+
+                        // Log::info('📝 Processing Gang Sheet Item', [
+                        //     'item' => $item,
+                        // ]);
+
+                        if (!empty($item['gangSheetid'])) {
+                            // Custom Gang Sheet Design → gang_sheet_id
+                            $gangSheetId = $item['gangSheetid'];
+                            $gangSheet = \App\Models\GangSheet::find($gangSheetId);
+
+                            // Log::info('📝 Processing Custom Gang Sheet Design', [
+                            //     'gang_sheet_id' => $gangSheetId,
+                            //     'product_name' => $item['product_name'],
+                            //     'found_in_db' => $gangSheet ? 'Yes' : 'No',
+                            // ]);
+
+                            if (!$gangSheet) {
+                                Log::error('❌ GangSheet not found', [
+                                    'gang_sheet_id' => $gangSheetId,
+                                    'product_name' => $item['product_name'],
+                                ]);
+                                throw new \Exception("Custom Gang Sheet with ID {$gangSheetId} not found in the system.");
+                            }
+                        } else {
+                            // Predefined Gang Sheet Sizes → sheet_size_id
+
+                            $sheetSizeId = $item['product_id'];
+                            $sheetSize = \App\Models\SheetSize::find($sheetSizeId);
+
+                            // Log::info('📝 Processing Predefined Gang Sheet Size Item', [
+                            //     'sheet_size_id' => $sheetSizeId,
+                            //     'product_name' => $item['product_name'],
+                            //     'found_in_db' => $sheetSize ? 'Yes' : 'No',
+                            // ]);
+
+                            if (!$sheetSize) {
+                                Log::error('❌ SheetSize not found', [
+                                    'sheet_size_id' => $sheetSizeId,
+                                    'product_name' => $item['product_name'],
+                                ]);
+                                throw new \Exception("Sheet Size with ID {$sheetSizeId} not found in the system.");
+                            }
+                        }
                     } else {
                         // Productos regulares (product, custom, etc.) → product_id
                         $productId = $item['product_id'];
                         $product = Product::find($productId);
-                        
-                        Log::info('📝 Processing Regular Product Item', [
-                            'product_id' => $productId,
-                            'item_type' => $itemType,
-                            'product_name' => $item['product_name'],
-                            'found_in_db' => $product ? 'Yes' : 'No',
-                        ]);
+
+                        // Log::info('📝 Processing Regular Product Item', [
+                        //     'product_id' => $productId,
+                        //     'item_type' => $itemType,
+                        //     'product_name' => $item['product_name'],
+                        //     'found_in_db' => $product ? 'Yes' : 'No',
+                        // ]);
+
+                        if (!$product) {
+                            Log::error('❌ Product not found', [
+                                'product_id' => $productId,
+                                'product_name' => $item['product_name'],
+                            ]);
+                            throw new \Exception("Product with ID {$productId} not found in the system.");
+                        }
                     }
                 }
-                
+
                 // Procesar imagen si existe
                 $imagePath = null;
                 if (!empty($item['image'])) {
                     $imagePath = $this->saveDtfImage($item['image'], $order->id);
-                    Log::info('📸 Image saved', ['image_path' => $imagePath]);
+                    // Log::info('📸 Image saved', ['image_path' => $imagePath]);
                 }
-                
+
                 // Crear el OrderItem con los datos apropiados
                 $createdItem = OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $productId,
                     'dtf_size_id' => $dtfSizeId,
                     'dtf_gang_id' => $dtfGangId,
+                    'sheet_size_id' => $sheetSizeId,
+                    'gang_sheet_id' => $gangSheetId,
                     'item_type' => $itemType,
                     'product_name' => $item['product_name'],
                     'quantity' => $item['quantity'],
@@ -437,19 +522,35 @@ class PedidoController extends Controller
                     'total' => (float) $item['unit_price'] * (int) $item['quantity'],
                     'image' => $imagePath,
                 ]);
-                
-                Log::info('✅ OrderItem Created Successfully', [
-                    'order_item_id' => $createdItem->id,
-                    'item_type' => $createdItem->item_type,
-                    'product_id' => $createdItem->product_id,
-                    'dtf_size_id' => $createdItem->dtf_size_id,
-                    'dtf_gang_id' => $createdItem->dtf_gang_id,
-                    'product_name' => $createdItem->product_name,
-                    'quantity' => $createdItem->quantity,
-                    'unit_price' => $createdItem->unit_price,
-                    'total' => $createdItem->total,
-                    'image' => $createdItem->image,
-                ]);
+
+                // Si es un gang_sheet con gangSheetid, actualizar el GangSheet con la relación a la orden
+                if ($itemType === 'gang_sheet' && !empty($gangSheetId)) {
+                    \App\Models\GangSheet::where('id', $gangSheetId)->update([
+                        'order_id' => $order->id,
+                        'customer_id' => $customer?->id,
+                    ]);
+
+                    // Log::info('🔗 GangSheet Updated with Order & Customer', [
+                    //     'gang_sheet_id' => $gangSheetId,
+                    //     'order_id' => $order->id,
+                    //     'customer_id' => $customer?->id,
+                    // ]);
+                }
+
+                // Log::info('✅ OrderItem Created Successfully', [
+                //     'order_item_id' => $createdItem->id,
+                //     'item_type' => $createdItem->item_type,
+                //     'product_id' => $createdItem->product_id,
+                //     'dtf_size_id' => $createdItem->dtf_size_id,
+                //     'dtf_gang_id' => $createdItem->dtf_gang_id,
+                //     'sheet_size_id' => $createdItem->sheet_size_id,
+                //     'gang_sheet_id' => $createdItem->gang_sheet_id,
+                //     'product_name' => $createdItem->product_name,
+                //     'quantity' => $createdItem->quantity,
+                //     'unit_price' => $createdItem->unit_price,
+                //     'total' => $createdItem->total,
+                //     'image' => $createdItem->image,
+                // ]);
             }
 
             return $order->fresh('items');
@@ -474,7 +575,7 @@ class PedidoController extends Controller
         ];
 
         $payload = [
-            'items' => $order->items->map(fn (OrderItem $item) => [
+            'items' => $order->items->map(fn(OrderItem $item) => [
                 'title' => $item->product_name,
                 'quantity' => (int) $item->quantity,
                 'unit_price' => (float) $item->unit_price,
@@ -519,11 +620,11 @@ class PedidoController extends Controller
     {
 
 
-    Log::info('Crear pedido PayPal request received', [
-            'user_id' => auth()->id(),
-            'session_id' => session()->getId(),
-            'request_data' => $request->all(),
-        ]);
+        // Log::info('Crear pedido PayPal request received', [
+        //     'user_id' => auth()->id(),
+        //     'session_id' => session()->getId(),
+        //     'request_data' => $request->all(),
+        // ]);
         try {
             $validated = $this->validateCheckoutPayload($request);
             $order = $this->storeOrder($validated, 'paypal', 'pendiente_pago', 'pendiente');
@@ -594,7 +695,7 @@ class PedidoController extends Controller
 
             // Actualizar el estado de la orden según el resultado
             $paymentStatus = $result['status'] ?? 'COMPLETED';
-            
+
             if ($paymentStatus === 'COMPLETED') {
                 // Extraer información del capture
                 $capture = $result['purchase_units'][0]['payments']['captures'][0] ?? null;
@@ -692,7 +793,7 @@ class PedidoController extends Controller
                             ],
                         ],
                     ],
-                    'items' => $order->items->map(fn (OrderItem $item) => [
+                    'items' => $order->items->map(fn(OrderItem $item) => [
                         'name' => $item->product_name,
                         'quantity' => (string) $item->quantity,
                         'unit_amount' => [
@@ -833,12 +934,12 @@ class PedidoController extends Controller
 
             // Retornar la ruta relativa para guardar en BD
             $relativePath = 'storage/orderitems/' . $filename;
-            
-            Log::info('✅ Image saved successfully', [
-                'order_id' => $orderId,
-                'file_path' => $relativePath,
-                'file_size' => strlen($decodedImage),
-            ]);
+
+            // Log::info('✅ Image saved successfully', [
+            //     'order_id' => $orderId,
+            //     'file_path' => $relativePath,
+            //     'file_size' => strlen($decodedImage),
+            // ]);
 
             return $relativePath;
         } catch (\Exception $exception) {

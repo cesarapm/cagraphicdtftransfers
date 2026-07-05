@@ -253,7 +253,7 @@ const handleRegister = async () => {
 
   try {
     await authStore.register(form.value);
-    router.push('/gang-sheet-builder');
+    router.push('/');
   } catch (error) {
     if (error.response?.data?.errors) {
       const errors = error.response.data.errors;
@@ -270,9 +270,9 @@ const handleRegister = async () => {
 <style scoped>
 .auth-container {
   background: 
-    radial-gradient(circle at 20% 30%, rgba(217, 200, 181, 0.25), transparent 45%),
-    radial-gradient(circle at 80% 70%, rgba(184, 151, 120, 0.18), transparent 42%),
-    linear-gradient(135deg, #faf9f7 0%, #f5f3f0 100%);
+    radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.1), transparent 45%),
+    radial-gradient(circle at 80% 70%, rgba(14, 165, 233, 0.08), transparent 42%),
+    linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   min-height: 100vh;
   padding: clamp(2rem, 5vw, 4rem) 1rem;
   display: flex;
@@ -288,20 +288,20 @@ const handleRegister = async () => {
 }
 
 .auth-card {
-  background: rgba(255, 252, 248, 0.95) !important;
-  border: 1px solid rgba(184, 151, 120, 0.15) !important;
+  background: rgba(255, 255, 255, 0.99) !important;
+  border: 1px solid rgba(14, 165, 233, 0.12) !important;
   border-radius: 24px !important;
   overflow: hidden;
   box-shadow: 
-    0 20px 50px rgba(140, 116, 95, 0.12),
-    0 8px 20px rgba(107, 91, 71, 0.08) !important;
+    0 20px 50px rgba(14, 165, 233, 0.06),
+    0 8px 20px rgba(14, 165, 233, 0.03) !important;
   backdrop-filter: blur(12px);
 }
 
 .auth-header {
   padding: clamp(2rem, 4vw, 3rem) clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 3vw, 2rem) !important;
-  background: linear-gradient(135deg, rgba(255, 250, 244, 0.5), rgba(251, 247, 242, 0.3));
-  border-bottom: 1px solid rgba(184, 151, 120, 0.1);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.06), rgba(14, 165, 233, 0.03));
+  border-bottom: 1px solid rgba(14, 165, 233, 0.08);
 }
 
 .auth-title {
@@ -311,7 +311,7 @@ const handleRegister = async () => {
 .title-accent {
   width: 80px;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #b89778, #8c745f, #b89778, transparent);
+  background: linear-gradient(90deg, transparent, #0ea5e9, #0284c7, #0ea5e9, transparent);
   margin: 0 auto 1.5rem;
   border-radius: 2px;
   position: relative;
@@ -324,7 +324,7 @@ const handleRegister = async () => {
   top: -3px;
   width: 5px;
   height: 5px;
-  background: #8c745f;
+  background: #0ea5e9;
   border-radius: 50%;
 }
 
@@ -335,7 +335,7 @@ const handleRegister = async () => {
   font-family: var(--font-brand), serif;
   font-size: clamp(1.8rem, 4vw, 2.2rem);
   font-weight: 500;
-  color: #6b5b47;
+  color: #111827;
   margin: 0 0 0.75rem;
   letter-spacing: -0.01em;
 }
@@ -343,7 +343,7 @@ const handleRegister = async () => {
 .subtitle-text {
   font-family: var(--font-brand), serif;
   font-size: clamp(1rem, 2vw, 1.1rem);
-  color: #8f7a65;
+  color: #4b5563;
   font-weight: 300;
   margin: 0;
 }
@@ -359,21 +359,21 @@ const handleRegister = async () => {
 
 :deep(.v-field) {
   border-radius: 12px !important;
-  background: rgba(255, 255, 255, 0.75) !important;
-  border: 1px solid rgba(184, 151, 120, 0.2) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(14, 165, 233, 0.15) !important;
   transition: all 0.3s ease;
 }
 
 :deep(.v-field:hover) {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(184, 151, 120, 0.35) !important;
-  box-shadow: 0 4px 12px rgba(140, 116, 95, 0.08);
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(14, 165, 233, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.08);
 }
 
 :deep(.v-field--focused) {
   background: #ffffff !important;
-  border-color: #8c745f !important;
-  box-shadow: 0 4px 16px rgba(140, 116, 95, 0.12);
+  border-color: #0ea5e9 !important;
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.12);
 }
 
 :deep(.v-field__input) {
@@ -385,16 +385,16 @@ const handleRegister = async () => {
 
 :deep(.v-label) {
   font-family: var(--font-brand), serif;
-  color: #7f6d5a;
+  color: #4b5563;
   font-weight: 400;
 }
 
 :deep(.v-field--focused .v-label) {
-  color: #6b5b47 !important;
+  color: #0ea5e9 !important;
 }
 
 :deep(.v-icon) {
-  color: #8c745f;
+  color: #0ea5e9;
 }
 
 :deep(.v-btn) {
@@ -412,14 +412,14 @@ const handleRegister = async () => {
 }
 
 :deep(.v-btn--variant-elevated) {
-  background: linear-gradient(135deg, #8c745f, #a68b73) !important;
-  box-shadow: 0 6px 20px rgba(140, 116, 95, 0.25) !important;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.25) !important;
 }
 
 :deep(.v-btn--variant-elevated:hover) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(140, 116, 95, 0.35) !important;
-  background: linear-gradient(135deg, #a68b73, #8c745f) !important;
+  box-shadow: 0 8px 28px rgba(14, 165, 233, 0.35) !important;
+  background: linear-gradient(135deg, #0284c7, #0ea5e9) !important;
 }
 
 :deep(.v-checkbox .v-selection-control) {
@@ -428,7 +428,7 @@ const handleRegister = async () => {
 
 :deep(.v-checkbox .v-label) {
   font-size: 0.95rem;
-  color: #5a6c7d;
+  color: #4b5563;
 }
 
 :deep(.v-alert) {
@@ -437,24 +437,24 @@ const handleRegister = async () => {
 }
 
 .text-primary {
-  color: #8c745f !important;
+  color: #0ea5e9 !important;
   font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .text-primary:hover {
-  color: #6b5b47 !important;
+  color: #0284c7 !important;
 }
 
 .text-center.mt-4 {
   font-family: var(--font-brand), serif;
   padding-top: 1rem;
-  border-top: 1px solid rgba(184, 151, 120, 0.1);
+  border-top: 1px solid rgba(14, 165, 233, 0.1);
   margin-top: 2rem !important;
 }
 
 .text-body-2 {
-  color: #7f6d5a;
+  color: #4b5563;
 }
 
 /* Responsive adjustments */

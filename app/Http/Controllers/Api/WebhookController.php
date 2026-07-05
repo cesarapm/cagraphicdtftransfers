@@ -18,7 +18,7 @@ class WebhookController extends Controller
 {
     public function handleWebhook(Request $request)
     {
-        Log::info('Webhook de Mercado Pago recibido', $request->all());
+        // Log::info('Webhook de Mercado Pago recibido', $request->all());
 
         if (!$this->validateWebhookSignature($request)) {
             return response()->json(['success' => false, 'message' => 'Firma inválida'], 401);
@@ -220,11 +220,11 @@ class WebhookController extends Controller
         try {
             Mail::to($recipient)->send($mailable);
 
-            Log::info($successMessage, [
-                'order_id' => $order->id,
-                'payment_id' => $pay->id_pago,
-                'recipient' => $recipient,
-            ]);
+            // Log::info($successMessage, [
+            //     'order_id' => $order->id,
+            //     'payment_id' => $pay->id_pago,
+            //     'recipient' => $recipient,
+            // ]);
         } catch (\Throwable $exception) {
             Log::error($errorMessage, [
                 'order_id' => $order->id,
@@ -250,7 +250,7 @@ class WebhookController extends Controller
      */
     public function handlePayPalWebhook(Request $request)
     {
-        Log::info('Webhook de PayPal recibido', $request->all());
+        // Log::info('Webhook de PayPal recibido', $request->all());
 
         // Verificar la firma del webhook (PayPal usa un sistema diferente)
         if (!$this->validatePayPalWebhookSignature($request)) {
@@ -277,7 +277,7 @@ class WebhookController extends Controller
                 $this->handlePayPalPaymentFailed($resource);
                 break;
             default:
-                Log::info('Evento de PayPal no manejado', ['event_type' => $eventType]);
+                // Log::info('Evento de PayPal no manejado', ['event_type' => $eventType]);
         }
 
         return response()->json(['success' => true]);
@@ -317,7 +317,7 @@ class WebhookController extends Controller
      */
     protected function handlePayPalOrderApproved(array $resource): void
     {
-Log::info('Orden de PayPal aprobada recibida', $resource);
+// Log::info('Orden de PayPal aprobada recibida', $resource);
 
 
         $paypalOrderId = $resource['id'] ?? null;
@@ -334,10 +334,10 @@ Log::info('Orden de PayPal aprobada recibida', $resource);
             return;
         }
 
-        Log::info('Orden de PayPal aprobada, capturando pago...', [
-            'order_id' => $order->id,
-            'paypal_order_id' => $paypalOrderId,
-        ]);
+        // Log::info('Orden de PayPal aprobada, capturando pago...', [
+        //     'order_id' => $order->id,
+        //     'paypal_order_id' => $paypalOrderId,
+        // ]);
 
         // Capturar el pago automáticamente
         $accessToken = PayPalConfig::getAccessToken();
@@ -363,12 +363,12 @@ Log::info('Orden de PayPal aprobada recibida', $resource);
                 $data = $response->json();
                 $captureStatus = $data['status'] ?? 'UNKNOWN';
 
-                Log::info('Pago de PayPal capturado exitosamente', [
-                    'order_id' => $order->id,
-                    'paypal_order_id' => $paypalOrderId,
-                    'capture_status' => $captureStatus,
-                    'capture_data' => $data,
-                ]);
+                // Log::info('Pago de PayPal capturado exitosamente', [
+                //     'order_id' => $order->id,
+                //     'paypal_order_id' => $paypalOrderId,
+                //     'capture_status' => $captureStatus,
+                //     'capture_data' => $data,
+                // ]);
 
                 if ($captureStatus === 'COMPLETED') {
                     // Extraer información del capture
@@ -454,11 +454,11 @@ Log::info('Orden de PayPal aprobada recibida', $resource);
             return;
         }
 
-        Log::info('Pago de PayPal capturado', [
-            'order_id' => $order->id,
-            'paypal_order_id' => $paypalOrderId,
-            'capture_id' => $resource['id'] ?? null,
-        ]);
+        // Log::info('Pago de PayPal capturado', [
+        //     'order_id' => $order->id,
+        //     'paypal_order_id' => $paypalOrderId,
+        //     'capture_id' => $resource['id'] ?? null,
+        // ]);
 
         // Crear o actualizar registro en la tabla pays
         $pay = Pay::updateOrCreate(
@@ -511,11 +511,11 @@ Log::info('Orden de PayPal aprobada recibida', $resource);
             return;
         }
 
-        Log::info('Pago de PayPal pendiente de revisión', [
-            'order_id' => $order->id,
-            'paypal_order_id' => $paypalOrderId,
-            'reason' => $resource['status_details']['reason'] ?? 'PENDING_REVIEW',
-        ]);
+        // Log::info('Pago de PayPal pendiente de revisión', [
+        //     'order_id' => $order->id,
+        //     'paypal_order_id' => $paypalOrderId,
+        //     'reason' => $resource['status_details']['reason'] ?? 'PENDING_REVIEW',
+        // ]);
 
         // Crear o actualizar registro en la tabla pays con estado PENDING
         $pay = Pay::updateOrCreate(
@@ -545,10 +545,10 @@ Log::info('Orden de PayPal aprobada recibida', $resource);
             'order_status' => 'pendiente',
         ]);
 
-        Log::info('Orden actualizada a estado PENDIENTE_REVISION', [
-            'order_id' => $order->id,
-            'payment_status' => 'pendiente_revision',
-        ]);
+        // Log::info('Orden actualizada a estado PENDIENTE_REVISION', [
+        //     'order_id' => $order->id,
+        //     'payment_status' => 'pendiente_revision',
+        // ]);
     }
 
     /**
@@ -570,10 +570,10 @@ Log::info('Orden de PayPal aprobada recibida', $resource);
             return;
         }
 
-        Log::info('Pago de PayPal rechazado', [
-            'order_id' => $order->id,
-            'paypal_order_id' => $paypalOrderId,
-        ]);
+        // Log::info('Pago de PayPal rechazado', [
+        //     'order_id' => $order->id,
+        //     'paypal_order_id' => $paypalOrderId,
+        // ]);
 
         $order->update([
             'payment_status' => 'rechazado',

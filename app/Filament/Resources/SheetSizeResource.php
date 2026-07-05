@@ -3,13 +3,13 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\SheetSizeResource\Pages;
+use App\Filament\Resources\SheetSizeResource\RelationManagers\PromotionsRelationManager;
 use App\Models\SheetSize;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-
 class SheetSizeResource extends Resource
 {
     protected static ?string $model = SheetSize::class;
@@ -34,18 +34,19 @@ class SheetSizeResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->helperText('A descriptive name for this sheet size'),
-                        
+
                         Forms\Components\Select::make('unit')
                             ->label('Unit of Measurement')
                             ->options([
-                                'feet' => '👣 Feet',
+                                // 'feet' => '👣 Feet',
                                 'inches' => '📏 Inches',
                             ])
                             ->required()
                             ->native(false)
+                            ->default('inches')
                             ->helperText('Choose the unit: Feet or Inches'),
                     ]),
-                
+
                 Forms\Components\Section::make('Dimensions')
                     ->schema([
                         Forms\Components\Grid::make(2)
@@ -56,7 +57,7 @@ class SheetSizeResource extends Resource
                                     ->required()
                                     ->step(0.01)
                                     ->helperText('Width of the sheet'),
-                                
+
                                 Forms\Components\TextInput::make('height')
                                     ->label('Height')
                                     ->numeric()
@@ -64,7 +65,12 @@ class SheetSizeResource extends Resource
                                     ->step(0.01)
                                     ->helperText('Height of the sheet'),
                             ]),
+ 
                     ]),
+
+                Forms\Components\RichEditor::make('description')
+                    ->label('Description')
+                    ->columnSpanFull(),
 
                 Forms\Components\Section::make('Pricing & Status')
                     ->schema([
@@ -78,18 +84,27 @@ class SheetSizeResource extends Resource
                                     ->minValue(0)
                                     ->prefix('$')
                                     ->helperText('Price in USD for this sheet size'),
-                                
+
                                 Forms\Components\TextInput::make('sort_order')
                                     ->label('Display Order')
                                     ->numeric()
                                     ->default(0)
                                     ->helperText('Lower numbers appear first'),
                             ]),
-                        
+
                         Forms\Components\Toggle::make('is_active')
                             ->label('Active')
                             ->default(true)
                             ->helperText('Only active sizes appear in the builder'),
+                    ]),
+
+                                Forms\Components\Section::make('Image')
+                    ->schema([
+                        Forms\Components\FileUpload::make('image_path')
+                            ->label('Size Image')
+                            ->image()
+                            ->directory('build-sizes')
+                            ->visibility('public'),
                     ]),
             ]);
     }
@@ -103,34 +118,35 @@ class SheetSizeResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
-                
+
                 Tables\Columns\TextColumn::make('dimensions')
                     ->label('Dimensions')
-                    ->getStateUsing(fn (SheetSize $record) => 
+                    ->getStateUsing(
+                        fn(SheetSize $record) =>
                         $record->width . ' × ' . $record->height . ' ' . strtoupper(substr($record->unit, 0, 1))
                     )
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('unit')
                     ->label('Unit')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'feet' => 'blue',
                         'inches' => 'purple',
                     })
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('price')
                     ->label('Price')
                     ->money('usd')
                     ->sortable()
                     ->weight('bold'),
-                
+
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('sort_order')
                     ->label('Order')
                     ->sortable()
@@ -149,7 +165,7 @@ class SheetSizeResource extends Resource
                         'feet' => '👣 Feet',
                         'inches' => '📏 Inches',
                     ]),
-                
+
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Status'),
             ])
@@ -168,7 +184,7 @@ class SheetSizeResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            PromotionsRelationManager::class,
         ];
     }
 

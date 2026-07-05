@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\DtfSizeResource\Pages;
 use App\Filament\Resources\DtfSizeResource\RelationManagers;
+use App\Filament\Resources\DtfSizeResource\RelationManagers\PromotionsRelationManager;
 use App\Models\DtfSize;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -139,7 +140,7 @@ class DtfSizeResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            PromotionsRelationManager::class,
         ];
     }
 

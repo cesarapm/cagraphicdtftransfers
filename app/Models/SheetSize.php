@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class SheetSize extends Model
 {
@@ -12,6 +14,8 @@ class SheetSize extends Model
         'height',
         'unit',
         'price',
+        'description', // descripción opcional
+        'image_path', // ruta de la imagen opcional
         'is_active',
         'sort_order',
     ];
@@ -39,5 +43,24 @@ class SheetSize extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order')->orderBy('created_at');
+    }
+
+    
+    /**
+     * Get the promotion for this DtfSize
+     */
+    public function promotion(): MorphOne
+    {
+        return $this->morphOne(Promotion::class, 'promotionable');
+    }
+
+  
+
+    /**
+     * Get active promotion if exists
+     */
+    public function activePromotion()
+    {
+        return $this->promotion()->active();
     }
 }

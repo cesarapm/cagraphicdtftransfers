@@ -17,11 +17,11 @@ class CartController extends Controller
     public function checkout(Request $request)
     {
 
-    Log::info('Checkout request received', [
-            'user_id' => auth()->id(),
-            'session_id' => session()->getId(),
-            'request_data' => $request->all(),
-        ]);
+    // Log::info('Checkout request received', [
+    //         'user_id' => auth()->id(),
+    //         'session_id' => session()->getId(),
+    //         'request_data' => $request->all(),
+    //     ]);
         try {
             // Get items from either 'items' or 'dtf_items' parameter name
             $items = $request->input('items', []);
@@ -35,12 +35,12 @@ class CartController extends Controller
             $userId = auth()->id();
             $sessionId = session()->getId();
 
-            \Log::info('Checkout request', [
-                'items_count' => count($items),
-                'has_files' => $request->hasFile('items.0.image'),
-                'user_id' => $userId,
-                'session_id' => $sessionId,
-            ]);
+            // \Log::info('Checkout request', [
+            //     'items_count' => count($items),
+            //     'has_files' => $request->hasFile('items.0.image'),
+            //     'user_id' => $userId,
+            //     'session_id' => $sessionId,
+            // ]);
 
             // Process DTF Transfer items
             foreach ($items as $index => $item) {
@@ -50,7 +50,7 @@ class CartController extends Controller
                 if ($request->hasFile("items.{$index}.image")) {
                     $image = $request->file("items.{$index}.image");
                     $imagePath = $image->store('cart-images', 'public');
-                    \Log::info('Image stored', ['path' => $imagePath, 'size' => $image->getSize()]);
+                    // \Log::info('Image stored', ['path' => $imagePath, 'size' => $image->getSize()]);
                 } else {
                     \Log::warning('No image found for item', ['index' => $index]);
                 }
@@ -72,7 +72,7 @@ class CartController extends Controller
                 ]);
 
                 $savedItems[] = $cartItem;
-                \Log::info('Cart item created', ['id' => $cartItem->id, 'size_id' => $item['dtf_size_id']]);
+                // \Log::info('Cart item created', ['id' => $cartItem->id, 'size_id' => $item['dtf_size_id']]);
             }
 
             // Calculate totals
@@ -92,7 +92,7 @@ class CartController extends Controller
             // Create checkout session (integrate with Stripe/Payment provider)
             session()->put('checkout_data', $checkoutData);
 
-            \Log::info('Checkout successful', ['items_count' => count($savedItems), 'total' => $total]);
+            // \Log::info('Checkout successful', ['items_count' => count($savedItems), 'total' => $total]);
 
             return response()->json([
                 'success' => true,

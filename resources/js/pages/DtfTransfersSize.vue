@@ -173,8 +173,8 @@ const addToCart = () => {
         quantity: parseInt(quantity.value),
         imagePreview: imagePreview.value, // Base64 string
         imageFile: null, // Will be stored separately
-        unitPrice: Number(selectedSize.value.price) || 0,
-        totalPrice: Number(selectedSize.value.price) * parseInt(quantity.value) || 0
+        unitPrice: hasPromotion.value ? Number(finalPrice.value) : Number(selectedSize.value.price) || 0,
+        totalPrice: (hasPromotion.value ? Number(finalPrice.value) : Number(selectedSize.value.price) || 0) * parseInt(quantity.value)
     };
 
     // Store the File object in a Map (not serializable)
@@ -192,8 +192,8 @@ const addToCart = () => {
         product: item.product,
         quantity: item.quantity,
         imagePreview: item.imagePreview,
-        unitPrice: item.unitPrice,
-        totalPrice: item.totalPrice
+        unitPrice: Number(item.unitPrice) || 0, // Ensure it's a number
+        totalPrice: Number(item.totalPrice) || 0  // Ensure it's a number
     }));
     
     localStorage.setItem('dtf_cart_items', JSON.stringify(serializableCart));
@@ -228,8 +228,8 @@ const removeFromCart = (id) => {
         product: item.product,
         quantity: item.quantity,
         imagePreview: item.imagePreview,
-        unitPrice: item.unitPrice,
-        totalPrice: item.totalPrice
+        unitPrice: Number(item.unitPrice) || 0,
+        totalPrice: Number(item.totalPrice) || 0
     }));
     
     localStorage.setItem('dtf_cart_items', JSON.stringify(serializableCart));
@@ -248,8 +248,8 @@ const updateCartQuantity = (id, newQuantity) => {
             product: item.product,
             quantity: item.quantity,
             imagePreview: item.imagePreview,
-            unitPrice: item.unitPrice,
-            totalPrice: item.totalPrice
+            unitPrice: Number(item.unitPrice) || 0,
+            totalPrice: Number(item.totalPrice) || 0
         }));
         
         localStorage.setItem('dtf_cart_items', JSON.stringify(serializableCart));
@@ -270,6 +270,28 @@ const handleImageUpload = (event) => {
 
 const cartTotal = computed(() => {
     return cartItems.value.reduce((sum, item) => sum + Number(item.totalPrice || 0), 0).toFixed(2);
+});
+
+// Computed for promotion handling
+const hasPromotion = computed(() => {
+    return selectedSize.value?.active_promotion != null;
+});
+
+const promotionDiscount = computed(() => {
+    if (!hasPromotion.value) return 0;
+    const promo = selectedSize.value.active_promotion;
+    const price = Number(selectedSize.value.price) || 0;
+    const discountValue = Number(promo.discount_value) || 0;
+    if (promo.discount_type === 'percentage') {
+        return (price * discountValue) / 100;
+    }
+    return discountValue;
+});
+
+const finalPrice = computed(() => {
+    if (!hasPromotion.value) return Number(selectedSize.value.price) || 0;
+    const price = Number(selectedSize.value.price) || 0;
+    return Math.max(0, price - promotionDiscount.value);
 });
 </script>
 
@@ -312,7 +334,18 @@ const cartTotal = computed(() => {
                     <!-- Price -->
                     <div class="price-section">
                       <p class="price-label">Price</p>
-                      <p class="price-value">${{ selectedSize.price }}</p>
+                      <div class="price-display">
+                        <div v-if="hasPromotion" class="promotion-price-wrapper">
+                          <div class="discount-badge">
+                            <span class="discount-percent">-{{ selectedSize.active_promotion.discount_value }}%</span>
+                          </div>
+                          <p class="price-original">${{ Number(selectedSize.price).toFixed(2) }}</p>
+                          <p class="price-value-discount">${{ Number(finalPrice).toFixed(2) }}</p>
+                        </div>
+                        <div v-else>
+                          <p class="price-value">${{ Number(selectedSize.price).toFixed(2) }}</p>
+                        </div>
+                      </div>
                     </div>
 
                     <!-- Specifications -->
@@ -781,6 +814,48 @@ const cartTotal = computed(() => {
   font-size: 2.25rem;
   font-weight: bold;
   color: #16a34a;
+}
+
+.price-display {
+  position: relative;
+}
+
+.promotion-price-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.discount-badge {
+  position: absolute;
+  top: -0.5rem;
+  right: 0;
+  background: #ef4444;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.875rem;
+  z-index: 10;
+}
+
+.discount-percent {
+  display: inline-block;
+}
+
+.price-original {
+  font-size: 1.125rem;
+  color: #9ca3af;
+  text-decoration: line-through;
+  margin: 0;
+}
+
+.price-value-discount {
+  font-size: 2.25rem;
+  font-weight: bold;
+  color: #16a34a;
+  margin: 0;
 }
 
 .specs-box {

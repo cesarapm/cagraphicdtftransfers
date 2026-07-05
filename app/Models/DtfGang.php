@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class DtfGang extends Model
 {
@@ -26,4 +27,19 @@ class DtfGang extends Model
         'is_active' => 'boolean',
     ];
 
+    /**
+     * Get the promotion for this DtfGang
+     */
+    public function promotion(): MorphOne
+    {
+        return $this->morphOne(Promotion::class, 'promotionable');
+    }
+
+    /**
+     * Get active promotion if exists
+     */
+    public function activePromotion()
+    {
+        return $this->promotion()->active();
+    }
 }

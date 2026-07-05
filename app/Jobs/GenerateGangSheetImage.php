@@ -42,7 +42,7 @@ class GenerateGangSheetImage implements ShouldQueue
     public function handle()
     {
         try {
-            \Log::info("Starting image generation for gang sheet {$this->gangSheet->id}");
+            // \Log::info("Starting image generation for gang sheet {$this->gangSheet->id}");
 
             $this->gangSheet->update(['status' => 'processing']);
 
@@ -62,7 +62,7 @@ class GenerateGangSheetImage implements ShouldQueue
                 'status' => 'completed',
             ]);
 
-            \Log::info("Image generation completed for gang sheet {$this->gangSheet->id}");
+            // \Log::info("Image generation completed for gang sheet {$this->gangSheet->id}");
 
             // Aquí podrías enviar email al usuario, webhook, etc
             event(new \App\Events\GangSheetImageGenerated($this->gangSheet));
