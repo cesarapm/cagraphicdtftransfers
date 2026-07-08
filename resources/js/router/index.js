@@ -59,11 +59,11 @@ const routes = [
     props: true,
     meta: { requiresAuth: true }
   },
-  {
-    path: '/nosotros',
-    name: 'About',
-    component: About
-  },
+  // {
+  //   path: '/nosotros',
+  //   name: 'About',
+  //   component: About
+  // },
   {
     path: '/contact',
     name: 'Contact',
@@ -140,12 +140,12 @@ const routes = [
     component: Cart,
     meta: { requiresAuth: true }
   },
-  {
-    path: '/checkout',
-    name: 'Checkout',
-    component: Checkout,
-    // meta: { requiresAuth: true }
-  } 
+  // {
+  //   path: '/checkout',
+  //   name: 'Checkout',
+  //   component: Checkout,
+  //   // meta: { requiresAuth: true }
+  // } 
 
 ];
 

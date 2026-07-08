@@ -36,12 +36,12 @@
                       <v-list-item-title class="font-weight-bold">{{ authStore.customerName }}</v-list-item-title>
                     </v-list-item>
                     <v-divider></v-divider>
-                    <v-list-item :to="{ name: 'CustomerOrders' }">
+                    <!-- <v-list-item :to="{ name: 'CustomerOrders' }">
                       <template v-slot:prepend>
                         <v-icon>mdi-package-variant-closed</v-icon>
                       </template>
                       <v-list-item-title>My Projects</v-list-item-title>
-                    </v-list-item>
+                    </v-list-item> -->
                     <v-list-item @click="handleLogout">
                       <template v-slot:prepend>
                         <v-icon>mdi-logout</v-icon>
@@ -93,11 +93,11 @@
             <v-btn :to="{ name: 'HeatPress' }" variant="text" class="nav-menu-link">
               HEAT PRESS GUIDE
             </v-btn>
-         
 
-            <v-btn variant="text" :to="{name:'DtfTransfersSize'}"  class="nav-menu-link">
+
+            <v-btn variant="text" :to="{ name: 'DtfTransfersSize' }" class="nav-menu-link">
               DTF by Size
-              
+
             </v-btn>
 
             <v-btn variant="text" class="nav-menu-link" :to="{ name: 'DtfTransfersGang' }">
@@ -106,7 +106,7 @@
             <v-btn :to="{ name: 'GangSheetBuilder' }" variant="text" class="nav-menu-link">
               Build Gang Sheet
             </v-btn>
-                 <v-btn :to="{ name: 'Contact' }" variant="text" class="nav-menu-link">
+            <v-btn :to="{ name: 'Contact' }" variant="text" class="nav-menu-link">
               Contact
             </v-btn>
           </div>
@@ -215,19 +215,26 @@
                 <img :src="footerLogo" alt="CA Graphic DTF Transfers" class="footer-logo-main" />
               </div>
               <div class="footer-social-wrapper">
-                <a href="https://facebook.com" target="_blank" class="social-icon facebook-icon">
+                <a href="https://www.facebook.com/cagraphicdtftransfers" target="_blank"
+                  class="social-icon facebook-icon">
                   <v-icon>mdi-facebook</v-icon>
                   <span class="social-label">FACEBOOK</span>
                 </a>
-                <a href="https://instagram.com" target="_blank" class="social-icon instagram-icon">
+                <a href="https://www.instagram.com/cagraphicdtftransfers/" target="_blank"
+                  class="social-icon instagram-icon">
                   <v-icon>mdi-instagram</v-icon>
                   <span class="social-label">INSTAGRAM</span>
                 </a>
-                <a href="https://tiktok.com" target="_blank" class="social-icon tiktok-icon">
-                  <v-icon>mdi-tiktok</v-icon>
+                <a href="https://www.tiktok.com/@cagraphicdtf" target="_blank" class="social-icon tiktok-icon">
+                  <div class="v-icon" role="img" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="70%" height="100%" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.12v12.4a2.67 2.67 0 1 1-2.67-2.67c.21 0 .42.03.62.08V8.65a5.79 5.79 0 0 0-.62-.03A5.79 5.79 0 1 0 15.82 14V8.71a7.94 7.94 0 0 0 4.65 1.49V7.13c-.3 0-.59-.15-.88-.44z" />
+                    </svg>
+                  </div>
                   <span class="social-label">TIKTOK</span>
                 </a>
-                <a href="https://youtube.com" target="_blank" class="social-icon youtube-icon">
+                <a href="https://www.youtube.com/@CAGRAPHICDTFTRANSFERS" target="_blank"
+                  class="social-icon youtube-icon">
                   <v-icon>mdi-youtube</v-icon>
                   <span class="social-label">YOUTUBE</span>
                 </a>

@@ -5,24 +5,24 @@
         <v-row justify="center">
           <v-col cols="12" lg="9">
             <div class="payment-state__shell">
-              <span class="payment-state__eyebrow">Pago confirmado</span>
+              <span class="payment-state__eyebrow">Payment Confirmed</span>
               <div class="payment-state__seal">OK</div>
-              <h1>Tu joya ya aparto su lugar contigo.</h1>
+              <h1>Your jewel has secured its place with you.</h1>
               <p v-if="paymentProvider === 'paypal'">
-                PayPal confirmó tu compra y tu orden quedó registrada correctamente.
-                Preparamos el siguiente paso para que puedas volver al catálogo o seguir explorando.
+                PayPal confirmed your purchase and your order has been successfully recorded.
+                We have prepared the next step so you can return to the catalog or continue exploring.
               </p>
               <p v-else>
-                Mercado Pago confirmó tu compra y tu orden quedó registrada correctamente.
-                Preparamos el siguiente paso para que puedas volver al catálogo o seguir explorando.
+                Mercado Pago confirmed your purchase and your order has been successfully recorded.
+                We have prepared the next step so you can return to the catalog or continue exploring.
               </p>
 
               <div class="payment-state__actions">
                 <v-btn class="payment-state__btn payment-state__btn--solid" :to="{ name: 'DtfTransfersSize' }" elevation="0">
-                  Seguir comprando
+                  Continue Shopping
                 </v-btn>
                 <v-btn class="payment-state__btn" variant="outlined" :to="{ name: 'Home' }">
-                  Ir al inicio
+                  Go to Home
                 </v-btn>
               </div>
             </div>

@@ -80,7 +80,9 @@ class DtfSizeResource extends Resource
                             ->label('Size Image')
                             ->image()
                             ->directory('dtf-sizes')
-                            ->visibility('public'),
+                            ->visibility('public')
+                            ->deletable()
+                            ->previewable(),
                     ]),
             ]);
     }

@@ -5,20 +5,51 @@
         <v-row justify="center">
           <v-col cols="12" lg="9">
             <div class="payment-state__shell">
-              <span class="payment-state__eyebrow">Pago no completado</span>
+              <span class="payment-state__eyebrow">Payment Not Completed</span>
               <div class="payment-state__seal payment-state__seal--failure">X</div>
-              <h1>La orden sigue esperando tu siguiente intento.</h1>
+              <h1>Your order is waiting for your next attempt.</h1>
               <p>
-                El pago no se completó. Puedes revisar tus datos y volver al checkout para intentarlo otra vez,
-                o escribirnos si necesitas apoyo con tu compra.
+                The payment was not completed. You can review your details and return to checkout to try again,
+                or contact us if you need assistance with your purchase.
               </p>
 
+              <v-alert 
+                v-if="orderId && cancelledOrder" 
+                type="success" 
+                variant="tonal"
+                class="my-4"
+              >
+                ✓ Order #{{ orderId }} cancelled successfully
+              </v-alert>
+
+              <v-alert 
+                v-if="cancelError" 
+                type="error" 
+                variant="tonal"
+                class="my-4"
+              >
+                Error cancelling: {{ cancelError }}
+              </v-alert>
+
               <div class="payment-state__actions">
-                <v-btn class="payment-state__btn payment-state__btn--solid" :to="{ name: 'Checkout' }" elevation="0">
-                  Volver al checkout
+                <v-btn 
+                  class="payment-state__btn payment-state__btn--solid" 
+                  :to="{ name: 'Cart' }" 
+                  elevation="0"
+                >
+                  Back to Cart
+                </v-btn>
+                <v-btn 
+                  v-if="orderId && !cancelledOrder"
+                  class="payment-state__btn payment-state__btn--cancel" 
+                  variant="outlined"
+                  :loading="cancelling"
+                  @click="handleCancelOrder"
+                >
+                  Cancel Order #{{ orderId }}
                 </v-btn>
                 <v-btn class="payment-state__btn" variant="outlined" :to="{ name: 'Contact' }">
-                  Contactar soporte
+                  Contact Support
                 </v-btn>
               </div>
             </div>
@@ -30,32 +61,67 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 
+const route = useRoute();
+const orderId = ref(null);
+const cancelling = ref(false);
+const cancelledOrder = ref(false);
+const cancelError = ref(null);
 const lastMercadoPagoOrderKey = 'last_mercado_pago_order_id';
 
-const cancelFailedMercadoPagoOrder = async (orderId) => {
+const cancelFailedMercadoPagoOrder = async (id) => {
   try {
-    await fetch('/api/cancelar-orden-pago-fallido', {
+    cancelling.value = true;
+    cancelError.value = null;
+
+    const response = await fetch('/api/cancelar-orden-pago-fallido', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify({ orden_id: orderId })
+      body: JSON.stringify({ orden_id: id })
     });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    cancelledOrder.value = true;
   } catch (error) {
-    console.error('No se pudo cancelar la orden fallida:', error);
+    console.error('Failed to cancel order:', error);
+    cancelError.value = error.message || 'Unable to cancel order';
+  } finally {
+    cancelling.value = false;
+  }
+};
+
+const handleCancelOrder = () => {
+  if (orderId.value) {
+    cancelFailedMercadoPagoOrder(Number(orderId.value));
   }
 };
 
 onMounted(async () => {
-  const lastOrderId = sessionStorage.getItem(lastMercadoPagoOrderKey);
-  if (!lastOrderId) {
-    return;
+  // Try to get order_id from query params
+  if (route.query.order_id) {
+    orderId.value = route.query.order_id;
+  } else {
+    // Fallback to sessionStorage
+    const lastOrderId = sessionStorage.getItem(lastMercadoPagoOrderKey);
+    if (lastOrderId) {
+      orderId.value = lastOrderId;
+    }
   }
 
-  await cancelFailedMercadoPagoOrder(Number(lastOrderId));
+  // Auto-cancel if coming from MercadoPago error
+  if (orderId.value && route.query.token) {
+    await cancelFailedMercadoPagoOrder(Number(orderId.value));
+  }
+
+  // Clean up sessionStorage
   sessionStorage.removeItem(lastMercadoPagoOrderKey);
 });
 </script>
@@ -136,6 +202,15 @@ onMounted(async () => {
 .payment-state__btn--solid {
   background: linear-gradient(135deg, #9a5d56, #b6776d) !important;
   color: #fffdf9 !important;
+}
+
+.payment-state__btn--cancel {
+  color: #bf7f73 !important;
+  border-color: #bf7f73 !important;
+}
+
+.payment-state__btn--cancel:hover {
+  background: rgba(191, 127, 115, 0.08) !important;
 }
 
 @media (max-width: 600px) {

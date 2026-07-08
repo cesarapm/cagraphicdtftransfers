@@ -45,12 +45,12 @@
               </v-btn>
             </v-col>
             <v-col cols="12" sm="6" md="3">
-              <v-btn class="info-btn" size="x-large" elevation="0">
+              <v-btn class="info-btn" :to="{ name: 'GangSheetBuilder' }" size="x-large" elevation="0">
                 BUILD A SHEET
               </v-btn>
             </v-col>
             <v-col cols="12" sm="6" md="3">
-              <v-btn class="info-btn" size="x-large" elevation="0">
+              <v-btn class="info-btn" :to="{ name: 'DtfTransfersGang' }" size="x-large" elevation="0">
                 UPLOAD GANG SHEET
               </v-btn>
             </v-col>

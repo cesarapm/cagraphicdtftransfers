@@ -104,7 +104,9 @@ class SheetSizeResource extends Resource
                             ->label('Size Image')
                             ->image()
                             ->directory('build-sizes')
-                            ->visibility('public'),
+                            ->visibility('public')
+                               ->deletable()
+                            ->previewable(),
                     ]),
             ]);
     }

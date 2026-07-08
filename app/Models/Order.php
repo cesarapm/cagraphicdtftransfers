@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class Order extends Model
 {
@@ -81,6 +83,30 @@ class Order extends Model
                     }
                 }
             }
+        });
+
+        static::deleting(function ($order) {
+            // Cargar items para asegurar que se ejecuten sus eventos deleting()
+            $order->load('items');
+            
+            Log::info('Eliminando OrderItems de la orden', [
+                'order_id' => $order->id,
+                'items_count' => $order->items->count(),
+            ]);
+
+            // Eliminar cada item individualmente para que ejecute su evento deleting()
+            // Esto borrará las imágenes de storage automáticamente
+            foreach ($order->items as $item) {
+                Log::info('Eliminando OrderItem', [
+                    'item_id' => $item->id,
+                    'image' => $item->image,
+                ]);
+                $item->delete();
+            }
+
+            Log::info('Todos los OrderItems eliminados correctamente', [
+                'order_id' => $order->id,
+            ]);
         });
     }
 

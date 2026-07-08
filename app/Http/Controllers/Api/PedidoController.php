@@ -125,32 +125,83 @@ class PedidoController extends Controller
         ]);
 
         try {
-            $order = Order::findOrFail($validated['orden_id']);
+            $orderId = $validated['orden_id'];
+            Log::info('Iniciando cancelación de orden por pago fallido', ['order_id' => $orderId]);
 
-            if (in_array($order->payment_status, ['pendiente_pago'], true)) {
-                $order->update([
-                    'payment_status' => 'rechazado',
-                    'order_status' => 'cancelado',
-                ]);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Orden actualizada tras pago fallido.',
-                'order' => [
-                    'id' => $order->id,
-                    'status' => $order->status,
-                ],
+            $order = Order::findOrFail($orderId);
+            
+            Log::info('Orden encontrada', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'payment_status' => $order->payment_status,
+                'order_status' => $order->order_status,
             ]);
+
+            // Permitir eliminar si está en: pendiente_pago, rechazado o cancelado
+            $deletableStatuses = ['pendiente_pago', 'rechazado', 'cancelado'];
+            
+            if (in_array($order->payment_status, $deletableStatuses, true)) {
+                Log::info('Orden está en estado eliminable, procediendo a borrar', [
+                    'order_id' => $order->id,
+                    'current_status' => $order->payment_status,
+                ]);
+
+                // Contar items antes de eliminar
+                $itemCount = $order->items()->count();
+                Log::info('Items encontrados en la orden', [
+                    'order_id' => $order->id,
+                    'item_count' => $itemCount,
+                ]);
+
+                // Eliminar la orden (esto activará el evento deleting del modelo)
+                $deleteResult = $order->delete();
+                
+                Log::info('Orden eliminada correctamente', [
+                    'order_id' => $orderId,
+                    'order_number' => $order->order_number,
+                    'items_removed' => $itemCount,
+                    'delete_result' => $deleteResult,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Orden cancelada y eliminada correctamente.',
+                    'order' => [
+                        'id' => $order->id,
+                        'order_number' => $order->order_number,
+                        'items_removed' => $itemCount,
+                    ],
+                ]);
+            } else {
+                Log::warning('Orden no está en estado eliminable, no se puede borrar', [
+                    'order_id' => $order->id,
+                    'current_status' => $order->payment_status,
+                    'allowed_statuses' => $deletableStatuses,
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La orden no está en estado eliminable (pendiente_pago, rechazado o cancelado). Estado actual: ' . $order->payment_status,
+                    'order' => [
+                        'id' => $order->id,
+                        'current_status' => $order->payment_status,
+                        'allowed_statuses' => $deletableStatuses,
+                    ],
+                ], 400);
+            }
         } catch (\Throwable $exception) {
             Log::error('Error al cancelar orden por pago fallido', [
-                'order_id' => $validated['orden_id'],
+                'order_id' => $validated['orden_id'] ?? null,
                 'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+                'trace' => $exception->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'No se pudo actualizar la orden.',
+                'message' => 'No se pudo eliminar la orden.',
+                'error' => config('app.debug') ? $exception->getMessage() : null,
             ], 500);
         }
     }
@@ -932,8 +983,8 @@ class PedidoController extends Controller
             // Guardar el archivo en el disk 'public'
             Storage::disk('public')->put($path, $decodedImage);
 
-            // Retornar la ruta relativa para guardar en BD
-            $relativePath = 'storage/orderitems/' . $filename;
+            // Retornar la ruta relativa para guardar en BD (sin prefijo 'storage/')
+            $relativePath = $path; // Solo: orderitems/orderitem_30_1783490418.webp
 
             // Log::info('✅ Image saved successfully', [
             //     'order_id' => $orderId,

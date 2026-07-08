@@ -5,24 +5,24 @@
         <v-row justify="center">
           <v-col cols="12" lg="9">
             <div class="payment-state__shell">
-              <span class="payment-state__eyebrow">Pago pendiente</span>
+              <span class="payment-state__eyebrow">Pay Pending</span>
               <div class="payment-state__seal payment-state__seal--pending">...</div>
-              <h1>Tu pago esta en revision.</h1>
+              <h1>Your payment is under review.</h1>
               <p>
-                Mercado Pago recibió el intento y está terminando de confirmarlo.
-                En cuanto se procese, la orden seguirá su curso normal.
+                Mercado Pago received the attempt and is finishing the confirmation.
+                Once processed, the order will continue its normal course.
               </p>
 
               <div class="payment-state__note">
-                Si usaste transferencia o un método con validación adicional, este estado puede tardar unos minutos.
+                If you used a transfer or a method with additional validation, this state may take a few minutes.
               </div>
 
               <div class="payment-state__actions">
                 <v-btn class="payment-state__btn payment-state__btn--solid" :to="{ name: 'Home' }" elevation="0">
-                  Volver al inicio
+                  Back to Home
                 </v-btn>
                 <v-btn class="payment-state__btn" variant="outlined" :to="{ name: 'Contact' }">
-                  Necesito ayuda
+                  Need Help?
                 </v-btn>
               </div>
             </div>

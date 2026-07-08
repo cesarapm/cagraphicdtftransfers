@@ -80,7 +80,9 @@ class DtfGangResource extends Resource
                             ->label('Size Image')
                             ->image()
                             ->directory('dtf-gangs')
-                            ->visibility('public'),
+                            ->visibility('public')
+                            ->deletable()
+                            ->previewable(),
                     ]),
             ]);
     }

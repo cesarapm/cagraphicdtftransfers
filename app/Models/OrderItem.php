@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class OrderItem extends Model
 {
@@ -26,6 +27,26 @@ class OrderItem extends Model
         'unit_price' => 'decimal:2',
         'total' => 'decimal:2',
     ];
+
+    protected static function booted(): void
+    {
+        static::updating(function ($item) {
+            // Si la imagen cambió, eliminar la imagen antigua
+            if ($item->isDirty('image')) {
+                $oldImage = $item->getOriginal('image');
+                if ($oldImage && Storage::disk('public')->exists($oldImage)) {
+                    Storage::disk('public')->delete($oldImage);
+                }
+            }
+        });
+
+        static::deleting(function ($item) {
+            // Delete image from storage if it exists
+            if ($item->image && Storage::disk('public')->exists($item->image)) {
+                Storage::disk('public')->delete($item->image);
+            }
+        });
+    }
 
     public function order(): BelongsTo
     {
