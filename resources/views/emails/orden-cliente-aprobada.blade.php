@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tu pedido fue confirmado</title>
+    <title>Your order was confirmed</title>
     <style>
         body {
             margin: 0;
@@ -107,11 +107,12 @@
             margin-top: 16px;
             padding: 14px 22px;
             border-radius: 999px;
-            background: linear-gradient(135deg, #8c745f, #a88d74);
+            background: #8c745f;
             color: #fffdf9 !important;
-            text-decoration: none;
+            text-decoration: none !important;
             font-weight: 700;
             letter-spacing: .04em;
+            border: none;
         }
         .button-secondary {
             word-break: break-all;
@@ -181,47 +182,47 @@
 <body>
     <div class="container">
         <div class="hero">
-            <h1>Tu pago fue confirmado</h1>
-            <p>La orden {{ $orden->order_number }} ya fue aprobada. Desde aquí puedes revisar tu estatus cuando quieras.</p>
+            <h1>Your payment was confirmed</h1>
+            <p>Order {{ $orden->order_number }} has been approved. From here you can review your status whenever you want.</p>
         </div>
 
         <div class="content">
-            <span class="badge">Pago aprobado</span>
+            <span class="badge">Payment Approved</span>
 
             <div class="tracking-box">
-                <h2>Seguimiento de tu pedido</h2>
-                <p>Tu identificador para consultar el estatus es este número de orden:</p>
+                <h2>Your Order Tracking</h2>
+                <p>Your identifier to check the status is this order number:</p>
                 <div class="tracking-code">{{ $orden->order_number }}</div>
-                <p>También dejamos un acceso directo para que abras el seguimiento sin volver a capturarlo.</p>
-                <a class="button" href="{{ $trackingUrl }}" target="_blank" rel="noopener noreferrer">Ver estatus de mi pedido</a>
-                <div class="button-secondary">Si el botón no abre, usa este enlace: {{ $trackingUrl }}</div>
+                <p>We also left direct access for you to open the tracking without entering it again.</p>
+                <a class="button" href="{{ $trackingUrl }}" target="_blank" rel="noopener noreferrer">View my order status</a>
+                <div class="button-secondary">If the button doesn't open, use this link: {{ $trackingUrl }}</div>
             </div>
 
             <div class="card">
-                <h3>Resumen</h3>
-                <div class="row"><span class="label">Orden</span><span class="value">&nbsp;{{ $orden->order_number }}</span></div>
-                <div class="row"><span class="label">Cliente</span><span class="value">&nbsp;{{ $orden->customer_full_name }}</span></div>
-                <div class="row"><span class="label">Correo</span><span class="value">&nbsp;{{ $orden->customer_email }}</span></div>
-                <div class="row"><span class="label">Estado de la orden</span><span class="value">&nbsp;{{ $orden->status_label }}</span></div>
-                <div class="row"><span class="label">Método de pago</span><span class="value">&nbsp;{{ 
+                <h3>Summary</h3>
+                <div class="row"><span class="label">Order</span><span class="value">&nbsp;{{ $orden->order_number }}</span></div>
+                <div class="row"><span class="label">Customer</span><span class="value">&nbsp;{{ $orden->customer_full_name }}</span></div>
+                <div class="row"><span class="label">Email</span><span class="value">&nbsp;{{ $orden->customer_email }}</span></div>
+                <div class="row"><span class="label">Order Status</span><span class="value">&nbsp;{{ $orden->status_label }}</span></div>
+                <div class="row"><span class="label">Payment Method</span><span class="value">&nbsp;{{ 
                     match(strtolower((string) ($pago->metodo_pago ?: 'mercado_pago'))) {
                         'account_money', 'mercado_pago' => 'Mercado Pago',
                         'paypal' => 'PayPal',
-                        'transferencia' => 'Transferencia Bancaria',
+                        'transferencia' => 'Bank Transfer',
                         default => ucwords(str_replace('_', ' ', (string) $pago->metodo_pago))
                     }
                 }}</span></div>
-                <div class="row"><span class="label">Estado del pago</span><span class="value">&nbsp;{{ strtoupper((string) $pago->estado) }}</span></div>
+                <div class="row"><span class="label">Payment Status</span><span class="value">&nbsp;{{ strtoupper((string) $pago->estado) }}</span></div>
             </div>
 
             <div class="card">
-                <h3>Productos</h3>
+                <h3>Products</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>Pieza</th>
-                            <th>Cantidad</th>
-                            <th>Precio</th>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
                             <th>Subtotal</th>
                         </tr>
                     </thead>
@@ -239,13 +240,31 @@
             </div>
 
             <div class="total-box">
-                <strong>Total pagado</strong>
-                <span>${{ number_format((float) $pago->monto_transaccion, 2) }} MXN</span>
+                <div class="row" style="border-bottom: 1px solid rgba(0,0,0,.1); padding: 8px 0;">
+                    <strong style="color: #7b5f3f; font-size: 13px;">Subtotal</strong>
+                    <span style="color: #6b4e2f; font-weight: 700;">${{ number_format((float) ($pago->monto_transaccion - ($orden->shipping_cost ?? 0) + ($orden->discount_amount ?? 0)), 2) }} USD</span>
+                </div>
+                @if($orden->discount_amount && $orden->discount_amount > 0)
+                    <div class="row" style="border-bottom: 1px solid rgba(0,0,0,.1); padding: 8px 0;">
+                        <strong style="color: #7b5f3f; font-size: 13px;">
+                            Discount @if($orden->discount_code)({{ $orden->discount_code }})@endif
+                        </strong>
+                        <span style="color: #22863a; font-weight: 700;">-${{ number_format((float) $orden->discount_amount, 2) }} USD</span>
+                    </div>
+                @endif
+                <div class="row" style="border-bottom: 1px solid rgba(0,0,0,.1); padding: 8px 0;">
+                    <strong style="color: #7b5f3f; font-size: 13px;">Shipping</strong>
+                    <span style="color: #6b4e2f; font-weight: 700;">${{ number_format((float) ($orden->shipping_cost ?? 0), 2) }} USD</span>
+                </div>
+                <div style="text-align: right; padding-top: 12px;">
+                    <strong style="display: block; color: #7b5f3f; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">Total Paid</strong>
+                    <span style="font-size: 28px; color: #6b4e2f; font-weight: 700;">${{ number_format((float) $pago->monto_transaccion, 2) }} USD</span>
+                </div>
             </div>
         </div>
 
         <div class="footer">
-            Este correo se envió automáticamente cuando el pago fue aprobado. Si necesitas ayuda, responde a este mensaje o contáctanos con tu número de orden {{ $orden->order_number }}.
+            This email was sent automatically when the payment was approved. If you need help, reply to this message or contact us with your order number {{ $orden->order_number }}.
         </div>
     </div>
 </body>

@@ -84,7 +84,7 @@ onMounted(() => {
                 <div class="refund-section intro-section">
                     <h2 class="section-title">2. Refund Request Process</h2>
                     <p class="intro-text">
-                        2.1 Notication: <br>
+                        2.1 Notification: <br>
                         To initiate a refund, replacement, or return request, please contact our
                         Customer Support team at contact@cagraphicdtftransfers.com within 3
                         business days of receiving your order. Please include your order number,
@@ -121,80 +121,108 @@ onMounted(() => {
                 <!-- Non-Refundable Situations -->
                 <div class="refund-section">
                     <h2 class="section-title">Non-Refundable Situations:</h2>
-                    
-                    <h3 class="subsection-title">3.1 Non-Refundable Situations</h3>
-                    <p class="intro-text">
+
+                    <h3 class="subsection-title">3 Non-Refundable Situations</h3>
+                    <!-- <p class="intro-text">
                         The following situations are non-refundable. Products ordered based on customer specifications cannot be refunded. CA Graphic DTF Transfers does not offer refunds, returns, or exchanges based on change of mind after production.
+                    </p> -->
+
+                    <h3 class="subsection-title">3.1 Change of Mind</h3>
+                    <p class="intro-text">
+                        Because our products are custom-made and produced specically for each order,
+                        CA Graphic DTF Transfers does not offer refunds, returns, or exchanges based
+                        solely on a change of mind after an order has been placed and approved for
+                        production.
                     </p>
 
-                    <h3 class="subsection-title">3.2 Change of Mind</h3>
+                    <h3 class="subsection-title">3.2 Customer Responsibility:</h3>
                     <p class="intro-text">
-                        At CA Graphic DTF Transfers, we understand that sometimes customer preferences may change. However, if you change your mind about an order that has been placed and approved for production, we cannot provide a refund or credit.
+                        Customers are responsible for reviewing and verifying all artwork, sizing,
+                        quantities, shipping information, and order details before submitting an order.
+                        CA Graphic DTF Transfers is not responsible for issues resulting from incorrect
+                        information, artwork errors, low-resolution les, or inaccurate details provided
+                        by the customer during the ordering process.
                     </p>
-
-                    <h3 class="subsection-title">3.3 Customer Responsibility</h3>
                     <p class="intro-text">
-                        CA Graphic DTF Transfers is not responsible for reviewing and verifying all artwork, sizing, quantities, shipping information, and order details before submitting an order. CA Graphic DTF Transfers is not responsible for issues arising from incorrect information provided by the customer during the ordering process.
-                    </p>
-                    <p class="intro-text">
-                        While we do our best not to be available in these situations, our team is committed to providing excellent customer service and will work with you to identify a fair and reasonable solution when possible. Your satisfaction is important to us, and we strive to make things right.
+                        While refunds may not be available in these situations, our team is committed to
+                        providing excellent customer service and will work with you to identify a fair and
+                        reasonable solution whenever possible. Your satisfaction is important to us, and
+                        we strive to ensure a positive experience with every order.
                     </p>
                 </div>
 
                 <!-- Exchanges -->
                 <div class="refund-section">
                     <h2 class="section-title">Exchanges:</h2>
-                    
-                    <h3 class="subsection-title">4. Exchanges and Replacements</h3>
-                    <p class="intro-text">
-                        For customers with Custom Products: If you've received a defective or damaged custom printed product, CA Graphic DTF Transfers does not offer traditional exchanges.
-                    </p>
+
+                    <h3 class="subsection-title">4 Exchanges and Replacements</h3>
+
 
                     <h3 class="subsection-title">4.1 Exchanges for Pre-Made Products</h3>
                     <p class="intro-text">
-                        If there is a defect in the pre-made or pre-designed product purchased from CA Graphic DTF Transfers, customers may request a replacement at no cost. To arrange an exchange, contact our Customer Support team within the required notification period. We will review the issue and, when appropriate, provide a replacement, repair, or refund, as determined by our team.
+                        Due to the custom nature of our DTF transfers and printed products, CA Graphic
+                        DTF Transfers does not offer traditional exchanges.
                     </p>
+                    <p class="intro-text">
+
+                        If there is a defect, production error, or quality issue with your order, please
+                        contact our Customer Support team within the required notification period. We
+                        will review the issue and, when appropriate, provide a replacement, reprint,
+                        store credit, or refund in accordance with this Return and Refund Policy.
+                    </p>
+
                 </div>
 
                 <!-- Contact Information -->
                 <div class="refund-section">
                     <h2 class="section-title">Contact Information:</h2>
-                    
+
                     <p class="intro-text">
-                        If you have any questions, concerns, or would like to submit a refund, replacement, or return request, please contact our Customer Support team:
+                        If you have any questions, concerns, or would like to submit a refund,
+                        replacement, or return request, please contact our Customer Support team
+                        using the information below:
                     </p>
-                    
+
                     <div class="contact-info">
-                        <strong>Email:</strong> <a href="mailto:contact@cagraphicdtftransfers.com">contact@cagraphicdtftransfers.com</a><br>
+                        <strong>Email:</strong> <a
+                            href="mailto:contact@cagraphicdtftransfers.com">contact@cagraphicdtftransfers.com</a><br>
                         <strong>Phone:</strong> (312) 843-4099
                     </div>
 
                     <p class="intro-text">
-                        We are committed to providing prompt assistance and resolving any issues as quickly as possible.
+                        Our team is committed to providing prompt assistance and resolving any issues
+                        as quickly as possible.
                     </p>
                 </div>
 
                 <!-- Modifications to the Policy -->
                 <div class="refund-section contact-section">
                     <h2 class="section-title">Modifications to the Policy:</h2>
-                    
+
                     <p class="intro-text">
-                        CA Graphic DTF Transfers reserves the right to update, review, or modify this Refund Policy at any time. Any changes will be effective immediately upon posting to www.cagraphicdtftransfers.com.
+                        CA Graphic DTF Transfers reserves the right to update, review, or modify this Refund Policy at
+                        any time. Any changes will be effective immediately upon posting to
+                        www.cagraphicdtftransfers.com.
                     </p>
                     <p class="intro-text">
-                        We encourage you to review this policy periodically to stay informed of any updates. Your continued use of our website, products, or services after any posted modification constitutes your acceptance of the revised policy.
+                        We encourage you to review this policy periodically to stay informed of any updates. Your
+                        continued use of our website, products, or services after any posted modification constitutes
+                        your acceptance of the revised policy.
                     </p>
                     <p class="intro-text">
-                        By using our services, you acknowledge that you have read, understood, and agree to the terms and conditions outlined in this Return and Refund Policy.
+                        By using our services, you acknowledge that you have read, understood, and agree to the terms
+                        and conditions outlined in this Return and Refund Policy.
                     </p>
 
                     <h3 class="subsection-title">Contact Information</h3>
                     <p class="intro-text">
                         <strong>CA Graphic DTF Transfers</strong><br>
+                        1824 S. May St.<br>
                         Chicago, IL 60608<br>
                         United States<br><br>
                         <strong>Phone:</strong> (312) 843-4099<br>
-                        <strong>Email:</strong> <a href="mailto:contact@cagraphicdtftransfers.com">contact@cagraphicdtftransfers.com</a>
+                        <strong>Email:</strong> <a
+                            href="mailto:contact@cagraphicdtftransfers.com">contact@cagraphicdtftransfers.com</a>
                     </p>
                 </div>
             </div>

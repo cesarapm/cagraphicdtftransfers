@@ -6,41 +6,41 @@
           <v-col cols="12" lg="10">
             <div class="tracking-shell">
               <div class="tracking-hero-copy">
-                <span class="tracking-kicker">Seguimiento</span>
-                <h1>Tu pedido tiene un hilo propio.</h1>
+                <span class="tracking-kicker">Order Tracking</span>
+                <h1>Your order has its own thread.</h1>
                 <p>
-                  Consulta el estado de tu orden con tu número de pedido.
-                  Si entraste desde el correo, el acceso ya viene listo.
+                  Check your order status with your order number.
+                  If you came from the email, access is already ready.
                 </p>
               </div>
 
               <div class="tracking-access-card">
                 <div class="tracking-access-head">
                   <div>
-                    <span class="tracking-label">Orden</span>
+                    <span class="tracking-label">Order</span>
                     <strong>&nbsp;{{ normalizedOrderNumber }}</strong>
                   </div>
                   <span class="tracking-token-pill" :class="{ 'tracking-token-pill--ready': hasToken }">
-                    {{ hasToken ? 'Acceso seguro listo' : 'Se requiere verificacion' }}
+                    {{ hasToken ? 'Secure access ready' : 'Verification required' }}
                   </span>
                 </div>
               
 
                 <p class="tracking-access-copy">
                   {{ hasToken
-                    ? 'Abriste un enlace privado con token de seguimiento. Vamos a consultar tu pedido en cuanto cargue la pagina.'
-                    : 'Si abriste la liga sin token, confirma tu correo para consultar el estatus.' }}
+                    ? 'You opened a private link with tracking token. We will check your order as soon as the page loads.'
+                    : 'If you opened the link without a token, confirm your email to check the status.' }}
                 </p>
 
                 <v-form class="tracking-form" @submit.prevent="submitLookup">
                   <v-text-field
                     v-model="email"
-                    label="Correo electronico"
+                    label="Email address"
                     type="email"
                     variant="outlined"
                     density="comfortable"
                     :disabled="loading || hasToken"
-                    :hint="hasToken ? 'Este enlace ya incluye la verificacion necesaria.' : 'Usa el mismo correo con el que hiciste tu compra.'"
+                    :hint="hasToken ? 'This link already includes the necessary verification.' : 'Use the same email you used to make your purchase.'"
                     persistent-hint
                   ></v-text-field>
 
@@ -51,7 +51,7 @@
                     :loading="loading"
                     :disabled="loading || (!hasToken && !email)"
                   >
-                    {{ hasToken ? 'Actualizar estatus' : 'Consultar pedido' }}
+                    {{ hasToken ? 'Update status' : 'Check order' }}
                   </v-btn>
                 </v-form>
               </div>
@@ -76,15 +76,15 @@
 
             <div v-if="loading" class="tracking-loading">
               <div class="tracking-loading__orb"></div>
-              <p>Consultando el recorrido de tu orden...</p>
+              <p>Checking your order journey...</p>
             </div>
 
             <div v-else-if="order" class="tracking-grid">
               <article class="tracking-card tracking-card--hero">
                 <div class="tracking-card__topline">
-                  <span class="tracking-label">Estado actual</span>
+                  <span class="tracking-label">Current status</span>
                   <span class="tracking-status" :class="statusThemeClass">
-                    {{ order.status_label }}
+                    {{ statusNarrative }}
                   </span>
                 </div>
 
@@ -95,21 +95,21 @@
 
                 <div class="tracking-state-panel" :class="statusThemeClass">
                   <div class="tracking-state-panel__lead">
-                    <span class="tracking-label">Lo que esta pasando</span>
+                    <span class="tracking-label">What's happening</span>
                     <strong>{{ statusDetails.headline }}</strong>
                     <p>{{ statusDetails.detail }}</p>
                   </div>
                   <div class="tracking-state-panel__grid">
                     <div>
-                      <span class="tracking-label">Siguiente paso</span>
+                      <span class="tracking-label">Next step</span>
                       <strong>{{ statusDetails.nextStep }}</strong>
                     </div>
                     <div>
-                      <span class="tracking-label">Tiempo estimado</span>
+                      <span class="tracking-label">Estimated time</span>
                       <strong>{{ statusDetails.eta }}</strong>
                     </div>
                     <div>
-                      <span class="tracking-label">Referencia</span>
+                      <span class="tracking-label">Reference</span>
                       <strong>{{ order.order_number }}</strong>
                     </div>
                   </div>
@@ -135,19 +135,19 @@
 
                 <div class="tracking-meta-grid">
                   <div>
-                    <span class="tracking-label">Cliente</span>
+                    <span class="tracking-label">Customer</span>
                     <strong>&nbsp;{{ order.customer_full_name }}</strong>
                   </div>
                   <div>
-                    <span class="tracking-label">Estado de la orden</span>
-                    <strong>&nbsp;{{ order.status_label }}</strong>
+                    <span class="tracking-label">Order status</span>
+                    <strong>&nbsp;{{ statusNarrative }}</strong>
                   </div>
                   <div>
-                    <span class="tracking-label">Pago</span>
-                    <strong>&nbsp;{{ order.metodo_pago || 'No especificado' }}</strong>
+                    <span class="tracking-label">Payment</span>
+                    <strong>&nbsp;{{ order.metodo_pago || 'Not specified' }}</strong>
                   </div>
                   <div>
-                    <span class="tracking-label">Creado</span>
+                    <span class="tracking-label">Created</span>
                     <strong>&nbsp;{{ formattedCreatedAt }}</strong>
                   </div>
                   <div>
@@ -158,51 +158,51 @@
               </article>
 
               <article class="tracking-card">
-                <h3>Entrega</h3>
+                <h3>Delivery</h3>
                 <div class="tracking-detail-list">
                   <div>
-                    <span class="tracking-label">Direccion</span>
+                    <span class="tracking-label">Address</span>
                     <strong>&nbsp;{{ order.shipping_address }}</strong>
                   </div>
                   <div>
-                    <span class="tracking-label">Ciudad / Estado</span>
+                    <span class="tracking-label">City / State</span>
                     <strong>&nbsp;{{ order.shipping_city }}, {{ order.shipping_state }}</strong>
                   </div>
                   <div>
-                    <span class="tracking-label">Codigo postal</span>
+                    <span class="tracking-label">Postal code</span>
                     <strong>&nbsp;{{ order.shipping_zip_code }}</strong>
                   </div>
                 </div>
               </article>
 
               <article class="tracking-card">
-                <h3>Movimiento de pago</h3>
+                <h3>Payment Movement</h3>
                 <div v-if="order.payment" class="tracking-detail-list">
                   <div>
-                    <span class="tracking-label">ID de pago</span>
+                    <span class="tracking-label">Payment ID</span>
                     <strong>&nbsp;{{ order.payment.id_pago }}</strong>
                   </div>
                   <div>
-                    <span class="tracking-label">Estado</span>
-                    <strong>&nbsp;{{ order.payment.estado || 'Sin actualizar' }}</strong>
+                    <span class="tracking-label">Status</span>
+                    <strong>&nbsp;{{ order.payment.estado || 'Not updated' }}</strong>
                   </div>
                   <div>
-                    <span class="tracking-label">Metodo</span>
+                    <span class="tracking-label">Method</span>
                     <strong>&nbsp;{{ order.payment.metodo_pago || order.metodo_pago }}</strong>
                   </div>
                   <div>
-                    <span class="tracking-label">Autorizacion</span>
-                    <strong>&nbsp;{{ order.payment.codigo_autorizacion || 'Sin codigo' }}</strong>
+                    <span class="tracking-label">Authorization</span>
+                    <strong>&nbsp;{{ order.payment.codigo_autorizacion || 'No code' }}</strong>
                   </div>
                 </div>
                 <p v-else class="tracking-empty-copy">
-                  Todavia no hay un movimiento de pago sincronizado para esta orden.
+                  There is no synchronized payment movement for this order yet.
                 </p>
               </article>
 
               <article class="tracking-card tracking-card--wide">
                 <div class="tracking-card__topline">
-                  <h3>Tu pedido</h3>
+                  <h3>Your Order</h3>
                   <span class="tracking-total">{{ formattedCurrency(order.total) }}</span>
                 </div>
 
@@ -210,27 +210,49 @@
                   <div v-for="item in order.items" :key="`${item.product_name}-${item.quantity}`" class="tracking-item">
                     <div>
                       <strong>&nbsp;{{ item.product_name }}</strong>
-                      <span>&nbsp;{{ item.quantity }} pieza(s)</span>
+                      <span>&nbsp;{{ item.quantity }} piece(s)</span>
                     </div>
                     <div class="tracking-item__prices">
                       <strong>&nbsp;{{ formattedCurrency(item.total) }}</strong>
-                      <span>&nbsp;{{ formattedCurrency(item.unit_price) }} c/u</span>
+                      <span>&nbsp;{{ formattedCurrency(item.unit_price) }} each</span>
                     </div>
+                  </div>
+                </div>
+
+                <div class="tracking-price-breakdown">
+                  <div class="tracking-price-row">
+                    <span class="tracking-label">Subtotal</span>
+                    <strong>{{ formattedCurrency((Number(order.total) - (order.shipping_cost || 0) + (order.discount_amount || 0))) }}</strong>
+                  </div>
+                  <div v-if="order.discount_amount && order.discount_amount > 0" class="tracking-price-row tracking-price-row--discount">
+                    <span class="tracking-label">
+                      Discount
+                      <span v-if="order.discount_code">({{ order.discount_code }})</span>
+                    </span>
+                    <strong>-{{ formattedCurrency(order.discount_amount) }}</strong>
+                  </div>
+                  <div v-if="order.shipping_cost" class="tracking-price-row">
+                    <span class="tracking-label">Shipping</span>
+                    <strong>{{ formattedCurrency(order.shipping_cost) }}</strong>
+                  </div>
+                  <div class="tracking-price-row tracking-price-row--total">
+                    <span class="tracking-label">Total</span>
+                    <strong>{{ formattedCurrency(order.total) }}</strong>
                   </div>
                 </div>
               </article>
 
               <article v-if="order.notes" class="tracking-card tracking-card--wide">
-                <h3>Notas de tu compra</h3>
+                <h3>Purchase Notes</h3>
                 <p class="tracking-notes">&nbsp;{{ order.notes }}</p>
               </article>
             </div>
 
             <div v-else class="tracking-empty">
               <div class="tracking-empty__seal">IQ</div>
-              <h2>Abre tu seguimiento para ver el estado.</h2>
+              <h2>Open your tracking to see the status.</h2>
               <p>
-                Usa el enlace del correo o escribe el correo con el que realizaste la compra para consultar tu orden.
+                Use the link from the email or enter the email you used to make your purchase to check your order.
               </p>
             </div>
           </v-col>
@@ -260,7 +282,7 @@ const hasToken = computed(() => trackingToken.value.length > 0);
 
 const formattedCreatedAt = computed(() => {
   if (!order.value?.created_at) {
-    return 'Sin fecha';
+    return 'No date';
   }
 
   return new Intl.DateTimeFormat('es-MX', {
@@ -275,61 +297,61 @@ const statusDetails = computed(() => {
   switch (order.value?.status) {
     case 'aprobado':
       return {
-        headline: 'Tu pago fue confirmado y la orden quedo apartada.',
-        detail: 'La compra ya es valida y puede pasar a preparacion interna antes de enviarse.',
-        nextStep: 'Preparar empaque y salida',
-        eta: 'Actualizacion en breve',
+        headline: 'Your payment was confirmed and the order is set aside.',
+        detail: 'The purchase is now valid and can proceed to internal preparation before shipping.',
+        nextStep: 'Prepare packaging and shipment',
+        eta: 'Update coming soon',
       };
-    case 'processing':
+    case 'procesando':
       return {
-        headline: 'Estamos preparando tu pedido.',
-        detail: 'El equipo ya tomo tu orden y esta revisando piezas, empaque y salida para envio.',
-        nextStep: 'Confirmar preparacion y guia',
-        eta: 'Normalmente dentro de 24 a 48 horas',
+        headline: 'We are preparing your order.',
+        detail: 'The team has taken your order and is reviewing pieces, packaging and shipment.',
+        nextStep: 'Confirm preparation and tracking',
+        eta: 'Usually within 24 to 48 hours',
       };
     case 'pendiente':
       return {
-        headline: 'El pago sigue en revision.',
-        detail: 'Todavia estamos esperando confirmacion del procesador o de la validacion bancaria.',
-        nextStep: 'Validar pago',
-        eta: 'Puede tardar unos minutos',
+        headline: 'Payment is still under review.',
+        detail: 'We are still waiting for confirmation from the processor or bank validation.',
+        nextStep: 'Validate payment',
+        eta: 'May take a few minutes',
       };
     case 'pendiente_transferencia':
       return {
-        headline: 'Esperamos la confirmacion de tu transferencia.',
-        detail: 'En cuanto se valide el deposito, la orden cambiara a preparacion.',
-        nextStep: 'Revisar comprobante',
-        eta: 'Depende de la validacion manual',
+        headline: 'We are waiting for your transfer confirmation.',
+        detail: 'Once the deposit is validated, the order will change to preparation.',
+        nextStep: 'Check receipt',
+        eta: 'Depends on manual validation',
       };
-    case 'shipped':
+    case 'enviado':
       return {
-        headline: 'Tu pedido ya va en camino.',
-        detail: 'La orden salio de preparacion y ya fue enviada a la direccion registrada.',
-        nextStep: 'Esperar entrega',
-        eta: 'Segun la paqueteria',
+        headline: 'Your order is on its way.',
+        detail: 'The order has left preparation and has been sent to the registered address.',
+        nextStep: 'Wait for delivery',
+        eta: 'According to the courier',
       };
-    case 'delivered':
+    case 'entregado':
       return {
-        headline: 'La entrega se completo.',
-        detail: 'Tu pedido ya aparece como entregado.',
-        nextStep: 'Disfrutar tu compra',
-        eta: 'Completado',
+        headline: 'Delivery is complete.',
+        detail: 'Your order now shows as delivered.',
+        nextStep: 'Enjoy your purchase',
+        eta: 'Completed',
       };
     case 'rechazado':
     case 'cancelado':
     case 'cancelled':
       return {
-        headline: 'La orden necesita atencion.',
-        detail: 'El pedido no pudo continuar por rechazo o cancelacion del proceso.',
-        nextStep: 'Contactar soporte o reintentar pago',
-        eta: 'Pendiente de accion',
+        headline: 'The order needs attention.',
+        detail: 'The order could not continue due to rejection or cancellation of the process.',
+        nextStep: 'Contact support or retry payment',
+        eta: 'Pending action',
       };
     default:
       return {
-        headline: 'Estamos siguiendo tu pedido.',
-        detail: 'Este panel se actualiza conforme cambie el estado de la orden.',
-        nextStep: 'Esperar siguiente actualizacion',
-        eta: 'Sin estimado',
+        headline: 'We are tracking your order.',
+        detail: 'This panel updates as your order status changes.',
+        nextStep: 'Wait for next update',
+        eta: 'No estimate',
       };
   }
 });
@@ -339,23 +361,24 @@ const statusNarrative = computed(() => {
 
   switch (currentStatus) {
     case 'aprobado':
-      return 'Tu pago fue confirmado y la orden ya puede avanzar hacia preparacion y envio.';
-    case 'processing':
-      return 'Ya estamos trabajando tu pedido internamente antes de asignarlo a envio.';
+      return '✅ Approved';
+    case 'procesando':
+      return '🔄 Processing';
     case 'pendiente':
-      return 'Tu orden existe y el pago aun esta en validacion o en espera de confirmacion.';
+      return '⏳ Pending';
     case 'pendiente_transferencia':
-      return 'Estamos esperando la confirmacion manual de tu transferencia para continuar.';
-    case 'shipped':
-      return 'La orden ya fue enviada y esta en camino hacia la direccion registrada.';
-    case 'delivered':
-      return 'La entrega se marco como completada.';
+      return '⏳ Pending Transfer';
+    case 'enviado':
+      return '📦 Shipped';
+    case 'entregado':
+      return '✅ Delivered';
     case 'rechazado':
+      return '❌ Rejected';
     case 'cancelado':
     case 'cancelled':
-      return 'La orden necesita atencion porque el pago no continuo o fue cancelado.';
+      return '❌ Cancelled';
     default:
-      return 'Este panel se actualiza conforme cambia el estado de tu compra.';
+      return '❓ Unknown Status';
   }
 });
 
@@ -366,31 +389,31 @@ const trackingSteps = computed(() => {
   return [
     {
       key: 'created',
-      title: 'Orden registrada',
-      copy: 'Tu compra ya existe en el sistema.',
+      title: '📋 Order Registered',
+      copy: 'Your purchase already exists in the system.',
       done: Boolean(order.value?.order_number),
       active: currentStatus === 'pendiente' || currentStatus === 'pendiente_transferencia',
     },
     {
       key: 'validated',
-      title: 'Pago validado',
-      copy: 'Confirmamos el pago o la autorizacion de compra.',
-      done: ['aprobado', 'processing', 'shipped', 'delivered'].includes(currentStatus),
+      title: '✅ Payment Validated',
+      copy: 'We confirmed payment or purchase authorization.',
+      done: ['aprobado', 'procesando', 'enviado', 'entregado'].includes(currentStatus),
       active: currentStatus === 'aprobado',
     },
     {
       key: 'processing',
-      title: 'Preparacion',
-      copy: 'Empaque, revision y salida de la pieza.',
-      done: ['shipped', 'delivered'].includes(currentStatus),
-      active: currentStatus === 'processing',
+      title: '🔄 Processing',
+      copy: 'Packaging, review and shipment of the item.',
+      done: ['enviado', 'entregado'].includes(currentStatus),
+      active: currentStatus === 'procesando',
     },
     {
       key: 'delivery',
-      title: isRejected ? 'Incidencia' : 'Entrega',
-      copy: isRejected ? 'La orden requiere accion para continuar.' : 'El pedido va en camino o ya fue entregado.',
-      done: currentStatus === 'delivered',
-      active: ['shipped', 'rechazado', 'cancelado', 'cancelled'].includes(currentStatus),
+      title: isRejected ? '⚠️ Incident' : '📦 Delivery',
+      copy: isRejected ? 'The order requires action to continue.' : 'The order is on its way or has already been delivered.',
+      done: currentStatus === 'entregado',
+      active: ['enviado', 'rechazado', 'cancelado', 'cancelled'].includes(currentStatus),
     },
   ];
 });
@@ -406,12 +429,12 @@ const formattedCurrency = (amount) => {
 
 const fetchOrderTracking = async () => {
   if (!normalizedOrderNumber.value) {
-    errorMessage.value = 'No encontramos un numero de orden valido en el enlace.';
+    errorMessage.value = 'We could not find a valid order number in the link.';
     return;
   }
 
   if (!hasToken.value && !email.value.trim()) {
-    errorMessage.value = 'Escribe el correo con el que hiciste tu compra para consultar el pedido.';
+    errorMessage.value = 'Enter the email you used to make your purchase to check your order.';
     return;
   }
 
@@ -422,20 +445,26 @@ const fetchOrderTracking = async () => {
     order_number: normalizedOrderNumber.value,
   });
 
-  if (hasToken.value) {
-    searchParams.set('token', trackingToken.value);
-  } else {
+  if (!hasToken.value) {
     searchParams.set('email', email.value.trim());
+  }
+
+  const headers = {
+    Accept: 'application/json',
+  };
+
+  if (hasToken.value) {
+    headers.Authorization = `Bearer ${trackingToken.value}`;
   }
 
   try {
     const response = await fetch(`/api/pedidos/seguimiento?${searchParams.toString()}`, {
-      headers: {
-        Accept: 'application/json'
-      }
+      headers,
     });
 
     const result = await response.json();
+
+    // console.log('Order tracking response:', result);
 
     if (!response.ok) {
       throw new Error(result?.message || 'No se pudo obtener el seguimiento del pedido.');
@@ -444,7 +473,7 @@ const fetchOrderTracking = async () => {
     order.value = result.order;
   } catch (error) {
     order.value = null;
-    errorMessage.value = error.message || 'No se pudo consultar el seguimiento del pedido.';
+    errorMessage.value = error.message || 'Could not check order tracking.';
   } finally {
     loading.value = false;
   }
@@ -463,7 +492,7 @@ onMounted(async () => {
 
 <style scoped>
 .tracking-page {
-  margin-top: 70px;
+  margin-top: 0px;
   background:
     radial-gradient(circle at top left, rgba(216, 196, 173, 0.28), transparent 28%),
     linear-gradient(180deg, #fbf8f4 0%, #f0e9e0 100%);
@@ -761,6 +790,47 @@ onMounted(async () => {
 
 .tracking-item__prices {
   text-align: right;
+}
+
+.tracking-price-breakdown {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 20px;
+  background: rgba(245, 239, 233, 0.8);
+  border-top: 1px solid rgba(184, 151, 120, 0.16);
+}
+
+.tracking-price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid rgba(184, 151, 120, 0.1);
+  font-size: 0.95rem;
+}
+
+.tracking-price-row:last-child {
+  border-bottom: none;
+}
+
+.tracking-price-row strong {
+  color: #5d4d3c;
+  font-weight: 700;
+}
+
+.tracking-price-row--discount strong {
+  color: #2f7550;
+}
+
+.tracking-price-row--total {
+  padding-top: 1rem;
+  font-weight: 700;
+  border-top: 1px solid rgba(184, 151, 120, 0.2);
+}
+
+.tracking-price-row--total strong {
+  font-size: 1.1rem;
+  color: #5d4d3c;
 }
 
 .tracking-total {

@@ -12,12 +12,12 @@
             Auto Build
           </button>
           <button @click="clearCanvas" class="btn-secondary">Clear All</button>
-         <button @click="downloadGangSheet($event)" class="btn-success">
+         <!-- <button @click="downloadGangSheet($event)" class="btn-success">
             <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             Download PNG
-          </button>
+          </button> -->
           <button @click="saveGangSheet($event)" class="btn-success">
             <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -1070,6 +1070,10 @@ export default {
           throw new Error('Error generando PNG: ' + error.message);
         }
         
+        // console.log('🔍 Blob generado:', {
+        //   sizeMB: pngBlob?.size ? (pngBlob.size / 1024 / 1024).toFixed(2) : 0,
+        // });
+        
         if (!pngBlob || pngBlob.size === 0) {
           throw new Error('No se pudo generar la imagen PNG (retorno vacío)');
         }
@@ -1100,13 +1104,8 @@ export default {
         // Enviar metadata como JSON string
         formData.append('images', JSON.stringify(imagesMetadata));
         
-        // console.log('📊 Metadata:', imagesMetadata);
-        
         // ⭐ CAMBIO: Enviar PNG transparente compilado en lugar de archivos individuales
-        // console.log('📦 Añadiendo PNG transparente compilado...');
         formData.append('gang_sheet_image', pngBlob, `gang-sheet-${sheetWidth.value}x${sheetHeight.value}in-${exportDPI.value}dpi.png`);
-        
-        // console.log('📁 Archivo compilado:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
         
         // Agregar archivos de imagen originales también (por si el backend los necesita)
         // console.log('📦 Preparando archivos originales para respaldo...');
@@ -1127,15 +1126,8 @@ export default {
         if (btn) btn.textContent = 'Save in progress...';
 
         // console.log('🚀 Enviando a /api/gang-sheets/save...');
-        // console.log('📋 Contenido FormData:');
-        // console.log('  - width:', sheetWidth.value);
-        // console.log('  - height:', sheetHeight.value);
-        // console.log('  - unit: inches');
-        // console.log('  - format: png (con transparencia)');
-        // console.log('  - dpi:', exportDPI.value);
-        // console.log('  - gang_sheet_image:', (pngBlob.size / 1024 / 1024).toFixed(2), 'MB');
-        // console.log('  - image_files:', filesAdded, 'archivos');
         
+        const startTime = performance.now();
         const response = await fetch('/api/gang-sheets/save', {
           method: 'POST',
           headers: {
@@ -1143,8 +1135,10 @@ export default {
           },
           body: formData,
         });
+        const endTime = performance.now();
 
         // console.log('📡 Response status:', response.status);
+        // console.log('⏱️ Request time:', (endTime - startTime).toFixed(2), 'ms');
         
         if (!response.ok) {
           const text = await response.text();
@@ -1184,17 +1178,17 @@ export default {
         // console.log('🔍 DEBUG - Raw data.data object keys:', Object.keys(data.data));
         // console.log('🔍 DEBUG - Full data.data:', JSON.stringify(data.data, null, 2));
         
-        const message = `✅ Gang Sheet guardado exitosamente!
-        
+    const message = `✅ Gang Sheet saved successfully!
+
 📋 ID: ${data.data?.id || 'NO ID'}
-📐 Tamaño: ${sheetWidth.value}" × ${sheetHeight.value}"
-📊 Imágenes: ${images.value.length}
-🎨 Formato: PNG transparente (sin fondo blanco)
+📐 Size: ${sheetWidth.value}" × ${sheetHeight.value}"
+📊 Images: ${images.value.length}
+🎨 Format: Transparent PNG (no white background)
 📝 DPI: ${exportDPI.value}
 
-� Ahora haz clic en "Agregar a Carrito" para agregarlo al carrito
+🛒 Now click "Add to Cart" to add it to your cart.
 
-¡Listo para producción!`;
+Ready for production!`;
         
         alert(message);
         
@@ -1227,24 +1221,24 @@ export default {
       // Validación más explícita
       if (!gangSheetData) {
         console.error('❌ gangSheetData es null/undefined');
-        alert('⚠️ Primero debes guardar el Gang Sheet haciendo clic en "Save to Server"\n\nVerifica que veas el mensaje verde de "¡Guardado exitosamente!"');
+        alert('⚠️ First, you need to save the Gang Sheet by clicking "Save to Server"\n\nMake sure you see the green message "Saved successfully!"');
         return;
       }
       
       if (typeof gangSheetData !== 'object') {
-        console.error('❌ gangSheetData no es un objeto:', typeof gangSheetData);
-        alert('❌ Error: Los datos del Gang Sheet no son válidos. Intenta guardar de nuevo.');
+        console.error('❌ gangSheetData is not an object:', typeof gangSheetData);
+        alert('❌ Error: Gang Sheet data is not valid. Please try saving again.');
         return;
       }
       
       if (!gangSheetData.id) {
-        console.error('❌ gangSheetData.id es falsy:', gangSheetData.id);
-        console.error('📋 Contenido de gangSheetData:', Object.keys(gangSheetData || {}));
-        alert(`❌ El Gang Sheet no tiene un ID válido. 
+        console.error('❌ gangSheetData.id is falsy:', gangSheetData.id);
+        console.error('📋 Contents of gangSheetData:', Object.keys(gangSheetData || {}));
+        alert(`❌ The Gang Sheet does not have a valid ID. 
 
-      Datos recibidos: ${JSON.stringify(gangSheetData).substring(0, 100)}
+      Received data: ${JSON.stringify(gangSheetData).substring(0, 100)}
 
-        Intenta guardar de nuevo haciendo clic en "Save to Server"`);
+        Please try saving again by clicking "Save to Server"`);
         return;
       }
       
@@ -1420,31 +1414,31 @@ export default {
       // console.log('  └─ totalPrice del último:', lastItemInStorage?.totalPrice);
       
       // Mostrar confirmación visual
-      let confirmationMsg = `✅ ¡Gang Sheet agregado al carrito!
+      let confirmationMsg = `✅ Gang Sheet added to cart!
 
-📊 Tamaño: ${sheetWidth.value}" × ${sheetHeight.value}"
-📝 Imágenes: ${images.value.length}
+📊 Size: ${sheetWidth.value}" × ${sheetHeight.value}"
+📝 Images: ${images.value.length}
 📐 DPI: ${exportDPI.value}`;
 
       if (discount) {
-        confirmationMsg += `\n\n🎟️ DESCUENTO APLICADO:
+        confirmationMsg += `\n\n🎟️ DISCOUNT APPLIED:
 ${discount.description || `${discount.type === 'percentage' ? discount.value + '%' : '$' + discount.value} OFF`}
-Precio original: $${originalPrice.toFixed(2)}
-💰 Precio final: $${finalPrice.toFixed(2)}`;
+Original price: $${originalPrice.toFixed(2)}
+💰 Final price: $${finalPrice.toFixed(2)}`;
       } else {
-        confirmationMsg += `\n\n💰 Precio: $${finalPrice.toFixed(2)}`;
+        confirmationMsg += `\n\n💰 Price: $${finalPrice.toFixed(2)}`;
       }
 
-      confirmationMsg += `\n\nTotal items en carrito: ${cart.length}
+      confirmationMsg += `\n\nTotal items in cart: ${cart.length}
 
-👉 Redirigiendo a tu carrito en 3 segundos...`;
+👉 Redirecting to your cart in 3 seconds...`;
 
       alert(confirmationMsg);
       
-      // Redirigir a carrito después de 3 segundos
+      // Redirect to cart after 3 seconds
       setTimeout(() => {
         window.location.href = '/cart';
-      }, 3000);
+      }, 1500);
     };
 
     /**
@@ -1780,14 +1774,14 @@ Precio original: $${originalPrice.toFixed(2)}
         // console.log('📐 DPI:', exportDPI.value, `(${qualityMsg})`);
         // console.log('🎨 Formato: PNG con canal alpha (transparencia)');
         
-        const message = `✅ DESCARGADO: ${filename}
+        const message = `✅ DOWNLOADED: ${filename}
         
-📊 Tamaño: ${fileSizeMB} MB
-📐 Resolución: ${Math.round(canvasWidthInches.value * exportDPI.value)} × ${Math.round(canvasHeightInches.value * exportDPI.value)} px @ ${exportDPI.value} DPI
-🎨 Formato: PNG transparente (sin fondo blanco)
-🖼️ Imágenes: ${images.value.length}
+📊 Size: ${fileSizeMB} MB
+📐 Resolution: ${Math.round(canvasWidthInches.value * exportDPI.value)} × ${Math.round(canvasHeightInches.value * exportDPI.value)} px @ ${exportDPI.value} DPI
+🎨 Format: Transparent PNG (no white background)
+🖼️ Images: ${images.value.length}
 
-✨ ¡Listo para impresión DTF profesional!`;
+✨ Ready for professional DTF printing!`;
         
         alert(message);
       } catch (error) {

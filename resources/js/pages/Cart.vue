@@ -20,13 +20,20 @@
           <tbody>
             <tr v-for="item in dtfCartItems" :key="item.id">
               <td>
-                <v-img
-                  :src="item.imagePreview"
-                  :alt="item.product?.name || item.dtf_size?.name"
-                  max-width="80"
-                  max-height="80"
-                  class="rounded"
-                />
+                <div class="cart-image-container">
+                  <v-img
+                    v-if="item.imagePreview"
+                    :src="item.imagePreview"
+                    :alt="item.product?.name || item.dtf_size?.name"
+                    max-width="80"
+                    max-height="80"
+                    class="rounded"
+                  />
+                  <div v-else class="cart-image-placeholder">
+                    <span v-if="item.type === 'gang_sheet'" class="placeholder-icon">📋</span>
+                    <span v-else class="placeholder-icon">📦</span>
+                  </div>
+                </div>
               </td>
               <td>
                 <div>
@@ -333,7 +340,7 @@
               <v-text-field
                 v-model="discountCode"
                 label="Discount Code"
-                placeholder="Ej: SUMMER2024"
+                placeholder="e.g. SUMMER2024"
                 variant="outlined"
                 density="compact"
                 :disabled="discountLoading"
@@ -465,6 +472,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCart } from '../composables/useCart';
+import { getImageFromIndexedDB, deleteImageFromIndexedDB } from '../services/cartStorageService';
 import axios from 'axios';
 
 const router = useRouter();
@@ -517,24 +525,15 @@ const discountApplied = ref(false);
 // Load DTF cart items
 onMounted(() => {
   const stored = localStorage.getItem('dtf_cart_items');
-  // console.log('🔍 Cart.vue mounted - reading localStorage...');
-  // console.log('🔍 Raw localStorage value:', stored);
   
   if (stored) {
     try {
       let items = JSON.parse(stored);
-      // console.log('📦 Parsed items from localStorage:', JSON.stringify(items, null, 2));
       
       // Migrate old structure to new structure if needed
       items = items.map(item => {
-            // console.log(`🔄 Processing item ${item.id}:`, item);
-            // console.log(`   - type: ${item.type}`);
-            // console.log(`   - has product: ${!!item.product}`);
-            // console.log(`   - product.id: ${item.product?.id}`);
-        
         // If item has old structure (dtf_size), convert it
         if (item.dtf_size && !item.product) {
-          // console.log(`   → Migrating old dtf_size structure`);
           return {
             id: item.id,
             type: item.type || 'size',
@@ -557,22 +556,29 @@ onMounted(() => {
           };
         }
         // Otherwise, return as-is (already new structure)
-        // But ensure prices are numbers
         return {
           ...item,
           unitPrice: Number(item.unitPrice) || 0,
           totalPrice: Number(item.totalPrice) || 0
         };
-        return item;
       });
       
       dtfCartItems.value = items;
-      // console.log('✅ DTF Cart Items loaded from localStorage:', JSON.stringify(dtfCartItems.value, null, 2));
+      
+      // Cargar imágenes desde IndexedDB
+      items.forEach(async (item) => {
+        const image = await getImageFromIndexedDB(item.id.toString());
+        if (image) {
+          const idx = dtfCartItems.value.findIndex(i => i.id === item.id);
+          if (idx !== -1) {
+            dtfCartItems.value[idx].imagePreview = image;
+          }
+        }
+      });
+      
     } catch (error) {
       console.error('❌ Error loading DTF cart items:', error);
     }
-  } else {
-    // console.log('⚠️ No items in localStorage');
   }
   
   // Load user profile if exists
@@ -768,32 +774,74 @@ const updateDtfQuantity = (id, newQuantity) => {
     item.quantity = parseInt(newQuantity);
     item.totalPrice = Number(item.unitPrice) * parseInt(newQuantity);
     
-    // Save to localStorage with proper serialization
+    // Save to localStorage with proper serialization (SIN imagePreview)
     const serializableCart = dtfCartItems.value.map(item => ({
       id: item.id,
       type: item.type,
       product: item.product,
       quantity: item.quantity,
-      imagePreview: item.imagePreview,
       unitPrice: item.unitPrice,
       totalPrice: item.totalPrice
+      // ✅ imagePreview NO se guarda
     }));
     localStorage.setItem('dtf_cart_items', JSON.stringify(serializableCart));
   }
 };
 
-const removeDtfItem = (id) => {
-  dtfCartItems.value = dtfCartItems.value.filter(item => item.id !== id);
+const removeDtfItem = async (id) => {
+  // Si es un gang sheet, eliminar primero de la BD
+  const item = dtfCartItems.value.find(item => item.id === id);
   
-  // Save to localStorage with proper serialization
+  if (item && item.type === 'gang_sheet' && item.gangSheetid) {
+    try {
+      const token = localStorage.getItem('auth_token') || 
+                    localStorage.getItem('token') ||
+                    localStorage.getItem('sanctum_token') || '';
+
+      const headers = {
+        'Accept': 'application/json'
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/gang-sheets/${item.gangSheetid}`, {
+        method: 'DELETE',
+        headers
+      });
+
+      if (!response.ok) {
+        console.warn('⚠️ Failed to delete gang sheet from DB:', response.statusText);
+      } else {
+        const result = await response.json();
+        // console.log('✅ Gang sheet deleted from DB:', result.message);
+      }
+    } catch (error) {
+      console.error('❌ Error deleting gang sheet:', error);
+    }
+  }
+
+  // Eliminar imagen de IndexedDB
+  try {
+    await deleteImageFromIndexedDB(id.toString());
+    // console.log('✅ Image deleted from IndexedDB');
+  } catch (error) {
+    console.error('⚠️ Error deleting image from IndexedDB:', error);
+  }
+
+  // Eliminar del carrito local
+  dtfCartItems.value = dtfCartItems.value.filter(item => item.id !== id);
+
+  // Save to localStorage with proper serialization (SIN imagePreview)
   const serializableCart = dtfCartItems.value.map(item => ({
     id: item.id,
     type: item.type,
     product: item.product,
     quantity: item.quantity,
-    imagePreview: item.imagePreview,
     unitPrice: item.unitPrice,
     totalPrice: item.totalPrice
+    // ✅ imagePreview NO se guarda
   }));
   localStorage.setItem('dtf_cart_items', JSON.stringify(serializableCart));
 };
@@ -888,7 +936,8 @@ const buildOrderPayload = () => {
     notes: checkoutForm.value.notes,
     save_customer_profile: checkoutForm.value.saveProfile,
     payment_method: checkoutForm.value.paymentMethod,
-    items: items
+    items: items,
+    discount_code: appliedDiscount.value?.code || null
   };
   
   // console.log('📤 FINAL PAYLOAD TO SEND:', JSON.stringify(payload, null, 2));
@@ -936,7 +985,13 @@ const submitOrder = async () => {
     const payload = buildOrderPayload();
     // console.log('📨 Sending order to backend...');
     // console.log('📨 Endpoint:', endpoint);
-    // console.log('📨 Payload items:', payload.items);
+    // console.log('📨 Payload items:', payload);
+    // console.log('💰 PAYMENT DEBUG:');
+    // console.log('  Subtotal:', payload.subtotal);
+    // console.log('  Discount Amount:', payload.discount_amount);
+    // console.log('  Discount Code:', payload.discount_code);
+    // console.log('  Shipping Cost:', payload.shipping_cost);
+    // console.log('  TOTAL ENVIADO A PAYPAL:', payload.total);
 
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -1044,6 +1099,32 @@ const closeSuccessDialog = () => {
 
 .gap-2 {
   gap: 0.5rem;
+}
+
+.cart-image-container {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.cart-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
+  border: 1px dashed #bdbdbd;
+}
+
+.placeholder-icon {
+  font-size: 2rem;
+  opacity: 0.7;
 }
 
 .payment-option {

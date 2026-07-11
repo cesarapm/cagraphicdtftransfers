@@ -12,12 +12,12 @@
 
           <!-- Search Bar -->
           <div class="search-container d-none d-md-flex">
-            <v-text-field v-model="searchQuery" placeholder="Search products..." variant="solo" density="comfortable"
-              hide-details flat class="search-input" prepend-inner-icon="mdi-magnify">
-            </v-text-field>
-            <v-btn class="search-btn" elevation="0" @click="handleSearch">
+              <!-- <v-text-field v-model="searchQuery" placeholder="Search products..." variant="solo" density="comfortable"
+                hide-details flat class="search-input" prepend-inner-icon="mdi-magnify">
+              </v-text-field> -->
+            <!-- <v-btn class="search-btn" elevation="0" @click="handleSearch">
               Search
-            </v-btn>
+            </v-btn> -->
           </div>
 
           <!-- Header Actions -->
@@ -32,7 +32,7 @@
                     </v-btn>
                   </template>
                   <v-list>
-                    <v-list-item>
+                    <v-list-item :to="{ name: 'Account' }">
                       <v-list-item-title class="font-weight-bold">{{ authStore.customerName }}</v-list-item-title>
                     </v-list-item>
                     <v-divider></v-divider>
@@ -60,14 +60,14 @@
             </div>
 
             <!-- Wishlist -->
-            <div class="header-action-item">
+            <!-- <div class="header-action-item">
               <v-btn icon variant="text" class="action-btn">
                 <v-badge content="0" color="#EF4444">
                   <v-icon>mdi-heart-outline</v-icon>
                 </v-badge>
               </v-btn>
               <span class="action-label">WISHLIST</span>
-            </div>
+            </div> -->
 
             <!-- Cart -->
             <div class="header-action-item">
@@ -117,36 +117,34 @@
     <!-- Mobile Drawer -->
     <v-navigation-drawer v-model="drawer" temporary location="right" class="drawerapp">
       <!-- Mobile Search -->
-      <div class="pa-4">
+      <!-- <div class="pa-4">
         <v-text-field v-model="searchQuery" placeholder="Search products..." variant="outlined" density="comfortable"
           hide-details prepend-inner-icon="mdi-magnify" @keyup.enter="handleSearch"></v-text-field>
-      </div>
+      </div> -->
 
       <v-list>
         <v-list-item :to="{ name: 'Home' }" prepend-icon="mdi-view-grid" title="Products"></v-list-item>
         <v-list-item prepend-icon="mdi-iron" title="Heat Press Guide" :to="{ name: 'HeatPress' }"></v-list-item>
-        <v-list-group value="dtf">
-          <template v-slot:activator="{ props }">
-            <v-list-item v-bind="props" prepend-icon="mdi-image-multiple" title="DTF Transfers"></v-list-item>
-          </template>
-          <v-list-item :to="{ name: 'Home' }" title="All Products" class="pl-8"></v-list-item>
-          <v-list-item title="Custom Orders" class="pl-8"></v-list-item>
-          <v-list-item title="Ready to Press" class="pl-8"></v-list-item>
-        </v-list-group>
+        <v-list-item :to="{ name: 'DtfTransfersSize' }" prepend-icon="mdi-format-size" title="DTF by Size"></v-list-item>
         <v-list-item prepend-icon="mdi-upload" title="Upload Gang Sheet"></v-list-item>
         <v-list-item :to="{ name: 'GangSheetBuilder' }" prepend-icon="mdi-grid" title="Build Gang Sheet"></v-list-item>
+
+        <v-list-item :to="{ name: 'Contact' }" prepend-icon="mdi-email" title="Contact"></v-list-item>
 
         <v-divider class="my-2"></v-divider>
 
         <!-- Account Section -->
         <template v-if="authStore.isAuthenticated">
           <v-list-item>
-            <v-list-item-title class="text-caption text-grey">
-              {{ authStore.customer?.email }}
-            </v-list-item-title>
+
+                   <v-list-item :to="{ name: 'Account' }">
+                      <v-list-item-title class="font-weight-bold">{{ authStore.customerName }}</v-list-item-title>
+                    </v-list-item>  
+          
+            
           </v-list-item>
-          <v-list-item :to="{ name: 'CustomerOrders' }" prepend-icon="mdi-package-variant-closed"
-            title="Mis Proyectos"></v-list-item>
+            <!-- <v-list-item :to="{ name: 'CustomerOrders' }" prepend-icon="mdi-package-variant-closed"
+              title="Mis Proyectos"></v-list-item> -->
           <v-list-item @click="handleLogout" prepend-icon="mdi-logout" title="Cerrar Sesión"></v-list-item>
         </template>
         <template v-else>
@@ -182,17 +180,20 @@
               <h3 class="footer-section-title">SHOP TRANSFERS</h3>
 
               <div class="footer-nav-links">
-                <router-link to="/" class="footer-nav-link">UPLOAD A SHEET - Ultra color</router-link>
+                <router-link :to="{ name: 'DtfTransfersGang' }" class="footer-nav-link">Upload Gang Sheet</router-link>
               </div>
               <div class="footer-nav-links">
-                <router-link to="/" class="footer-nav-link">BUILD A SHEET - Ultra color</router-link>
+                <router-link  :to="{ name: 'GangSheetBuilder' }" class="footer-nav-link">Build a Sheet</router-link>
+              </div>
+                <div class="footer-nav-links">
+                <router-link  :to="{ name: 'DtfTransfersSize' }" class="footer-nav-link">DTF by Size</router-link>
               </div>
               <div class="footer-nav-links">
-                <router-link to="/" class="footer-nav-link">CUSTOM ART REQUEST</router-link>
+                <router-link  :to="{ name: 'Contact' }" class="footer-nav-link">Custom Art Request</router-link>
               </div>
-              <div class="footer-nav-links">
+              <!-- <div class="footer-nav-links">
                 <router-link to="/" class="footer-nav-link">SEARCH</router-link>
-              </div>
+              </div> -->
 
               <div class="footer-contact-info">
                 <h4 class="footer-contact-title">CALL US! 312.843.4099</h4>
@@ -251,7 +252,7 @@
             <span class="footer-separator">|</span>
             <a href="/terms-of-service" class="footer-nav-link">Terms of Service</a>
             <span class="footer-separator">|</span>
-            <a href="/return-policy" class="footer-nav-link">Return Policy</a>
+            <a href="/refund-policy" class="footer-nav-link">Return Policy</a>
             <span class="footer-separator">|</span>
             <a href="/shipping-policy" class="footer-nav-link">Shipping Policy</a>
           </v-col>

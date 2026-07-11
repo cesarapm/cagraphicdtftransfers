@@ -67,5 +67,11 @@ class DtfGang extends Model
                 Storage::disk('public')->delete($model->image_path);
             }
         });
+        static::creating(function ($model) {
+            if (is_null($model->sort_order)) {
+                $maxSortOrder = static::max('sort_order');
+                $model->sort_order = $maxSortOrder !== null ? $maxSortOrder + 1 : 1;
+            }
+        });
     }
 }

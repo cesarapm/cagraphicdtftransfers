@@ -148,16 +148,10 @@ class GangSheetController extends Controller
     public function save(Request $request)
     {
         try {
-            // \Log::info('💾 Gang sheet save request received', [
+            // Log::info('💾 Gang sheet save request received', [
             //     'method' => $request->method(),
             //     'has_gang_sheet_image' => $request->hasFile('gang_sheet_image'),
             //     'all_fields' => array_keys($request->all()),
-            //     'form_fields' => [
-            //         'width' => $request->input('width'),
-            //         'height' => $request->input('height'),
-            //         'unit' => $request->input('unit'),
-            //         'dpi' => $request->input('dpi'),
-            //     ],
             // ]);
 
             $validated = $request->validate([
@@ -166,19 +160,25 @@ class GangSheetController extends Controller
                 'unit' => 'required|string|in:inches,cm,mm',
                 'format' => 'required|string',
                 'dpi' => 'required|integer|in:150,200,300',
-                'gang_sheet_image' => 'required|file|mimes:png|max:50000', // 50MB max
+                'gang_sheet_image' => 'required|file|mimes:png|max:100000', // 100MB max
                 'images' => 'nullable|string', // JSON data
             ]);
 
-            // \Log::info('✅ Validation passed', ['validated_keys' => array_keys($validated)]);
+            // Log::info('✅ Validation passed', ['validated_keys' => array_keys($validated)]);
 
             // Get authenticated user or use session
             $userId = auth()->id();
 
             // Store the PNG file
             $file = $request->file('gang_sheet_image');
-            $fileName = sprintf(
-                'gang-sheets/%s-%.0fx%.0fin-%ddpi-%s.png',
+            // Log::info('📦 File received', [
+            //     'file_name' => $file->getClientOriginalName(),
+            //     'file_size' => $file->getSize(),
+            //     'file_mime' => $file->getMimeType(),
+            // ]);
+            
+            $fileNameFormatted = sprintf(
+                '%s-%.0fx%.0fin-%ddpi-%s.png',
                 auth()->id() ? 'user-' . auth()->id() : 'anon-' . session()->getId(),
                 $validated['width'],
                 $validated['height'],
@@ -186,7 +186,16 @@ class GangSheetController extends Controller
                 date('YmdHis')
             );
 
-            $path = $file->storeAs('gang-sheets', basename($fileName), 'local');
+            // Log::info('💾 Storing file', [
+            //     'directory' => 'gang-sheets',
+            //     'file_name' => $fileNameFormatted,
+            // ]);
+            
+            $path = $file->storeAs('gang-sheets', $fileNameFormatted, 'local');
+            
+            // Log::info('✅ Gang sheet PNG saved', [
+            //     'path' => $path,
+            // ]);
 
             // 💰 CALCULAR PRECIO DINÁMICAMENTE
             $price = $this->calculateGangSheetPrice(
@@ -197,7 +206,7 @@ class GangSheetController extends Controller
                 $file->getSize()
             );
 
-            // \Log::info('💰 Price calculated', [
+            // Log::info('💰 Price calculated', [
             //     'base_price' => $price,
             //     'width' => $validated['width'],
             //     'height' => $validated['height'],
@@ -387,5 +396,53 @@ class GangSheetController extends Controller
         // ]);
         
         return round($totalPrice, 2);
+    }
+
+    /**
+     * Delete a gang sheet
+     * DELETE /api/gang-sheets/{id}
+     */
+    public function destroy($id)
+    {
+        try {
+            $gangSheet = GangSheet::findOrFail($id);
+            
+            // Verificar permisos: solo el propietario o admin
+            if ($gangSheet->user_id && auth()->id() !== $gangSheet->user_id && !auth()->user()?->isAdmin()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized',
+                ], 403);
+            }
+
+            // Eliminar archivo si existe
+            if ($gangSheet->final_path && Storage::disk('local')->exists($gangSheet->final_path)) {
+                Storage::disk('local')->delete($gangSheet->final_path);
+            }
+
+            // Eliminar registro
+            $gangSheet->delete();
+
+            // Log::info('Gang sheet deleted', ['id' => $id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Gang sheet deleted successfully',
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::warning('Gang sheet not found for deletion', ['id' => $id]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Gang sheet not found',
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error deleting gang sheet', ['id' => $id, 'error' => $e->getMessage()]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting gang sheet: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

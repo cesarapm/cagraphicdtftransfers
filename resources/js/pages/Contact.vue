@@ -44,6 +44,11 @@ const handleSubmit = async () => {
     return;
   }
 
+  if (formData.value.comment.length < 10) {
+    submitMessage.value = 'Comment must be at least 10 characters long.';
+    return;
+  }
+
   isSubmitting.value = true;
   submitMessage.value = '';
 
@@ -57,11 +62,14 @@ const handleSubmit = async () => {
       body: JSON.stringify(formData.value)
     });
 
+    const data = await response.json();
+
     if (response.ok) {
       submitMessage.value = 'Thank you! We\'ll get back to you soon.';
       formData.value = { name: '', email: '', phone: '', comment: '' };
     } else {
-      submitMessage.value = 'Error sending message. Please try again.';
+      console.error('Server error:', data);
+      submitMessage.value = data.message || 'Error sending message. Please try again.';
     }
   } catch (error) {
     console.error('Error:', error);

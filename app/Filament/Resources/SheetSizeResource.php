@@ -85,11 +85,11 @@ class SheetSizeResource extends Resource
                                     ->prefix('$')
                                     ->helperText('Price in USD for this sheet size'),
 
-                                Forms\Components\TextInput::make('sort_order')
-                                    ->label('Display Order')
-                                    ->numeric()
-                                    ->default(0)
-                                    ->helperText('Lower numbers appear first'),
+                                // Forms\Components\TextInput::make('sort_order')
+                                //     ->label('Display Order')
+                                //     ->numeric()
+                                //     ->default(0)
+                                //     ->helperText('Lower numbers appear first'),
                             ]),
 
                         Forms\Components\Toggle::make('is_active')
@@ -114,6 +114,7 @@ class SheetSizeResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+        ->reorderable('sort_order')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Size Name')

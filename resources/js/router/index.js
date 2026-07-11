@@ -23,6 +23,7 @@ import DtfTransfersSize from '../pages/DtfTransfersSize.vue';
 import DtfTransfersGang from '../pages/DtfTransfersGang.vue';
 import Cart from '../pages/Cart.vue';
 import Checkout from '../pages/Checkout.vue';
+import Account from '../pages/Account.vue';
 const routes = [
   {
     path: '/',
@@ -87,12 +88,12 @@ const routes = [
     component: PaymentFailure,
     meta: { requiresAuth: true }
   },
-  {
-    path: '/mis-pedidos',
-    name: 'CustomerOrders',
-    component: CustomerOrders,
-    meta: { requiresAuth: true }
-  },
+  // {
+  //   path: '/mis-pedidos',
+  //   name: 'CustomerOrders',
+  //   component: CustomerOrders,
+  //   meta: { requiresAuth: true }
+  // },
   {
     path: '/seguimiento-pedido/:orderNumber',
     name: 'OrderTracking',
@@ -147,6 +148,14 @@ const routes = [
   //   // meta: { requiresAuth: true }
   // } 
 
+
+  {
+    path: '/account',
+    name: 'Account',
+    component: Account,
+    meta: { requiresAuth: true }
+  }
+
 ];
 
 const router = createRouter({
@@ -158,7 +167,7 @@ const router = createRouter({
       return savedPosition;
     }
     // Siempre volver al inicio en navegación nueva
-    return { top: 0, behavior: 'smooth' };
+    return { top: 0 };
   }
 });
 

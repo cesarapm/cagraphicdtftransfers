@@ -62,9 +62,9 @@ class DiscountCode extends Model
     }
 
     /**
-     * Validar si el código es válido para un cliente
+     * Validar restricciones globales del código (sin customer_id)
      */
-    public function isValidForCustomer($customerId): array
+    public function isValidGlobally(): array
     {
         $errors = [];
 
@@ -84,13 +84,32 @@ class DiscountCode extends Model
 
         // Verificar límite de usos globales
         if ($this->max_uses && $this->used_count >= $this->max_uses) {
-            $errors[] = 'Este código ha alcanzado su límite de usos.';
+            $errors[] = "Este código ha alcanzado su límite de usos ({$this->max_uses} usos totales).";
+        }
+
+        return [
+            'is_valid' => count($errors) === 0,
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * Validar si el código es válido para un cliente específico
+     */
+    public function isValidForCustomer($customerId): array
+    {
+        $errors = [];
+
+        // Verificar restricciones globales primero
+        $globalValidation = $this->isValidGlobally();
+        if (!$globalValidation['is_valid']) {
+            return $globalValidation;
         }
 
         // Verificar si el cliente ya lo usó (per_user_limit)
         $customerUsageCount = $this->usages()->where('customer_id', $customerId)->count();
-        if ($customerUsageCount >= $this->per_user_limit) {
-            $errors[] = 'Ya has utilizado este código de descuento.';
+        if ($this->per_user_limit && $customerUsageCount >= $this->per_user_limit) {
+            $errors[] = "Ya has utilizado este código de descuento ({$customerUsageCount} de {$this->per_user_limit} usos permitidos).";
         }
 
         return [
@@ -122,7 +141,7 @@ class DiscountCode extends Model
     }
 
     /**
-     * Marcar como usado por un cliente
+     * Marcar como usado por un cliente (registra auditoría)
      */
     public function markAsUsedByCustomer($customerId): void
     {
@@ -133,7 +152,16 @@ class DiscountCode extends Model
             'used_at' => now(),
         ]);
 
-        // Incrementar contador
+        // Incrementar contador global de usos
+        $this->increment('used_count');
+    }
+
+    /**
+     * Incrementar contador global de usos (sin registrar customer)
+     * Para usuarios no autenticados
+     */
+    public function incrementUsageCount(): void
+    {
         $this->increment('used_count');
     }
 }

@@ -11,9 +11,11 @@ use App\Http\Controllers\Api\PaymentMethodsController;
 use App\Http\Controllers\Api\SheetSizeController;
 use App\Http\Controllers\Api\DtfSizeController;
 use App\Http\Controllers\Api\CartController;
-use App\Http\Controllers\GangSheetController;
+use App\Http\Controllers\Api\GangSheetController;
 use App\Http\Controllers\Api\DtfGangController;
 use App\Http\Controllers\Api\DiscountCodeController;
+use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\PromotionController;
 use Illuminate\Support\Facades\Route;
 
 // ⚠️ Public routes - No authentication required
@@ -56,10 +58,23 @@ Route::post('/mercado-pago/webhook', [WebhookController::class, 'handleWebhook']
 // ⚠️ Webhook de PayPal - DEBE estar fuera del middleware de autenticación
 Route::post('/paypal/webhook', [WebhookController::class, 'handlePayPalWebhook']);
 
+// Contact Form - Public endpoint
+Route::post('/contact', [ContactController::class, 'send']);
+
+// Order Tracking - Public endpoint (token or email verification)
+Route::get('/pedidos/seguimiento', [OrderTrackingController::class, 'show']);
+
 // 🔒 Protected routes - Require authentication
 Route::middleware('auth:sanctum')->group(function () {
     // Auth customer endpoint
     Route::get('/customer', [AuthController::class, 'customer']);
+    
+    // Customer Profile - Protected
+    Route::prefix('customers')->group(function () {
+        Route::get('/profile', [\App\Http\Controllers\API\CustomerController::class, 'getProfile']);
+        Route::put('/profile', [\App\Http\Controllers\API\CustomerController::class, 'updateProfile']);
+        Route::post('/change-password', [\App\Http\Controllers\API\CustomerController::class, 'changePassword']);
+    });
     
     // Gang Sheets API - Protected (customers must be logged in)
     Route::prefix('gang-sheets')->group(function () {
@@ -77,7 +92,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/crear-pedido/transferencia', [PedidoController::class, 'crearPedidoTransferencia']);
     Route::post('/crear-pedido/paypal', [PedidoController::class, 'crearPedidoPayPal']);
     Route::post('/paypal/capturar-pago', [PedidoController::class, 'capturarPagoPayPal']);
-    Route::get('/pedidos/seguimiento', [OrderTrackingController::class, 'show']);
     Route::get('/ordenes-recientes', [PedidoController::class, 'ordenesRecientes']);
     Route::post('/clientes/pedidos/acceso', [CustomerOrderAccessController::class, 'requestCode']);
     Route::post('/clientes/pedidos/verificar', [CustomerOrderAccessController::class, 'verifyCode']);

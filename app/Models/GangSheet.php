@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class GangSheet extends Model
 {
@@ -59,6 +61,29 @@ class GangSheet extends Model
         'production_started_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleting(function ($gangSheet) {
+            // Eliminar archivo PNG final
+            if ($gangSheet->final_path && Storage::disk('local')->exists($gangSheet->final_path)) {
+                Storage::disk('local')->delete($gangSheet->final_path);
+                // Log::info('Gang sheet PNG eliminado', [
+                //     'gang_sheet_id' => $gangSheet->id,
+                //     'path' => $gangSheet->final_path,
+                // ]);
+            }
+
+            // Eliminar imagen de preview si existe
+            if ($gangSheet->preview_path && Storage::disk('public')->exists($gangSheet->preview_path)) {
+                Storage::disk('public')->delete($gangSheet->preview_path);
+                // Log::info('Gang sheet preview eliminado', [
+                //     'gang_sheet_id' => $gangSheet->id,
+                //     'path' => $gangSheet->preview_path,
+                // ]);
+            }
+        });
+    }
 
     /**
      * Get the customer that owns the gang sheet

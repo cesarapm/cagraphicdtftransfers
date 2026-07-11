@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pago aprobado</title>
+    <title>Payment Approved</title>
     <style>
         body {
             margin: 0;
@@ -142,58 +142,58 @@
 <body>
     <div class="container">
         <div class="hero">
-            <h1>Pago aprobado para procesar</h1>
-            <p>La orden {{ $orden->order_number }} ya quedó autorizada y puede pasar a preparación.</p>
+            <h1>Payment Approved for Processing</h1>
+            <p>Order {{ $orden->order_number }} has been authorized and can proceed to preparation.</p>
         </div>
 
         <div class="content">
-            <span class="badge">Pago aprobado</span>
+            <span class="badge">Payment Approved</span>
 
             <div class="grid">
                 <div class="card">
-                    <h3>Orden</h3>
-                    <div class="row"><span class="label">Número</span><span class="value">&nbsp;{{ $orden->order_number }}</span></div>
-                    <div class="row"><span class="label">Fecha</span><span class="value">&nbsp;{{ optional($orden->created_at)->format('d/m/Y H:i') }}</span></div>
-                    <div class="row"><span class="label">Cliente</span><span class="value">&nbsp;{{ $orden->customer_full_name }}</span></div>
-                    <div class="row"><span class="label">Correo</span><span class="value">&nbsp;{{ $orden->customer_email }}</span></div>
-                    <div class="row"><span class="label">Teléfono</span><span class="value">&nbsp;{{ $orden->customer_phone }}</span></div>
+                    <h3>Order</h3>
+                    <div class="row"><span class="label">Number</span><span class="value">&nbsp;{{ $orden->order_number }}</span></div>
+                    <div class="row"><span class="label">Date</span><span class="value">&nbsp;{{ optional($orden->created_at)->format('m/d/Y H:i') }}</span></div>
+                    <div class="row"><span class="label">Customer</span><span class="value">&nbsp;{{ $orden->customer_full_name }}</span></div>
+                    <div class="row"><span class="label">Email</span><span class="value">&nbsp;{{ $orden->customer_email }}</span></div>
+                    <div class="row"><span class="label">Phone</span><span class="value">&nbsp;{{ $orden->customer_phone }}</span></div>
                 </div>
 
                 <div class="card">
-                    <h3>Pago</h3>
-                    <div class="row"><span class="label">ID pago</span><span class="value">&nbsp;{{ $pago->id_pago }}</span></div>
-                    <div class="row"><span class="label">Estado</span><span class="value">&nbsp;{{ strtoupper((string) $pago->estado) }}</span></div>
-                    <div class="row"><span class="label">Método</span><span class="value">&nbsp;{{ 
+                    <h3>Payment</h3>
+                    <div class="row"><span class="label">Payment ID</span><span class="value">&nbsp;{{ $pago->id_pago }}</span></div>
+                    <div class="row"><span class="label">Status</span><span class="value">&nbsp;{{ strtoupper((string) $pago->estado) }}</span></div>
+                    <div class="row"><span class="label">Method</span><span class="value">&nbsp;{{ 
                         match(strtolower((string) ($pago->metodo_pago ?: 'mercado_pago'))) {
                             'account_money', 'mercado_pago' => 'Mercado Pago',
                             'paypal' => 'PayPal',
-                            'transferencia' => 'Transferencia Bancaria',
+                            'transferencia' => 'Bank Transfer',
                             default => ucwords(str_replace('_', ' ', (string) $pago->metodo_pago))
                         }
                     }}</span></div>
-                    <div class="row"><span class="label">Autorización</span><span class="value">&nbsp;{{ $pago->codigo_autorizacion ?: 'Sin código' }}</span></div>
-                    <div class="row"><span class="label">Aprobado</span><span class="value">&nbsp;{{ $pago->fecha_aprobacion ? \Carbon\Carbon::parse($pago->fecha_aprobacion)->format('d/m/Y H:i') : 'Sin fecha' }}</span></div>
+                    <div class="row"><span class="label">Authorization</span><span class="value">&nbsp;{{ $pago->codigo_autorizacion ?: 'No code' }}</span></div>
+                    <div class="row"><span class="label">Approved</span><span class="value">&nbsp;{{ $pago->fecha_aprobacion ? \Carbon\Carbon::parse($pago->fecha_aprobacion)->format('m/d/Y H:i') : 'No date' }}</span></div>
                 </div>
             </div>
 
             <div class="card">
-                <h3>Envío</h3>
-                <div class="row"><span class="label">Dirección</span><span class="value">&nbsp;{{ $orden->shipping_address }}</span></div>
-                <div class="row"><span class="label">Ciudad / Estado</span><span class="value">&nbsp;{{ $orden->shipping_city }}, {{ $orden->shipping_state }}</span></div>
-                <div class="row"><span class="label">Código postal</span><span class="value">&nbsp;{{ $orden->shipping_zip_code }}</span></div>
+                <h3>Shipping</h3>
+                <div class="row"><span class="label">Address</span><span class="value">&nbsp;{{ $orden->shipping_address }}</span></div>
+                <div class="row"><span class="label">City / State</span><span class="value">&nbsp;{{ $orden->shipping_city }}, {{ $orden->shipping_state }}</span></div>
+                <div class="row"><span class="label">Postal Code</span><span class="value">&nbsp;{{ $orden->shipping_zip_code }}</span></div>
                 @if($orden->notes)
-                    <div class="row"><span class="label">Notas</span><span class="value">&nbsp;{{ $orden->notes }}</span></div>
+                    <div class="row"><span class="label">Notes</span><span class="value">&nbsp;{{ $orden->notes }}</span></div>
                 @endif
             </div>
 
             <div class="card" style="margin-top: 18px;">
-                <h3>Productos</h3>
+                <h3>Products</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>Pieza</th>
-                            <th>Cantidad</th>
-                            <th>Precio</th>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
                             <th>Subtotal</th>
                         </tr>
                     </thead>
@@ -211,13 +211,31 @@
             </div>
 
             <div class="total-box">
-                <strong>Total autorizado</strong>
-                <span>${{ number_format((float) $pago->monto_transaccion, 2) }} MXN</span>
+                <div class="row" style="border-bottom: 1px solid rgba(0,0,0,.1); padding: 8px 0;">
+                    <strong style="color: #7b5f3f; font-size: 13px;">Subtotal</strong>
+                    <span style="color: #6b4e2f; font-weight: 700;">${{ number_format((float) ($pago->monto_transaccion - ($orden->shipping_cost ?? 0) + ($orden->discount_amount ?? 0)), 2) }} USD</span>
+                </div>
+                @if($orden->discount_amount && $orden->discount_amount > 0)
+                    <div class="row" style="border-bottom: 1px solid rgba(0,0,0,.1); padding: 8px 0;">
+                        <strong style="color: #7b5f3f; font-size: 13px;">
+                            Discount @if($orden->discount_code)({{ $orden->discount_code }})@endif
+                        </strong>
+                        <span style="color: #22863a; font-weight: 700;">-${{ number_format((float) $orden->discount_amount, 2) }} USD</span>
+                    </div>
+                @endif
+                <div class="row" style="border-bottom: 1px solid rgba(0,0,0,.1); padding: 8px 0;">
+                    <strong style="color: #7b5f3f; font-size: 13px;">Shipping</strong>
+                    <span style="color: #6b4e2f; font-weight: 700;">${{ number_format((float) ($orden->shipping_cost ?? 0), 2) }} USD</span>
+                </div>
+                <div style="text-align: right; padding-top: 12px;">
+                    <strong style="display: block; color: #7b5f3f; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;">Total Authorized</strong>
+                    <span style="font-size: 28px; color: #6b4e2f; font-weight: 700;">${{ number_format((float) $pago->monto_transaccion, 2) }} USD</span>
+                </div>
             </div>
         </div>
 
         <div class="footer">
-            Este correo se envió automáticamente cuando Mercado Pago reportó la aprobación del cobro.
+            This email was sent automatically when Mercado Pago reported approval of the payment.
         </div>
     </div>
 </body>

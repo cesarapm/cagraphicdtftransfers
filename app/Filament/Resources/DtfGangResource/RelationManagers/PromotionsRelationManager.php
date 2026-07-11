@@ -35,7 +35,7 @@ class PromotionsRelationManager extends RelationManager
                             ->label('Discount Type')
                             ->options([
                                 'percentage' => '📊 Percentage (%)',
-                                'fixed' => '💰 Fixed Amount ($)',
+                                // 'fixed' => '💰 Fixed Amount ($)',
                             ])
                             ->required()
                             ->native(false),

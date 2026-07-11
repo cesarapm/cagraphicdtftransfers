@@ -6,16 +6,37 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class OrderTrackingController extends Controller
 {
     public function show(Request $request): JsonResponse
     {
+        // Log::info('Order tracking request received', $request->all());
+        
+        // Extraer token del header Authorization si existe
+        $authHeader = $request->header('Authorization');
+        $tokenFromHeader = null;
+        
+        if ($authHeader && str_starts_with($authHeader, 'Bearer ')) {
+            $tokenFromHeader = substr($authHeader, 7); // Eliminar "Bearer " (7 caracteres)
+        }
+
         $validated = $request->validate([
             'order_number' => 'required|string',
-            'email' => 'nullable|email|required_without:token',
-            'token' => 'nullable|string|required_without:email',
+            'email' => 'nullable|email',
+            'token' => 'nullable|string',
         ]);
+
+        // Usar token del header si está disponible, sino del parámetro query
+        $token = $tokenFromHeader ?? $validated['token'] ?? null;
+        $email = $validated['email'] ?? null;
+
+        if (!$token && !$email) {
+            return response()->json([
+                'message' => 'Se requiere token o email para acceder al seguimiento.',
+            ], 422);
+        }
 
         $order = Order::with(['items', 'latestPay'])
             ->where('order_number', $validated['order_number'])
@@ -27,8 +48,8 @@ class OrderTrackingController extends Controller
             ], 404);
         }
 
-        $providedToken = $validated['token'] ?? null;
-        $providedEmail = isset($validated['email']) ? strtolower($validated['email']) : null;
+        $providedToken = $token;
+        $providedEmail = isset($email) ? strtolower($email) : null;
 
         $isValidToken = is_string($providedToken) && hash_equals($order->tracking_token, $providedToken);
         $isValidEmail = is_string($providedEmail) && strtolower((string) $order->customer_email) === $providedEmail;
@@ -54,8 +75,10 @@ class OrderTrackingController extends Controller
                 'shipping_cost' => (float) $order->shipping_cost,
                 'tax' => (float) $order->tax,
                 'total' => (float) $order->total,
-                'status' => $order->status,
-                'status_label' => $order->status_label,
+                'discount_amount' => (float) ($order->discount_amount ?? 0),
+                'discount_code' => $order->discount_code,
+                'status' => $order->order_status,
+                'status_label' => $order->order_status,
                 'status_tone' => $order->status_tone,
                 'metodo_pago' => $order->metodo_pago,
                 'notes' => $order->notes,

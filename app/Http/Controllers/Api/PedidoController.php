@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\DtfSize;
+use App\Models\GangSheet;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Pay;
@@ -126,42 +127,73 @@ class PedidoController extends Controller
 
         try {
             $orderId = $validated['orden_id'];
-            Log::info('Iniciando cancelación de orden por pago fallido', ['order_id' => $orderId]);
+            // Log::info('Iniciando cancelación de orden por pago fallido', ['order_id' => $orderId]);
 
             $order = Order::findOrFail($orderId);
             
-            Log::info('Orden encontrada', [
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'payment_status' => $order->payment_status,
-                'order_status' => $order->order_status,
-            ]);
+            // Log::info('Orden encontrada', [
+            //     'order_id' => $order->id,
+            //     'order_number' => $order->order_number,
+            //     'payment_status' => $order->payment_status,
+            //     'order_status' => $order->order_status,
+            // ]);
 
             // Permitir eliminar si está en: pendiente_pago, rechazado o cancelado
             $deletableStatuses = ['pendiente_pago', 'rechazado', 'cancelado'];
             
             if (in_array($order->payment_status, $deletableStatuses, true)) {
-                Log::info('Orden está en estado eliminable, procediendo a borrar', [
-                    'order_id' => $order->id,
-                    'current_status' => $order->payment_status,
-                ]);
+                // Log::info('Orden está en estado eliminable, procediendo a borrar', [
+                //     'order_id' => $order->id,
+                //     'current_status' => $order->payment_status,
+                // ]);
 
+                // Cargar la orden con items
+                $order->load('items');
+                
                 // Contar items antes de eliminar
-                $itemCount = $order->items()->count();
-                Log::info('Items encontrados en la orden', [
-                    'order_id' => $order->id,
-                    'item_count' => $itemCount,
-                ]);
+                $itemCount = $order->items->count();
+                // Log::info('Items encontrados en la orden', [
+                //     'order_id' => $order->id,
+                //     'item_count' => $itemCount,
+                // ]);
 
-                // Eliminar la orden (esto activará el evento deleting del modelo)
+                // 🗑️ Eliminar gang sheets EXPLÍCITAMENTE PRIMERO
+                $gangSheetIds = [];
+                foreach ($order->items as $item) {
+                    if ($item->gang_sheet_id) {
+                        $gangSheetIds[] = $item->gang_sheet_id;
+                    }
+                }
+                
+                if (!empty($gangSheetIds)) {
+                    // Log::info('Eliminando gang sheets de la orden', [
+                    //     'order_id' => $order->id,
+                    //     'gang_sheet_ids' => $gangSheetIds,
+                    // ]);
+                    
+                    // Cargar cada gang sheet y eliminar para disparar el evento deleting
+                    foreach ($gangSheetIds as $gangSheetId) {
+                        $gangSheet = GangSheet::find($gangSheetId);
+                        if ($gangSheet) {
+                            $gangSheet->delete(); // Dispara el evento deleting que borra imágenes
+                        }
+                    }
+                    
+                    // Log::info('Gang sheets eliminados correctamente', [
+                    //     'order_id' => $order->id,
+                    //     'count' => count($gangSheetIds),
+                    // ]);
+                }
+
+                // Ahora eliminar la orden (esto activará el evento deleting del modelo)
                 $deleteResult = $order->delete();
                 
-                Log::info('Orden eliminada correctamente', [
-                    'order_id' => $orderId,
-                    'order_number' => $order->order_number,
-                    'items_removed' => $itemCount,
-                    'delete_result' => $deleteResult,
-                ]);
+                // Log::info('Orden eliminada correctamente', [
+                //     'order_id' => $orderId,
+                //     'order_number' => $order->order_number,
+                //     'items_removed' => $itemCount,
+                //     'delete_result' => $deleteResult,
+                // ]);
 
                 return response()->json([
                     'success' => true,
@@ -302,6 +334,9 @@ class PedidoController extends Controller
             'subtotal' => 'required|numeric|min:0',
             'shipping_cost' => 'required|numeric|min:0',
             'total' => 'required|numeric|min:0',
+            'discount_code_id' => 'nullable|integer',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'discount_code' => 'nullable|string|max:50',
             'notes' => 'nullable|string',
             'save_customer_profile' => 'nullable|boolean',
             'payment_method' => 'required|in:mercado_pago,paypal,transferencia',
@@ -340,25 +375,28 @@ class PedidoController extends Controller
                 ->sum(fn(array $item) => (float) $item['unit_price'] * (int) $item['quantity']);
             $shippingCost = (float) $validated['shipping_cost'];
             $tax = 0;
-            $calculatedTotal = $calculatedSubtotal + $shippingCost + $tax;
+            $calculatedTotal = (float) $validated['total'];
             $customer = null;
 
-            // Si está autenticado, usar el cliente autenticado
+            // Si está autenticado como User, buscar/crear el Customer correspondiente
             if (auth()->check() && auth()->user()) {
-                $customer = auth()->user();
-                // Actualizar datos del cliente si viene información
-                if (!empty($validated['customer_phone'])) {
-                    $customer->update([
+                $user = auth()->user();
+                // Buscar o crear Customer por email del usuario autenticado
+                $customer = Customer::updateOrCreate(
+                    ['email' => strtolower((string) $user->email)],
+                    [
+                        'first_name' => $validated['customer_first_name'],
+                        'last_name' => $validated['customer_last_name'],
                         'phone' => $validated['customer_phone'],
                         'address' => $validated['shipping_address'],
                         'city' => $validated['shipping_city'],
                         'state' => $validated['shipping_state'],
                         'zip_code' => $validated['shipping_zip_code'],
                         'last_ordered_at' => now(),
-                    ]);
-                }
+                    ]
+                );
             } else {
-                // Si no está autenticado, buscar/crear cliente por email
+                // Si no está autenticado, buscar/crear cliente por email del formulario
                 $customer = Customer::updateOrCreate(
                     ['email' => strtolower((string) $validated['customer_email'])],
                     [
@@ -388,6 +426,9 @@ class PedidoController extends Controller
                 'shipping_cost' => $shippingCost,
                 'tax' => $tax,
                 'total' => $calculatedTotal,
+                'discount_code_id' => $validated['discount_code_id'] ?? null,
+                'discount_amount' => $validated['discount_amount'] ?? 0,
+                'discount_code' => $validated['discount_code'] ?? null,
                 'metodo_pago' => $paymentMethod,
                 'payment_status' => $paymentStatus,
                 'order_status' => $orderStatus,
@@ -604,6 +645,20 @@ class PedidoController extends Controller
                 // ]);
             }
 
+            // Incrementar el contador de uso del código de descuento
+            if ($validated['discount_code_id'] ?? null) {
+                $discountCode = \App\Models\DiscountCode::find($validated['discount_code_id']);
+                if ($discountCode) {
+                    // Si está autenticado, registrar el uso por customer
+                    if ($customer) {
+                        $discountCode->markAsUsedByCustomer($customer->id);
+                    } else {
+                        // Si no está autenticado, solo incrementar el contador global
+                        $discountCode->incrementUsageCount();
+                    }
+                }
+            }
+
             return $order->fresh('items');
         });
     }
@@ -625,13 +680,25 @@ class PedidoController extends Controller
             'pending' => $frontendUrl . '/checkout/pendiente',
         ];
 
-        $payload = [
-            'items' => $order->items->map(fn(OrderItem $item) => [
-                'title' => $item->product_name,
-                'quantity' => (int) $item->quantity,
-                'unit_price' => (float) $item->unit_price,
+        $items = $order->items->map(fn(OrderItem $item) => [
+            'title' => $item->product_name,
+            'quantity' => (int) $item->quantity,
+            'unit_price' => (float) $item->unit_price,
+            'currency_id' => 'USD',
+        ])->values()->all();
+
+        // Añadir descuento como item negativo si existe
+        if ((float) $order->discount_amount > 0) {
+            $items[] = [
+                'title' => 'Descuento: ' . ($order->discount_code ? $order->discount_code : 'Código aplicado'),
+                'quantity' => 1,
+                'unit_price' => -((float) $order->discount_amount),
                 'currency_id' => 'USD',
-            ])->values()->all(),
+            ];
+        }
+
+        $payload = [
+            'items' => $items,
             'external_reference' => (string) $order->id,
             'notification_url' => $notificationUrl,
             'back_urls' => $backUrls,
@@ -842,6 +909,12 @@ class PedidoController extends Controller
                                 'currency_code' => 'USD',
                                 'value' => number_format((float) $order->shipping_cost, 2, '.', ''),
                             ],
+                            ...(((float) $order->discount_amount > 0) ? [
+                                'discount' => [
+                                    'currency_code' => 'USD',
+                                    'value' => number_format((float) $order->discount_amount, 2, '.', ''),
+                                ],
+                            ] : []),
                         ],
                     ],
                     'items' => $order->items->map(fn(OrderItem $item) => [

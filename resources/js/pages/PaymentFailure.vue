@@ -76,6 +76,41 @@ const cancelFailedMercadoPagoOrder = async (id) => {
     cancelling.value = true;
     cancelError.value = null;
 
+    // 🗑️ BORRAR GANG SHEETS Y LIMPIAR CARRITO COMPLETAMENTE
+    const token = localStorage.getItem('auth_token');
+    
+    // Limpiar desde sessionStorage
+    const cartKey = 'dtf_cart';
+    const dtfCartData = sessionStorage.getItem(cartKey);
+    
+    if (dtfCartData) {
+      try {
+        const cartData = JSON.parse(dtfCartData);
+        const dtfCartItems = cartData.dtf_items || [];
+        
+        // Eliminar gang sheets del servidor
+        for (const item of dtfCartItems) {
+          if (item.type === 'gang_sheet' && item.gangSheetid) {
+            try {
+              await fetch(`/api/gang-sheets/${item.gangSheetid}`, {
+                method: 'DELETE',
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
+              });
+            } catch (err) {
+              console.warn('Failed to delete gang sheet:', item.gangSheetid, err);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Error processing sessionStorage cart:', err);
+      }
+    }
+    
+    // Limpiar COMPLETAMENTE ambos storages
+    sessionStorage.removeItem(cartKey);
+    localStorage.removeItem('dtf_cart_items');
+    localStorage.removeItem('dtf_cart');
+
     const response = await fetch('/api/cancelar-orden-pago-fallido', {
       method: 'POST',
       headers: {

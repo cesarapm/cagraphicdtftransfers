@@ -3,6 +3,13 @@ import { onMounted, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import ComponetDttf from '../components/dtf/ComponetDttf.vue';
+import { 
+    saveImageToIndexedDB, 
+    getImageFromIndexedDB, 
+    deleteImageFromIndexedDB,
+    compressImage,
+    validateImageSize 
+} from '../services/cartStorageService';
 
 const router = useRouter();
 const sizes = ref([]);
@@ -73,6 +80,18 @@ onMounted(() => {
             });
             
             cartItems.value = items;
+            
+            // Cargar imágenes desde IndexedDB para cada item
+            items.forEach(async (item) => {
+                const image = await getImageFromIndexedDB(item.id.toString());
+                if (image) {
+                    const idx = cartItems.value.findIndex(i => i.id === item.id);
+                    if (idx !== -1) {
+                        cartItems.value[idx].imagePreview = image;
+                    }
+                }
+            });
+            
             // console.log('Loaded cart items from localStorage:', cartItems.value);
         } catch (error) {
             console.error('Error loading cart items:', error);
@@ -144,7 +163,7 @@ const fallbackCopy = (text) => {
 };
 
 // Cart Functions
-const addToCart = () => {
+const addToCart = async () => {
     if (!selectedSize.value || !uploadedImage.value) {
         alert('Please select a size and upload an image');
         return;
@@ -171,35 +190,38 @@ const addToCart = () => {
             price: selectedSize.value.price,
         },
         quantity: parseInt(quantity.value),
-        imagePreview: imagePreview.value, // Base64 string
-        imageFile: null, // Will be stored separately
+        imagePreview: imagePreview.value, // Temporary preview
+        imageFile: null,
         unitPrice: hasPromotion.value ? Number(finalPrice.value) : Number(selectedSize.value.price) || 0,
         totalPrice: (hasPromotion.value ? Number(finalPrice.value) : Number(selectedSize.value.price) || 0) * parseInt(quantity.value)
     };
 
-    // Store the File object in a Map (not serializable)
-    if (!window.dtfCartImageMap) {
-        window.dtfCartImageMap = new Map();
+    // Guardar imagen en IndexedDB
+    try {
+        await saveImageToIndexedDB(cartItem.id.toString(), imagePreview.value);
+        // console.log('✅ Image saved to IndexedDB');
+    } catch (error) {
+        console.error('❌ Error saving image:', error);
+        alert('Error saving image. Please try again.');
+        return;
     }
-    window.dtfCartImageMap.set(cartItem.id.toString(), uploadedImage.value);
 
     cartItems.value.push(cartItem);
     
-    // Store serializable data in localStorage
+    // Store serializable data in localStorage (SIN imagePreview)
     const serializableCart = cartItems.value.map(item => ({
         id: item.id,
         type: item.type,
         product: item.product,
         quantity: item.quantity,
-        imagePreview: item.imagePreview,
-        unitPrice: Number(item.unitPrice) || 0, // Ensure it's a number
-        totalPrice: Number(item.totalPrice) || 0  // Ensure it's a number
+        unitPrice: Number(item.unitPrice) || 0,
+        totalPrice: Number(item.totalPrice) || 0
+        // ✅ imagePreview NO se guarda aquí (está en IndexedDB)
     }));
     
     localStorage.setItem('dtf_cart_items', JSON.stringify(serializableCart));
     
-    // console.log('Item added to cart:', cartItem);
-    // console.log('Cart items:', cartItems.value);
+    // console.log('✅ Item added to cart');
     
     resetForm();
     
@@ -213,10 +235,53 @@ const resetForm = () => {
     quantity.value = 1;
 };
 
-const removeFromCart = (id) => {
+const removeFromCart = async (id) => {
+    // Si es un gang sheet, eliminar primero de la BD
+    const item = cartItems.value.find(item => item.id === id);
+    
+    if (item && item.type === 'gang_sheet' && item.gangSheetid) {
+        try {
+            const token = localStorage.getItem('auth_token') || 
+                        localStorage.getItem('token') ||
+                        localStorage.getItem('sanctum_token') || '';
+
+            const headers = {
+                'Accept': 'application/json'
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`/api/gang-sheets/${item.gangSheetid}`, {
+                method: 'DELETE',
+                headers
+            });
+
+            if (!response.ok) {
+                console.warn('⚠️ Failed to delete gang sheet from DB:', response.statusText);
+            } else {
+                const result = await response.json();
+                // console.log('✅ Gang sheet deleted from DB:', result.message);
+            }
+        } catch (error) {
+            console.error('❌ Error deleting gang sheet:', error);
+        }
+    }
+
+    // Eliminar imagen de IndexedDB
+    try {
+        await deleteImageFromIndexedDB(id.toString());
+        // console.log('✅ Image deleted from IndexedDB');
+    } catch (error) {
+        console.error('⚠️ Error deleting image from IndexedDB:', error);
+        // Continue anyway
+    }
+
+    // Eliminar del carrito local
     cartItems.value = cartItems.value.filter(item => item.id !== id);
     
-    // Remove from image map
+    // Remove from image map (legacy)
     if (window.dtfCartImageMap) {
         window.dtfCartImageMap.delete(id.toString());
     }
@@ -226,14 +291,17 @@ const removeFromCart = (id) => {
         id: item.id,
         type: item.type,
         product: item.product,
+        product_id: item.product_id || (item.product?.id),
+        product_name: item.product_name || (item.product?.name),
         quantity: item.quantity,
-        imagePreview: item.imagePreview,
         unitPrice: Number(item.unitPrice) || 0,
         totalPrice: Number(item.totalPrice) || 0
+        // ✅ imagePreview NO se guarda
     }));
     
     localStorage.setItem('dtf_cart_items', JSON.stringify(serializableCart));
 };
+
 
 const updateCartQuantity = (id, newQuantity) => {
     const item = cartItems.value.find(item => item.id === id);
@@ -247,9 +315,9 @@ const updateCartQuantity = (id, newQuantity) => {
             type: item.type,
             product: item.product,
             quantity: item.quantity,
-            imagePreview: item.imagePreview,
             unitPrice: Number(item.unitPrice) || 0,
             totalPrice: Number(item.totalPrice) || 0
+            // ✅ imagePreview NO se guarda
         }));
         
         localStorage.setItem('dtf_cart_items', JSON.stringify(serializableCart));
@@ -259,6 +327,12 @@ const updateCartQuantity = (id, newQuantity) => {
 const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+        // Validar tamaño máximo (5 MB)
+        if (!validateImageSize(file, 5)) {
+            alert('❌ Image is too large (max 5 MB). Please compress it or choose a smaller image.');
+            return;
+        }
+
         uploadedImage.value = file;
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -567,9 +641,17 @@ const finalPrice = computed(() => {
             <tbody>
               <tr v-for="item in cartItems" :key="item.id" class="cart-row">
                 <!-- Image -->
-                <td class="col-image">
+               <td class="col-image">
                   <div class="cart-image">
-                    <img :src="item.imagePreview" :alt="item.product.name" />
+                    <img 
+                      v-if="item.imagePreview"
+                      :src="item.imagePreview" 
+                      :alt="item.product?.name || item.product_name" 
+                    />
+                    <div v-else class="cart-image-placeholder">
+                      <span v-if="item.type === 'gang_sheet'" class="placeholder-icon">📋</span>
+                      <span v-else class="placeholder-icon">📦</span>
+                    </div>
                   </div>
                 </td>
 
@@ -687,6 +769,21 @@ const finalPrice = computed(() => {
   justify-content: center;
 }
 
+
+.cart-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border: 1px dashed #d1d5db;
+}
+
+.placeholder-icon {
+  font-size: 2.5rem;
+  opacity: 0.7;
+}
 @media (max-width: 1024px) {
   .dtf-transfers-size-hero {
     height: 400px;
@@ -1391,6 +1488,9 @@ const finalPrice = computed(() => {
   border-radius: 6px;
   overflow: hidden;
   background: #f3f4f6;
+    display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cart-image img {

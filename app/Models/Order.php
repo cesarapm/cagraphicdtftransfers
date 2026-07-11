@@ -26,6 +26,9 @@ class Order extends Model
         'shipping_cost',
         'tax',
         'total',
+        'discount_code_id',
+        'discount_amount',
+        'discount_code',
         'metodo_pago',
         'payment_id',
         'envio',
@@ -41,6 +44,7 @@ class Order extends Model
         'shipping_cost' => 'decimal:2',
         'tax' => 'decimal:2',
         'total' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
          'envio' => 'array',
     ];
 
@@ -89,24 +93,53 @@ class Order extends Model
             // Cargar items para asegurar que se ejecuten sus eventos deleting()
             $order->load('items');
             
-            Log::info('Eliminando OrderItems de la orden', [
-                'order_id' => $order->id,
-                'items_count' => $order->items->count(),
-            ]);
+            // Log::info('🗑️ Eliminando Order y sus OrderItems', [
+            //     'order_id' => $order->id,
+            //     'order_number' => $order->order_number,
+            //     'items_count' => $order->items->count(),
+            // ]);
 
+            // Recolectar IDs de gang sheets a eliminar
+            $gangSheetIds = [];
+            
             // Eliminar cada item individualmente para que ejecute su evento deleting()
             // Esto borrará las imágenes de storage automáticamente
             foreach ($order->items as $item) {
-                Log::info('Eliminando OrderItem', [
-                    'item_id' => $item->id,
-                    'image' => $item->image,
-                ]);
+                // Log::info('→ Eliminando OrderItem', [
+                //     'item_id' => $item->id,
+                //     'product_id' => $item->product_id,
+                //     'image' => $item->image,
+                //     'gang_sheet_id' => $item->gang_sheet_id,
+                // ]);
+                
+                // Recolectar gang sheet IDs
+                if ($item->gang_sheet_id) {
+                    $gangSheetIds[] = $item->gang_sheet_id;
+                }
+                
                 $item->delete();
             }
 
-            Log::info('Todos los OrderItems eliminados correctamente', [
-                'order_id' => $order->id,
-            ]);
+            // Eliminar gang sheets y sus imágenes
+            if (!empty($gangSheetIds)) {
+                // Log::info('📋 Eliminando gang sheets de la orden', [
+                //     'order_id' => $order->id,
+                //     'gang_sheet_ids' => $gangSheetIds,
+                // ]);
+                
+                // Eliminar cada gang sheet individualmente para disparar eventos deleting()
+                foreach ($gangSheetIds as $gangSheetId) {
+                    $gangSheet = GangSheet::find($gangSheetId);
+                    if ($gangSheet) {
+                        // Log::info('→ Eliminando GangSheet', ['gang_sheet_id' => $gangSheetId]);
+                        $gangSheet->delete(); // Dispara el evento deleting() que borra las imágenes
+                    }
+                }
+            }
+
+            // Log::info('✅ Todos los OrderItems y gang sheets eliminados correctamente', [
+            //     'order_id' => $order->id,
+            // ]);
         });
     }
 

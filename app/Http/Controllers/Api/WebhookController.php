@@ -18,9 +18,14 @@ class WebhookController extends Controller
 {
     public function handleWebhook(Request $request)
     {
-        // Log::info('Webhook de Mercado Pago recibido', $request->all());
+        // Log::info('✅ Webhook de Mercado Pago recibido', $request->all());
 
         if (!$this->validateWebhookSignature($request)) {
+            Log::error('❌ Webhook de Mercado Pago con firma INVÁLIDA', [
+                'x-signature' => $request->header('x-signature'),
+                'x-request-id' => $request->header('x-request-id'),
+                'request_data' => $request->all(),
+            ]);
             return response()->json(['success' => false, 'message' => 'Firma inválida'], 401);
         }
 
@@ -28,9 +33,17 @@ class WebhookController extends Controller
         $paymentId = $request->input('data.id') ?? $request->input('id');
         $merchantOrderId = $request->input('data.id') ?? $request->input('data_id');
 
+        // Log::info('📊 Datos del webhook extraídos', [
+        //     'type' => $type,
+        //     'payment_id' => $paymentId,
+        //     'merchant_order_id' => $merchantOrderId,
+        // ]);
+
         if ($type === 'payment' && $paymentId) {
+            // Log::info('🔄 Sincronizando pago...', ['payment_id' => $paymentId]);
             $this->syncPayment((string) $paymentId);
         } elseif (in_array($type, ['merchant_order', 'topic_merchant_order_wh'], true) && $merchantOrderId) {
+            // Log::info('🔄 Sincronizando merchant order...', ['merchant_order_id' => $merchantOrderId]);
             $this->syncMerchantOrder((string) $merchantOrderId);
         }
 
@@ -76,10 +89,12 @@ class WebhookController extends Controller
 
     protected function syncMerchantOrder(string $merchantOrderId): void
     {
+        // Log::info('🛍️ syncMerchantOrder iniciado', ['merchant_order_id' => $merchantOrderId]);
+
         $accessToken = MercadoPagoConfig::getAccessToken();
 
         if (!$accessToken) {
-            Log::warning('Mercado Pago no configurado para merchant order');
+            // Log::error('❌ Mercado Pago NO CONFIGURADO - No hay access token');
             return;
         }
 
@@ -88,15 +103,26 @@ class WebhookController extends Controller
             ->get("https://api.mercadopago.com/merchant_orders/{$merchantOrderId}");
 
         if (!$response->successful()) {
-            Log::error('No se pudo consultar merchant order', [
-                'merchant_order_id' => $merchantOrderId,
-                'response' => $response->json(),
-            ]);
+            // Log::error('❌ No se pudo consultar merchant order en Mercado Pago API', [
+            //     'merchant_order_id' => $merchantOrderId,
+            //     'status' => $response->status(),
+            //     'response' => $response->json(),
+            // ]);
             return;
         }
 
-        foreach ($response->json('payments', []) as $payment) {
+        $merchantOrderData = $response->json();
+        $payments = $merchantOrderData['payments'] ?? [];
+        
+        // Log::info('✅ Merchant order consultado exitosamente', [
+        //     'merchant_order_id' => $merchantOrderId,
+        //     'total_payments' => count($payments),
+        //     'statuses' => array_unique(array_column($payments, 'status')),
+        // ]);
+
+        foreach ($payments as $payment) {
             if (!empty($payment['id'])) {
+                // Log::info('→ Sincronizando pago desde merchant order', ['payment_id' => $payment['id']]);
                 $this->syncPayment((string) $payment['id']);
             }
         }
@@ -104,38 +130,59 @@ class WebhookController extends Controller
 
     protected function syncPayment(string $paymentId): void
     {
+        // Log::info('💳 syncPayment iniciado', ['payment_id' => $paymentId]);
+        
         $accessToken = MercadoPagoConfig::getAccessToken();
 
         if (!$accessToken) {
-            Log::warning('Mercado Pago no configurado para sincronizar pagos');
+            // Log::error('❌ Mercado Pago NO CONFIGURADO - No hay access token');
             return;
         }
+
+        //  Log::info('✅ Access token de Mercado Pago disponible');
 
         $response = Http::withToken($accessToken)
             ->acceptJson()
             ->get("https://api.mercadopago.com/v1/payments/{$paymentId}");
 
         if (!$response->successful()) {
-            Log::error('No se pudo consultar el pago en Mercado Pago', [
+            Log::error('❌ Error al consultar pago en Mercado Pago API', [
                 'payment_id' => $paymentId,
+                'status' => $response->status(),
                 'response' => $response->json(),
             ]);
             return;
         }
 
         $payment = $response->json();
+        // Log::info('✅ Pago consultado exitosamente en Mercado Pago', [
+        //     'payment_id' => $paymentId,
+        //     'status' => $payment['status'] ?? 'UNKNOWN',
+        //     'external_reference' => $payment['external_reference'] ?? null,
+        // ]);
+
         $order = Order::find($payment['external_reference'] ?? null);
 
         if (!$order) {
-            Log::warning('Pago recibido sin orden asociada', [
+            Log::error('❌ Pago recibido pero NO HAY ORDEN ASOCIADA', [
                 'payment_id' => $paymentId,
                 'external_reference' => $payment['external_reference'] ?? null,
             ]);
             return;
         }
 
+        // Log::info('✅ Orden encontrada', [
+        //     'order_id' => $order->id,
+        //     'order_number' => $order->order_number,
+        // ]);
+
         $existingPay = Pay::where('id_pago', (string) $payment['id'])->first();
         $previousStatus = $existingPay?->estado;
+
+        // Log::info('📝 Información anterior del pago', [
+            // 'existing_pay_id' => $existingPay?->id,
+        //     'previous_status' => $previousStatus,
+        // ]);
 
         $pay = Pay::updateOrCreate(
             ['id_pago' => (string) $payment['id']],
@@ -162,8 +209,20 @@ class WebhookController extends Controller
 
         $currentStatus = $payment['status'] ?? null;
 
+        // Log::info('✅ Registro de pago creado/actualizado', [
+        //     'pay_id' => $pay->id,
+        //     'id_pago' => $pay->id_pago,
+        //     'current_status' => $currentStatus,
+        // ]);
+
         $paymentStatus = $this->mapPaymentStatus($currentStatus);
         $orderStatus = $paymentStatus === 'pagado' ? 'procesando' : 'pendiente';
+
+        // Log::info('🔄 Actualizando estado de la orden', [
+        //     'order_id' => $order->id,
+        //     'payment_status' => $paymentStatus,
+        //     'order_status' => $orderStatus,
+        // ]);
 
         $order->update([
             'payment_status' => $paymentStatus,
@@ -172,8 +231,20 @@ class WebhookController extends Controller
             'metodo_pago' => 'mercado_pago',
         ]);
 
+        // Log::info('✅ Orden actualizada exitosamente', [
+        //     'order_id' => $order->id,
+        //     'new_payment_status' => $paymentStatus,
+        // ]);
+
         if ($currentStatus === 'approved' && $previousStatus !== 'approved') {
+            // Log::info('📧 Enviando correos de orden aprobada...');
             $this->sendApprovedOrderMail($order->fresh('items'), $pay);
+        } else {
+            // Log::info('ℹ️ Correos NO enviados', [
+            //     'current_status' => $currentStatus,
+            //     'previous_status' => $previousStatus,
+            //     'reason' => $currentStatus === 'approved' ? 'Ya se enviaron antes' : 'El pago no está aprobado',
+            // ]);
         }
     }
 
@@ -220,13 +291,13 @@ class WebhookController extends Controller
         try {
             Mail::to($recipient)->send($mailable);
 
-            // Log::info($successMessage, [
+            // Log::info('✅ ' . $successMessage, [
             //     'order_id' => $order->id,
             //     'payment_id' => $pay->id_pago,
             //     'recipient' => $recipient,
             // ]);
         } catch (\Throwable $exception) {
-            Log::error($errorMessage, [
+            Log::error('❌ ' . $errorMessage, [
                 'order_id' => $order->id,
                 'payment_id' => $pay->id_pago,
                 'recipient' => $recipient,
@@ -250,34 +321,43 @@ class WebhookController extends Controller
      */
     public function handlePayPalWebhook(Request $request)
     {
-        // Log::info('Webhook de PayPal recibido', $request->all());
+        // Log::info('✅ Webhook de PayPal recibido', $request->all());
 
         // Verificar la firma del webhook (PayPal usa un sistema diferente)
         if (!$this->validatePayPalWebhookSignature($request)) {
-            Log::warning('Webhook de PayPal con firma inválida');
+            Log::error('❌ Webhook de PayPal con firma INVÁLIDA');
             return response()->json(['success' => false, 'message' => 'Firma inválida'], 401);
         }
 
         $eventType = $request->input('event_type');
         $resource = $request->input('resource', []);
 
+        // Log::info('📌 Evento de PayPal', [
+        //     'event_type' => $eventType,
+        //     'resource_id' => $resource['id'] ?? null,
+        // ]);
+
         // Manejar diferentes tipos de eventos de PayPal
         switch ($eventType) {
             case 'CHECKOUT.ORDER.APPROVED':
+                // Log::info('→ Procesando CHECKOUT.ORDER.APPROVED');
                 $this->handlePayPalOrderApproved($resource);
                 break;
             case 'PAYMENT.CAPTURE.COMPLETED':
+                // Log::info('→ Procesando PAYMENT.CAPTURE.COMPLETED');
                 $this->handlePayPalPaymentCaptured($resource);
                 break;
             case 'PAYMENT.CAPTURE.PENDING':
+                // Log::info('→ Procesando PAYMENT.CAPTURE.PENDING');
                 $this->handlePayPalPaymentPending($resource);
                 break;
             case 'PAYMENT.CAPTURE.DENIED':
             case 'PAYMENT.CAPTURE.DECLINED':
+                // Log::info('→ Procesando PAYMENT.CAPTURE.DENIED/DECLINED');
                 $this->handlePayPalPaymentFailed($resource);
                 break;
             default:
-                // Log::info('Evento de PayPal no manejado', ['event_type' => $eventType]);
+                // Log::info('ℹ️ Evento de PayPal no manejado', ['event_type' => $eventType]);
         }
 
         return response()->json(['success' => true]);
@@ -317,25 +397,25 @@ class WebhookController extends Controller
      */
     protected function handlePayPalOrderApproved(array $resource): void
     {
-// Log::info('Orden de PayPal aprobada recibida', $resource);
-
+        // Log::info('🎯 Orden de PayPal aprobada recibida', $resource);
 
         $paypalOrderId = $resource['id'] ?? null;
 
         if (!$paypalOrderId) {
-            Log::warning('Webhook de PayPal sin ID de orden');
+            // Log::error('❌ Webhook de PayPal sin ID de orden');
             return;
         }
 
         $order = Order::where('payment_id', $paypalOrderId)->first();
 
         if (!$order) {
-            Log::warning('Orden de PayPal no encontrada', ['paypal_order_id' => $paypalOrderId]);
+            // Log::error('❌ Orden de PayPal no encontrada', ['paypal_order_id' => $paypalOrderId]);
             return;
         }
 
-        // Log::info('Orden de PayPal aprobada, capturando pago...', [
+        // Log::info('✅ Orden de PayPal aprobada, capturando pago...', [
         //     'order_id' => $order->id,
+        //     'order_number' => $order->order_number,
         //     'paypal_order_id' => $paypalOrderId,
         // ]);
 
@@ -343,9 +423,9 @@ class WebhookController extends Controller
         $accessToken = PayPalConfig::getAccessToken();
 
         if (!$accessToken) {
-            Log::error('No se puede capturar pago de PayPal: no hay token', [
-                'order_id' => $order->id,
-            ]);
+            // Log::error('❌ No se puede capturar pago de PayPal: no hay token', [
+            //     'order_id' => $order->id,
+            // ]);
             return;
         }
 
@@ -363,7 +443,7 @@ class WebhookController extends Controller
                 $data = $response->json();
                 $captureStatus = $data['status'] ?? 'UNKNOWN';
 
-                // Log::info('Pago de PayPal capturado exitosamente', [
+                // Log::info('✅ Pago de PayPal capturado exitosamente', [
                 //     'order_id' => $order->id,
                 //     'paypal_order_id' => $paypalOrderId,
                 //     'capture_status' => $captureStatus,
@@ -374,6 +454,11 @@ class WebhookController extends Controller
                     // Extraer información del capture
                     $capture = $data['purchase_units'][0]['payments']['captures'][0] ?? null;
                     $payer = $data['payer'] ?? null;
+
+                    // Log::info('📝 Información del capture extraída', [
+                    //     'capture_id' => $capture['id'] ?? null,
+                    //     'amount' => $capture['amount']['value'] ?? null,
+                    // ]);
 
                     // Crear registro en la tabla pays
                     $pay = Pay::updateOrCreate(
@@ -397,21 +482,27 @@ class WebhookController extends Controller
                         ]
                     );
 
+                    // Log::info('✅ Registro de pago PayPal creado', ['pay_id' => $pay->id]);
+
                     $order->update([
                         'payment_status' => 'pagado',
                         'order_status' => 'procesando',
                     ]);
 
+                    // Log::info('✅ Orden actualizada a PAGADO', ['order_id' => $order->id]);
+
                     // Enviar correos de confirmación
+                    // Log::info('📧 Enviando correos de confirmación...');
                     $this->sendApprovedOrderMail($order->fresh('items'), $pay);
                 } else {
+                    Log::warning('⚠️ Capture NO completado', ['capture_status' => $captureStatus]);
                     $order->update([
                         'payment_status' => 'pendiente_pago',
                         'order_status' => 'pendiente',
                     ]);
                 }
             } else {
-                Log::error('Error al capturar pago de PayPal desde webhook', [
+                Log::error('❌ Error al capturar pago de PayPal desde webhook', [
                     'order_id' => $order->id,
                     'paypal_order_id' => $paypalOrderId,
                     'status' => $response->status(),
@@ -424,10 +515,11 @@ class WebhookController extends Controller
                 ]);
             }
         } catch (\Throwable $e) {
-            Log::error('Excepción al capturar pago de PayPal', [
+            Log::error('❌ Excepción al capturar pago de PayPal', [
                 'order_id' => $order->id,
                 'paypal_order_id' => $paypalOrderId,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
         }
     }
@@ -442,19 +534,24 @@ class WebhookController extends Controller
         $customId = $resource['custom_id'] ?? null;
         $paypalOrderId = $resource['supplementary_data']['related_ids']['order_id'] ?? null;
 
+        // Log::info('📋 Payment Captured event recibido', [
+        //     'capture_id' => $resource['id'] ?? null,
+        //     'paypal_order_id' => $paypalOrderId,
+        // ]);
+
         if (!$paypalOrderId) {
-            Log::warning('Webhook de PayPal sin ID de orden relacionado');
+            Log::error('❌ Webhook de PayPal sin ID de orden relacionado');
             return;
         }
 
         $order = Order::where('payment_id', $paypalOrderId)->first();
 
         if (!$order) {
-            Log::warning('Orden de PayPal no encontrada para capture', ['paypal_order_id' => $paypalOrderId]);
+            Log::error('❌ Orden de PayPal no encontrada para capture', ['paypal_order_id' => $paypalOrderId]);
             return;
         }
 
-        // Log::info('Pago de PayPal capturado', [
+        // Log::info('✅ Pago de PayPal capturado', [
         //     'order_id' => $order->id,
         //     'paypal_order_id' => $paypalOrderId,
         //     'capture_id' => $resource['id'] ?? null,
@@ -482,13 +579,21 @@ class WebhookController extends Controller
             ]
         );
 
+        // Log::info('✅ Registro de pago PayPal capturado creado/actualizado', [
+        //     'pay_id' => $pay->id,
+        //     'id_pago' => $pay->id_pago,
+        // ]);
+
         // Actualizar el estado de la orden a aprobado
         $order->update([
             'payment_status' => 'pagado',
             'order_status' => 'procesando',
         ]);
 
+        // Log::info('✅ Orden actualizada a PAGADO', ['order_id' => $order->id]);
+
         // Enviar correos de confirmación
+        // Log::info('📧 Enviando correos de confirmación...');
         $this->sendApprovedOrderMail($order->fresh('items'), $pay);
     }
 
@@ -499,19 +604,24 @@ class WebhookController extends Controller
     {
         $paypalOrderId = $resource['supplementary_data']['related_ids']['order_id'] ?? null;
 
+        // Log::info('⏳ Pago de PayPal pendiente de revisión', [
+        //     'paypal_order_id' => $paypalOrderId,
+        //     'reason' => $resource['status_details']['reason'] ?? 'PENDING_REVIEW',
+        // ]);
+
         if (!$paypalOrderId) {
-            Log::warning('Webhook de PayPal PENDING sin ID de orden relacionado');
+            // Log::error('❌ Webhook de PayPal PENDING sin ID de orden relacionado');
             return;
         }
 
         $order = Order::where('payment_id', $paypalOrderId)->first();
 
         if (!$order) {
-            Log::warning('Orden de PayPal no encontrada para pago PENDING', ['paypal_order_id' => $paypalOrderId]);
+            Log::error('❌ Orden de PayPal no encontrada para pago PENDING', ['paypal_order_id' => $paypalOrderId]);
             return;
         }
 
-        // Log::info('Pago de PayPal pendiente de revisión', [
+        // Log::info('✅ Pago de PayPal pendiente de revisión detectado', [
         //     'order_id' => $order->id,
         //     'paypal_order_id' => $paypalOrderId,
         //     'reason' => $resource['status_details']['reason'] ?? 'PENDING_REVIEW',
@@ -539,13 +649,15 @@ class WebhookController extends Controller
             ]
         );
 
+        // Log::info('✅ Registro de pago PENDING creado', ['pay_id' => $pay->id]);
+
         // Actualizar el estado de la orden a pendiente de revisión
         $order->update([
             'payment_status' => 'pendiente_revision',
             'order_status' => 'pendiente',
         ]);
 
-        // Log::info('Orden actualizada a estado PENDIENTE_REVISION', [
+        // Log::info('✅ Orden actualizada a estado PENDIENTE_REVISION', [
         //     'order_id' => $order->id,
         //     'payment_status' => 'pendiente_revision',
         // ]);
@@ -558,19 +670,24 @@ class WebhookController extends Controller
     {
         $paypalOrderId = $resource['supplementary_data']['related_ids']['order_id'] ?? null;
 
+        Log::error('❌ Pago de PayPal rechazado', [
+            'paypal_order_id' => $paypalOrderId,
+            'reason' => $resource['status_details']['reason'] ?? 'UNKNOWN',
+        ]);
+
         if (!$paypalOrderId) {
-            Log::warning('Webhook de PayPal sin ID de orden relacionado');
+            Log::error('❌ Webhook de PayPal rechazado sin ID de orden relacionado');
             return;
         }
 
         $order = Order::where('payment_id', $paypalOrderId)->first();
 
         if (!$order) {
-            Log::warning('Orden de PayPal no encontrada para rechazo', ['paypal_order_id' => $paypalOrderId]);
+            Log::error('❌ Orden de PayPal no encontrada para rechazo', ['paypal_order_id' => $paypalOrderId]);
             return;
         }
 
-        // Log::info('Pago de PayPal rechazado', [
+        // Log::info('🔄 Actualizando orden a estado RECHAZADO', [
         //     'order_id' => $order->id,
         //     'paypal_order_id' => $paypalOrderId,
         // ]);
@@ -579,5 +696,9 @@ class WebhookController extends Controller
             'payment_status' => 'rechazado',
             'order_status' => 'cancelado',
         ]);
+
+        // Log::info('✅ Orden marcada como RECHAZADA', [
+        //     'order_id' => $order->id,
+        // ]);
     }
 }

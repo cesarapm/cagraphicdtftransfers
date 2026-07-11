@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\DiscountCode;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -31,46 +32,29 @@ class DiscountCodeController extends Controller
         }
 
         // Obtener el cliente autenticado (puede ser null si no está registrado)
-        $customer = auth('sanctum')->user();
+        $user = auth('sanctum')->user();
 
-        // Si el cliente está registrado, validar restricciones por usuario
-        if ($customer) {
-            $validation = $code->isValidForCustomer($customer->id);
-            if (!$validation['is_valid']) {
-                return response()->json([
-                    'valid' => false,
-                    'errors' => $validation['errors'],
-                ], 422);
+        // Validación consistente: si hay cliente autenticado, validar restricciones por usuario
+        if ($user) {
+            // Buscar el Customer correspondiente al User autenticado
+            $customer = Customer::where('email', strtolower((string) $user->email))->first();
+            
+            if ($customer) {
+                $validation = $code->isValidForCustomer($customer->id);
+            } else {
+                // Si no hay Customer, validar solo restricciones globales
+                $validation = $code->isValidGlobally();
             }
         } else {
             // Si no está registrado, validar solo restricciones globales
-            if (!$code->is_active) {
-                return response()->json([
-                    'valid' => false,
-                    'errors' => ['Este código de descuento no está disponible.'],
-                ], 422);
-            }
+            $validation = $code->isValidGlobally();
+        }
 
-            if ($code->valid_from && $code->valid_from > now()) {
-                return response()->json([
-                    'valid' => false,
-                    'errors' => ['Este código aún no es válido.'],
-                ], 422);
-            }
-
-            if ($code->valid_until && $code->valid_until < now()) {
-                return response()->json([
-                    'valid' => false,
-                    'errors' => ['Este código ha expirado.'],
-                ], 422);
-            }
-
-            if ($code->max_uses && $code->used_count >= $code->max_uses) {
-                return response()->json([
-                    'valid' => false,
-                    'errors' => ['Este código ha alcanzado su límite de usos.'],
-                ], 422);
-            }
+        if (!$validation['is_valid']) {
+            return response()->json([
+                'valid' => false,
+                'errors' => $validation['errors'],
+            ], 422);
         }
 
         // Calcular el descuento
@@ -93,17 +77,27 @@ class DiscountCodeController extends Controller
     /**
      * Registrar el uso de un código de descuento (cuando se completa la orden)
      * POST /api/discount-codes/{codeId}/use
-     * Solo para clientes registrados
+     * Para clientes registrados (User/Sanctum)
      */
     public function markAsUsed(Request $request, DiscountCode $discountCode): JsonResponse
     {
-        $customer = auth('sanctum')->user();
+        $user = auth('sanctum')->user();
 
-        if (!$customer) {
+        if (!$user) {
             return response()->json([
                 'success' => false,
                 'message' => 'Debes estar registrado para usar códigos de descuento.',
             ], 401);
+        }
+
+        // Obtener el Customer correspondiente al User autenticado por email
+        $customer = Customer::where('email', strtolower((string) $user->email))->first();
+        
+        if (!$customer) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se encontró el perfil del cliente.',
+            ], 422);
         }
 
         // Verificar que no haya ya usado este código
@@ -115,7 +109,7 @@ class DiscountCodeController extends Controller
             ], 422);
         }
 
-        // Registrar el uso
+        // Registrar el uso del código
         $discountCode->markAsUsedByCustomer($customer->id);
 
         return response()->json([

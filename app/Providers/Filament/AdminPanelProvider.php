@@ -8,6 +8,8 @@ use App\Filament\Resources\ProductResource;
 use App\Filament\Resources\SheetSizeResource;
 use App\Filament\Resources\DtfSizeResource;
 use App\Filament\Resources\DtfGangResource;
+
+use App\Filament\Resources\GangSheetResource;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -46,6 +48,7 @@ class AdminPanelProvider extends PanelProvider
                 SheetSizeResource::class,
                 DtfSizeResource::class,
                 DtfGangResource::class,
+                GangSheetResource::class,
                 DiscountCodeResource::class,
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

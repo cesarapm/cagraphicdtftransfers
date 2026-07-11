@@ -88,7 +88,7 @@ const fetchSizes = async () => {
         const response = await axios.get('/api/sheet-sizes');
         sizes.value = response.data.filter(size => size.is_active);
 
-        console.log('Fetched sizes:', sizes.value);
+        // console.log('Fetched sizes:', sizes.value);
     } catch (error) {
         console.error('Error fetching sizes:', error);
     } finally {
@@ -165,7 +165,43 @@ const resetForm = () => {
     quantity.value = 1;
 };
 
-const removeFromCart = (id) => {
+const removeFromCart = async (id) => {
+    // Si es un gang sheet, eliminar primero de la BD
+    const item = cartItems.value.find(item => item.id === id);
+    
+    if (item && item.type === 'gang_sheet' && item.gangSheetid) {
+        try {
+            const token = localStorage.getItem('auth_token') || 
+                        localStorage.getItem('token') ||
+                        localStorage.getItem('sanctum_token') || '';
+
+            const headers = {
+                'Accept': 'application/json'
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`/api/gang-sheets/${item.gangSheetid}`, {
+                method: 'DELETE',
+                headers
+            });
+
+            if (!response.ok) {
+                console.warn('⚠️ Failed to delete gang sheet from DB:', response.statusText);
+                // Continue anyway - remove from cart
+            } else {
+                const result = await response.json();
+                // console.log('✅ Gang sheet deleted from DB:', result.message);
+            }
+        } catch (error) {
+            console.error('❌ Error deleting gang sheet:', error);
+            // Continue anyway - remove from cart
+        }
+    }
+
+    // Eliminar del carrito local
     cartItems.value = cartItems.value.filter(item => item.id !== id);
     
     // Remove from image map
@@ -178,8 +214,8 @@ const removeFromCart = (id) => {
         id: item.id,
         type: item.type,
         product: item.product,
-        product_id: item.product_id || (item.product?.id), // Para compatibilidad con gang_sheet
-        product_name: item.product_name || (item.product?.name), // Para compatibilidad
+        product_id: item.product_id || (item.product?.id),
+        product_name: item.product_name || (item.product?.name),
         quantity: item.quantity,
         imagePreview: item.imagePreview,
         unitPrice: Number(item.unitPrice) || 0,
@@ -526,7 +562,15 @@ const finalPrice = computed(() => {
                 <!-- Image -->
                 <td class="col-image">
                   <div class="cart-image">
-                    <img :src="item.imagePreview" :alt="item.product?.name || item.product_name" />
+                    <img 
+                      v-if="item.imagePreview"
+                      :src="item.imagePreview" 
+                      :alt="item.product?.name || item.product_name" 
+                    />
+                    <div v-else class="cart-image-placeholder">
+                      <span v-if="item.type === 'gang_sheet'" class="placeholder-icon">📋</span>
+                      <span v-else class="placeholder-icon">📦</span>
+                    </div>
                   </div>
                 </td>
 
@@ -624,6 +668,20 @@ const finalPrice = computed(() => {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+.cart-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border: 1px dashed #d1d5db;
+}
+
+.placeholder-icon {
+  font-size: 2.5rem;
+  opacity: 0.7;
 }
 
 .dtf-transfers-size-page {

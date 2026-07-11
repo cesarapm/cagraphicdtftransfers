@@ -178,7 +178,7 @@
         </v-row>
 
         <!-- CTA Button -->
-        <div class="stats-cta">
+        <!-- <div class="stats-cta">
           <v-btn
             size="x-large"
             class="order-now-btn"
@@ -186,7 +186,7 @@
           >
             ORDER NOW
           </v-btn>
-        </div>
+        </div> -->
       </v-container>
     </section>
 
@@ -251,6 +251,7 @@
                 class="whatever-btn"
                 size="large"
                 elevation="0"
+                :to="{ name: 'DtfTransfersGang' }"
               >
                 UPLOAD GANG SHEET
               </v-btn>
@@ -268,6 +269,7 @@
                 class="whatever-btn"
                 size="large"
                 elevation="0"
+                :to="{ name: 'GangSheetBuilder' }"
               >
                 BUILD A SHEET NOW
               </v-btn>
@@ -285,6 +287,7 @@
                 class="whatever-btn"
                 size="large"
                 elevation="0"
+                :to="{ name: 'Contact' }"
               >
                 REQUEST QUOTE
               </v-btn>

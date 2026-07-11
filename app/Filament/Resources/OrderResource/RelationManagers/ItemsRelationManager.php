@@ -9,6 +9,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Storage;
 
 class ItemsRelationManager extends RelationManager
 {
@@ -39,10 +40,23 @@ class ItemsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('product_name')
             ->columns([
-                Tables\Columns\TextColumn::make('product_name'),
-                Tables\Columns\TextColumn::make('quantity'),
-
-                Tables\Columns\TextColumn::make('total')->money('MXN', true),
+                Tables\Columns\ImageColumn::make('image')
+                    ->label('🖼️ Image')
+                    ->square()
+                    ->width(100)
+                    ->height(100),
+                Tables\Columns\TextColumn::make('product_name')
+                    ->label('Product Name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('quantity')
+                    ->label('Quantity')
+                    ->numeric(),
+                Tables\Columns\TextColumn::make('unit_price')
+                    ->label('Unit Price')
+                    ->money('USD', true),
+                Tables\Columns\TextColumn::make('total')
+                    ->label('Total')
+                    ->money('USD', true),
             ])
             ->filters([
                 //
@@ -51,6 +65,22 @@ class ItemsRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make(),
             ])
             ->actions([
+                Tables\Actions\Action::make('downloadImage')
+                    ->label('📥 Download Item Image')
+                    ->icon('heroicon-m-arrow-down-tray')
+                    ->color('info')
+                    ->visible(fn ($record) => $record->image && Storage::disk('public')->exists($record->image))
+                    ->action(function ($record) {
+                        return Storage::disk('public')->download($record->image);
+                    }),
+                Tables\Actions\Action::make('downloadGangSheet')
+                    ->label('📋 Download Gang Sheet')
+                    ->icon('heroicon-m-document-arrow-down')
+                    ->color('success')
+                    ->visible(fn ($record) => $record->gang_sheet_id)
+                    ->url(fn ($record) => '/api/gang-sheets/' . $record->gang_sheet_id . '/download')
+                    ->openUrlInNewTab()
+                    ->tooltip('Descargar el PNG compilado del gang sheet'),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

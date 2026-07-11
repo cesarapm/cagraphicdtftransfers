@@ -315,26 +315,6 @@ class OrderResource extends Resource
                         'order' => $record->load('pays'),
                     ])),
 
-                Tables\Actions\Action::make('downloadGangSheet')
-                    ->label('Descargar Gang Sheet')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('success')
-                    ->visible(fn (Order $record): bool => 
-                        $record->items()
-                            ->whereNotNull('gang_sheet_id')
-                            ->exists()
-                    )
-                    ->url(fn (Order $record): string => 
-                        '/api/gang-sheets/' . 
-                        $record->items()
-                            ->whereNotNull('gang_sheet_id')
-                            ->first()
-                            ?->gang_sheet_id . 
-                        '/download'
-                    )
-                    ->openUrlInNewTab()
-                    ->tooltip('Descargar la imagen PNG compilada del gang sheet'),
-
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

@@ -66,10 +66,10 @@ class DtfSizeResource extends Resource
                             ->required()
                             ->step(0.01)
                             ->prefix('$'),
-                        Forms\Components\TextInput::make('sort_order')
-                            ->label('Display Order')
-                            ->numeric()
-                            ->default(0),
+                        // Forms\Components\TextInput::make('sort_order')
+                        //     ->label('Display Order')
+                        //     ->numeric()
+                        //     ->default(0),
                         Forms\Components\Toggle::make('is_active')
                             ->label('Active')
                             ->default(true),
@@ -90,6 +90,7 @@ class DtfSizeResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+           ->reorderable('sort_order')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Name')
