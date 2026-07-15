@@ -102,11 +102,27 @@ class GangSheetController extends Controller
         try {
             $gangSheet = GangSheet::findOrFail($id);
             
-            // Verificar que existe el archivo
-            if (!$gangSheet->final_path || !Storage::disk('local')->exists($gangSheet->final_path)) {
-                Log::warning('Gang sheet file not found', [
+            // Verificar que existe la ruta del archivo
+            if (!$gangSheet->final_path) {
+                Log::warning('Gang sheet file path is empty', [
                     'id' => $id,
-                    'path' => $gangSheet->final_path,
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gang sheet file path not found',
+                ], 404);
+            }
+
+            // Obtener la ruta completa del archivo
+            $filePath = Storage::disk('local')->path($gangSheet->final_path);
+            
+            // Verificar que el archivo existe en el sistema de archivos
+            if (!file_exists($filePath)) {
+                Log::warning('Gang sheet file not found on disk', [
+                    'id' => $id,
+                    'full_path' => $filePath,
+                    'relative_path' => $gangSheet->final_path,
                 ]);
                 
                 return response()->json([
@@ -115,28 +131,43 @@ class GangSheetController extends Controller
                 ], 404);
             }
 
-            // Obtener el archivo
-            $filePath = Storage::disk('local')->path($gangSheet->final_path);
             $fileName = "gang-sheet-{$gangSheet->id}-{$gangSheet->width}x{$gangSheet->height}in-{$gangSheet->dpi}dpi.png";
 
-            // Log::info('Downloading gang sheet', [
-            //     'id' => $id,
-            //     'file_path' => $filePath,
-            //     'file_name' => $fileName,
-            // ]);
+            // Leer el archivo directamente para mejor compatibilidad con Hostinger
+            $fileContent = file_get_contents($filePath);
+            
+            if ($fileContent === false) {
+                throw new \Exception('Could not read file content');
+            }
 
-            // Descargar archivo
-            return response()->download($filePath, $fileName, [
-                'Content-Type' => 'image/png',
-                'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-            ]);
+            // Retornar respuesta con headers explícitos (compatible con Hostinger)
+            return response($fileContent, 200)
+                ->header('Content-Type', 'image/png')
+                ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"')
+                ->header('Content-Length', strlen($fileContent))
+                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
 
-        } catch (\Exception $e) {
-            Log::error('Error downloading gang sheet', ['id' => $id, 'error' => $e->getMessage()]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('Gang sheet not found', ['id' => $id]);
             
             return response()->json([
                 'success' => false,
-                'message' => 'Error downloading gang sheet: ' . $e->getMessage(),
+                'message' => 'Gang sheet not found',
+            ], 404);
+            
+        } catch (\Exception $e) {
+            Log::error('Error downloading gang sheet', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error downloading gang sheet',
             ], 500);
         }
     }
