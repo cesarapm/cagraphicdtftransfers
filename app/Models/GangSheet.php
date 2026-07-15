@@ -65,13 +65,16 @@ class GangSheet extends Model
     protected static function booted(): void
     {
         static::deleting(function ($gangSheet) {
-            // Eliminar archivo PNG final
-            if ($gangSheet->final_path && Storage::disk('local')->exists($gangSheet->final_path)) {
-                Storage::disk('local')->delete($gangSheet->final_path);
-                // Log::info('Gang sheet PNG eliminado', [
-                //     'gang_sheet_id' => $gangSheet->id,
-                //     'path' => $gangSheet->final_path,
-                // ]);
+            // Eliminar archivo PNG final desde public/downloads/
+            if ($gangSheet->final_path) {
+                $filePath = public_path($gangSheet->final_path);
+                if (file_exists($filePath)) {
+                    @unlink($filePath);
+                    \Log::info('Gang sheet PNG eliminado', [
+                        'gang_sheet_id' => $gangSheet->id,
+                        'path' => $filePath,
+                    ]);
+                }
             }
 
             // Eliminar imagen de preview si existe

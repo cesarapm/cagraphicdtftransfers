@@ -104,20 +104,17 @@ class GangSheetController extends Controller
             
             // Verificar que existe la ruta del archivo
             if (!$gangSheet->final_path) {
-                Log::warning('Gang sheet file path is empty', [
-                    'id' => $id,
-                ]);
-                
+                Log::warning('Gang sheet file path is empty', ['id' => $id]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Gang sheet file path not found',
                 ], 404);
             }
 
-            // Obtener la ruta completa del archivo
-            $filePath = Storage::disk('local')->path($gangSheet->final_path);
+            // Obtener la ruta completa desde public/downloads/
+            $filePath = public_path($gangSheet->final_path);
             
-            // Verificar que el archivo existe en el sistema de archivos
+            // Verificar que el archivo existe
             if (!file_exists($filePath)) {
                 Log::warning('Gang sheet file not found on disk', [
                     'id' => $id,
@@ -131,10 +128,15 @@ class GangSheetController extends Controller
                 ], 404);
             }
 
+            Log::info('Downloading gang sheet', [
+                'id' => $id,
+                'file_path' => $filePath,
+                'file_size' => filesize($filePath),
+            ]);
+
             $fileName = "gang-sheet-{$gangSheet->id}-{$gangSheet->width}x{$gangSheet->height}in-{$gangSheet->dpi}dpi.png";
 
-            // Usar response()->download() que es el método estándar y más eficiente
-            // No intenta cargar el archivo completo en memoria
+            // Usar response()->download() que streamea el archivo
             return response()->download($filePath, $fileName, [
                 'Content-Type' => 'image/png',
             ]);
@@ -207,12 +209,23 @@ class GangSheetController extends Controller
                 date('YmdHis')
             );
 
-            // Log::info('💾 Storing file', [
-            //     'directory' => 'gang-sheets',
-            //     'file_name' => $fileNameFormatted,
-            // ]);
+            // ⚠️ Obtener tamaño ANTES de mover el archivo (después será eliminado el temp)
+            $fileSize = $file->getSize();
+
+            // Guardar directamente en public/downloads/ (accesible desde web sin symlinks)
+            $downloadDir = public_path('downloads');
+            if (!is_dir($downloadDir)) {
+                mkdir($downloadDir, 0755, true);
+            }
             
-            $path = $file->storeAs('gang-sheets', $fileNameFormatted, 'local');
+            $file->move($downloadDir, $fileNameFormatted);
+            $path = 'downloads/' . $fileNameFormatted;
+            
+            \Log::info('Gang sheet PNG saved to public', [
+                'path' => $path,
+                'full_path' => $downloadDir . '/' . $fileNameFormatted,
+                'file_size' => $fileSize,
+            ]);
             
             // Log::info('✅ Gang sheet PNG saved', [
             //     'path' => $path,
@@ -224,7 +237,7 @@ class GangSheetController extends Controller
                 $validated['height'],
                 $validated['unit'],
                 $validated['dpi'],
-                $file->getSize()
+                $fileSize
             );
 
             // Log::info('💰 Price calculated', [
@@ -436,9 +449,13 @@ class GangSheetController extends Controller
                 ], 403);
             }
 
-            // Eliminar archivo si existe
-            if ($gangSheet->final_path && Storage::disk('local')->exists($gangSheet->final_path)) {
-                Storage::disk('local')->delete($gangSheet->final_path);
+            // Eliminar archivo si existe en public/downloads/
+            if ($gangSheet->final_path) {
+                $filePath = public_path($gangSheet->final_path);
+                if (file_exists($filePath)) {
+                    @unlink($filePath);
+                    \Log::info('Gang sheet file deleted', ['path' => $filePath]);
+                }
             }
 
             // Eliminar registro

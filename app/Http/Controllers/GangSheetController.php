@@ -338,9 +338,7 @@ class GangSheetController extends Controller
      */
     public function testGenerateImage($id)
     {
-        // \Log::info("=== TEST GENERATE IMAGE START (ID: {$id}) ===");
         $gangSheet = GangSheet::findOrFail($id);
-        // \Log::info("Found gang sheet, images_data: " . json_encode($gangSheet->images_data));
 
         try {
             $gangSheet->update(['status' => 'processing']);
@@ -352,17 +350,20 @@ class GangSheetController extends Controller
                 'status' => 'completed',
             ]);
 
-            // Retornar información del archivo generado
-            $filePath = Storage::disk('public')->path($finalPath);
+            // Retornar información del archivo generado desde public/downloads/
+            $filePath = public_path($finalPath);
             $fileSize = filesize($filePath);
 
-            // \Log::info("=== TEST GENERATE IMAGE SUCCESS ===");
-            // \Log::info("Final path: {$finalPath}, Size: {$fileSize} bytes");
+            \Log::info("Test generate image success", [
+                'id' => $id,
+                'final_path' => $finalPath,
+                'file_size_mb' => round($fileSize / 1024 / 1024, 2),
+            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Image generated successfully',
-                'download_url' => Storage::url($finalPath),
+                'download_url' => url($finalPath),
                 'file_path' => $finalPath,
                 'file_size_mb' => round($fileSize / 1024 / 1024, 2),
                 'download_link' => "/api/gang-sheets/{$id}/download",
@@ -370,8 +371,10 @@ class GangSheetController extends Controller
 
         } catch (\Exception $e) {
             $gangSheet->update(['status' => 'failed']);
-            \Log::error("=== TEST GENERATE IMAGE FAILED ===");
-            \Log::error("Error: " . $e->getMessage());
+            \Log::error("Test generate image failed", [
+                'id' => $id,
+                'error' => $e->getMessage(),
+            ]);
             
             return response()->json([
                 'success' => false,
@@ -386,23 +389,25 @@ class GangSheetController extends Controller
      */
     public function downloadFinal($id)
     {
-        // \Log::info("=== DOWNLOAD FINAL START (ID: {$id}) ===");
-        
         $gangSheet = GangSheet::findOrFail($id);
-        // \Log::info("Gang sheet found. final_path: " . ($gangSheet->final_path ?? 'NULL'));
 
-        if (!$gangSheet->final_path || !Storage::disk('public')->exists($gangSheet->final_path)) {
-            \Log::error("Final path does not exist: " . ($gangSheet->final_path ?? 'NULL'));
+        if (!$gangSheet->final_path) {
+            return response()->json(['error' => 'Image not generated yet'], 404);
+        }
+
+        // Ruta directa en public/downloads/
+        $filePath = public_path($gangSheet->final_path);
+        
+        if (!file_exists($filePath)) {
+            \Log::error("Final path does not exist: {$filePath}");
             return response()->json(['error' => 'Image not found'], 404);
         }
 
-        $filePath = Storage::disk('public')->path($gangSheet->final_path);
-        $fileSize = filesize($filePath);
-        
-        // \Log::info("File path: {$filePath}");
-        // \Log::info("File size: {$fileSize} bytes");
-        // \Log::info("File exists: " . (file_exists($filePath) ? 'YES' : 'NO'));
-        // \Log::info("File is readable: " . (is_readable($filePath) ? 'YES' : 'NO'));
+        \Log::info("Downloading gang sheet", [
+            'id' => $id,
+            'file_path' => $filePath,
+            'file_size' => filesize($filePath),
+        ]);
         
         return response()->download(
             $filePath,
@@ -533,24 +538,20 @@ class GangSheetController extends Controller
             }
         }
         
-        // Save as PNG
+        // Save as PNG - Directamente en public/downloads (accesible desde web sin symlinks)
         $filename = 'gang-sheet-' . $gangSheet->id . '-' . time() . '.png';
-        $path = Storage::disk('public')->path('exports/' . $filename);
-        
-        // Create directory if not exists
-        if (!is_dir(dirname($path))) {
-            mkdir(dirname($path), 0755, true);
-        }
+        $path = public_path('downloads/' . $filename);
         
         $pngResult = imagepng($image, $path, 9); // 9 = maximum compression
         imagedestroy($image);
         
-        // \Log::info("=== GENERATE WITH GD END ===");
-        // \Log::info("PNG save result: " . ($pngResult ? 'SUCCESS' : 'FAILED'));
-        // \Log::info("PNG file path: {$path}");
-        // \Log::info("PNG file size: " . filesize($path) . " bytes");
+        \Log::info("=== GENERATE WITH GD END ===");
+        \Log::info("PNG save result: " . ($pngResult ? 'SUCCESS' : 'FAILED'));
+        \Log::info("PNG file path: {$path}");
+        \Log::info("PNG file size: " . filesize($path) . " bytes");
+        \Log::info("Direct URL: /downloads/{$filename}");
         
-        return 'exports/' . $filename;
+        return 'downloads/' . $filename;
     }
 
     /**
