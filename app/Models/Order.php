@@ -24,6 +24,7 @@ class Order extends Model
         'shipping_zip_code',
         'subtotal',
         'shipping_cost',
+        'shipping_detalle',
         'tax',
         'total',
         'discount_code_id',
@@ -45,7 +46,7 @@ class Order extends Model
         'tax' => 'decimal:2',
         'total' => 'decimal:2',
         'discount_amount' => 'decimal:2',
-         'envio' => 'array',
+        'envio' => 'array',
     ];
 
     protected static function boot()

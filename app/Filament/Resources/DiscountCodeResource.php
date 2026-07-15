@@ -55,7 +55,7 @@ class DiscountCodeResource extends Resource
                             ->label('Tipo de Descuento')
                             ->options([
                                 'percentage' => 'Porcentaje (%)',
-                                'fixed' => 'Cantidad Fija ($)',
+                                // 'fixed' => 'Cantidad Fija ($)',
                             ])
                             ->required()
                             ->live(),

@@ -44,7 +44,8 @@ class ItemsRelationManager extends RelationManager
                     ->label('🖼️ Image')
                     ->square()
                     ->width(100)
-                    ->height(100),
+                    ->height(100)
+                    ->defaultImageUrl(asset('images/no-imagen.png')),
                 Tables\Columns\TextColumn::make('product_name')
                     ->label('Product Name')
                     ->searchable(),
@@ -57,6 +58,18 @@ class ItemsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('total')
                     ->label('Total')
                     ->money('USD', true),
+
+                Tables\Columns\TextColumn::make('item_type')
+                    ->label('Type')
+                    ->sortable()
+                    ->formatStateUsing(function ($state) {
+                        return match ($state) {
+                            'size' => 'DTF by Size',
+                            'gang' => 'DTF by Gang',
+                            'gang_sheet' => 'Gang Sheet',
+                            default => $state,
+                        };
+                    })
             ])
             ->filters([
                 //
@@ -69,7 +82,7 @@ class ItemsRelationManager extends RelationManager
                     ->label('📥 Download Item Image')
                     ->icon('heroicon-m-arrow-down-tray')
                     ->color('info')
-                    ->visible(fn ($record) => $record->image && Storage::disk('public')->exists($record->image))
+                    ->visible(fn($record) => $record->image && Storage::disk('public')->exists($record->image))
                     ->action(function ($record) {
                         return Storage::disk('public')->download($record->image);
                     }),
@@ -77,8 +90,8 @@ class ItemsRelationManager extends RelationManager
                     ->label('📋 Download Gang Sheet')
                     ->icon('heroicon-m-document-arrow-down')
                     ->color('success')
-                    ->visible(fn ($record) => $record->gang_sheet_id)
-                    ->url(fn ($record) => '/api/gang-sheets/' . $record->gang_sheet_id . '/download')
+                    ->visible(fn($record) => $record->gang_sheet_id)
+                    ->url(fn($record) => '/api/gang-sheets/' . $record->gang_sheet_id . '/download')
                     ->openUrlInNewTab()
                     ->tooltip('Descargar el PNG compilado del gang sheet'),
                 Tables\Actions\EditAction::make(),

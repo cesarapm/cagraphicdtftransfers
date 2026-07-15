@@ -147,15 +147,11 @@
               <span>Subtotal:</span>
               <span>${{ Number(totalAmount).toFixed(2) }}</span>
             </div>
-            <div class="d-flex justify-space-between mb-2">
-              <span>Shipping:</span>
-              <span>{{ Number(totalAmount) > 50 ? 'Free' : '$10.00' }}</span>
-            </div>
             <v-divider class="my-3"></v-divider>
             <div class="d-flex justify-space-between">
               <span class="font-weight-bold">Total:</span>
               <span class="font-weight-bold text-h6">
-                ${{ (Number(totalAmount) + (Number(totalAmount) > 50 ? 0 : 10)).toFixed(2) }}
+                ${{ Number(totalAmount).toFixed(2) }}
               </span>
             </div>
           </v-card-text>
@@ -332,6 +328,34 @@
             </v-radio-group>
           </div>
 
+          <!-- Shipping Options Section -->
+          <div class="mb-6">
+            <h3 class="text-h6 mb-4">📦 Shipping Method</h3>
+            
+            <v-radio-group 
+              v-model="checkoutForm.selectedShipping"
+              class="shipping-options-group"
+            >
+              <div 
+                v-for="option in shippingOptions" 
+                :key="option.id"
+                class="shipping-option mb-3"
+                :class="{ 'shipping-option--active': checkoutForm.selectedShipping === option.id }"
+              >
+                <v-radio 
+                  :value="option.id"
+                >
+                  <template #label>
+                    <div class="ml-2">
+                      <div class="font-weight-bold">{{ option.name }} - ${{ option.price.toFixed(2) }}</div>
+                      <div class="text-caption text-grey">{{ option.description }}</div>
+                    </div>
+                  </template>
+                </v-radio>
+              </div>
+            </v-radio-group>
+          </div>
+
           <!-- Discount Code Section -->
           <div class="mb-6">
             <h3 class="text-h6 mb-4">🎟️ Discount Code</h3>
@@ -404,13 +428,13 @@
             </div>
             <div class="d-flex justify-space-between mb-2">
               <span>Shipping:</span>
-              <span>${{ (Number(totalWithDiscount) > 50 ? 0 : 10).toFixed(2) }}</span>
+              <span>${{ shippingCost.toFixed(2) }}</span>
             </div>
             <v-divider class="my-2"></v-divider>
             <div class="d-flex justify-space-between font-weight-bold text-h6">
               <span>Total:</span>
               <span class="text-success">
-                ${{ (parseFloat(totalWithDiscount) + (Number(totalWithDiscount) > 50 ? 0 : 10)).toFixed(2) }}
+                ${{ (parseFloat(totalWithDiscount) + shippingCost).toFixed(2) }}
               </span>
             </div>
           </div>
@@ -494,6 +518,34 @@ const storageKey = 'cart_user_profile';
 const availablePaymentMethods = ref([]);
 const loadingPaymentMethods = ref(false);
 
+// Shipping options
+const shippingOptions = ref([
+  {
+    id: 'ups_ground',
+    name: 'UPS Ground',
+    description: '4 business days',
+    price: 10
+  },
+  {
+    id: 'ups_3day',
+    name: 'UPS 3 Day Select',
+    description: '3 business days',
+    price: 14
+  },
+  {
+    id: 'ups_2day',
+    name: 'UPS 2nd Day Air',
+    description: '2 business days',
+    price: 16
+  },
+  {
+    id: 'ups_nextday',
+    name: 'UPS Next Day Air Saver',
+    description: '1 business day',
+    price: 49
+  }
+]);
+
 // Form data
 const checkoutForm = ref({
   firstName: '',
@@ -506,6 +558,7 @@ const checkoutForm = ref({
   zipCode: '',
   notes: '',
   paymentMethod: 'mercado_pago',
+  selectedShipping: 'ups_ground',
   saveProfile: false
 });
 
@@ -595,7 +648,14 @@ const totalAmount = computed(() => {
   return regularTotal + dtfTotal;
 });
 
-const shippingCost = computed(() => Number(totalAmount.value) > 50 ? 0 : 10);
+const shippingCost = computed(() => {
+  const option = shippingOptions.value.find(o => o.id === checkoutForm.value.selectedShipping);
+  return option ? option.price : 10;
+});
+
+const selectedShippingOption = computed(() => {
+  return shippingOptions.value.find(o => o.id === checkoutForm.value.selectedShipping) || shippingOptions.value[0];
+});
 
 const totalWithDiscount = computed(() => {
   const base = parseFloat(totalAmount.value) || 0;
@@ -932,6 +992,7 @@ const buildOrderPayload = () => {
     discount_code_id: appliedDiscount.value?.code_id || null,
     discount_amount: appliedDiscount.value?.discount_amount || 0,
     shipping_cost: shippingCost.value,
+    shipping_detalle: `${selectedShippingOption.value.name} - ${selectedShippingOption.value.description}`,
     total: parseFloat(totalWithDiscount.value) + shippingCost.value,
     notes: checkoutForm.value.notes,
     save_customer_profile: checkoutForm.value.saveProfile,
@@ -1143,5 +1204,18 @@ const closeSuccessDialog = () => {
 .payment-option__description {
   color: #666;
   font-size: 0.85rem;
+}
+
+.shipping-option {
+  padding: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.shipping-option--active {
+  border-color: #1976d2;
+  background: rgba(25, 118, 210, 0.08);
 }
 </style>

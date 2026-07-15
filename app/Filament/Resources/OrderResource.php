@@ -94,6 +94,12 @@ class OrderResource extends Resource
                             ->prefix('$')
                             ->step(0.01),
 
+                        Forms\Components\TextInput::make('shipping_detalle')
+                            ->label('Detalle de Envío')
+                            ->nullable()
+                            ->maxLength(255)
+                            ->helperText('Ej: "Envío estándar, 3-5 días hábiles"'),    
+
                         Forms\Components\TextInput::make('tax')
                             ->label('Impuestos')
                             ->required()
@@ -108,6 +114,19 @@ class OrderResource extends Resource
                             ->numeric()
                             ->prefix('$')
                             ->step(0.01),
+
+                        Forms\Components\TextInput::make('discount_code')
+                            ->label('Código de Descuento')
+                            ->nullable()
+                            ->maxLength(50)
+                            ->helperText('Ej: "SUMMER2024"'),
+                            Forms\Components\TextInput::make('discount_amount')
+                            ->label('Monto de Descuento')
+                            ->nullable()
+                            ->numeric()
+                            ->prefix('$')
+                            ->step(0.01)
+                            ->helperText('Monto descontado del total'),
 
            
 
@@ -177,7 +196,7 @@ class OrderResource extends Resource
 
                 Tables\Columns\TextColumn::make('total')
                     ->label('Total')
-                    ->money('MXN', true)
+                    ->money('USD', true)
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('metodo_pago')
