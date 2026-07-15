@@ -43,6 +43,7 @@ Route::post('/checkout', [CartController::class, 'checkout']);
 // Gang Sheets - Public endpoints
 Route::post('/gang-sheets/save', [GangSheetController::class, 'save']);
 Route::get('/gang-sheets/{id}', [GangSheetController::class, 'show']);
+Route::get('/gang-sheets/{id}/debug', [GangSheetController::class, 'debug']); // Debug endpoint
 Route::get('/gang-sheets/{id}/download', [GangSheetController::class, 'download']); // Descargar PNG
 
 // Métodos de pago
