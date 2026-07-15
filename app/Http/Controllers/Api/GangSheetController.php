@@ -133,21 +133,11 @@ class GangSheetController extends Controller
 
             $fileName = "gang-sheet-{$gangSheet->id}-{$gangSheet->width}x{$gangSheet->height}in-{$gangSheet->dpi}dpi.png";
 
-            // Leer el archivo directamente para mejor compatibilidad con Hostinger
-            $fileContent = file_get_contents($filePath);
-            
-            if ($fileContent === false) {
-                throw new \Exception('Could not read file content');
-            }
-
-            // Retornar respuesta con headers explícitos (compatible con Hostinger)
-            return response($fileContent, 200)
-                ->header('Content-Type', 'image/png')
-                ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"')
-                ->header('Content-Length', strlen($fileContent))
-                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
-                ->header('Pragma', 'no-cache')
-                ->header('Expires', '0');
+            // Usar response()->download() que es el método estándar y más eficiente
+            // No intenta cargar el archivo completo en memoria
+            return response()->download($filePath, $fileName, [
+                'Content-Type' => 'image/png',
+            ]);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::error('Gang sheet not found', ['id' => $id]);
