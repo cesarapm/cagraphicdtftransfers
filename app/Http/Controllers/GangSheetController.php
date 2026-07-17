@@ -354,11 +354,11 @@ class GangSheetController extends Controller
             $filePath = public_path($finalPath);
             $fileSize = filesize($filePath);
 
-            \Log::info("Test generate image success", [
-                'id' => $id,
-                'final_path' => $finalPath,
-                'file_size_mb' => round($fileSize / 1024 / 1024, 2),
-            ]);
+            // \Log::info("Test generate image success", [
+            //     'id' => $id,
+            //     'final_path' => $finalPath,
+            //     'file_size_mb' => round($fileSize / 1024 / 1024, 2),
+            // ]);
 
             return response()->json([
                 'success' => true,
@@ -403,11 +403,11 @@ class GangSheetController extends Controller
             return response()->json(['error' => 'Image not found'], 404);
         }
 
-        \Log::info("Downloading gang sheet", [
-            'id' => $id,
-            'file_path' => $filePath,
-            'file_size' => filesize($filePath),
-        ]);
+        // \Log::info("Downloading gang sheet", [
+        //     'id' => $id,
+        //     'file_path' => $filePath,
+        //     'file_size' => filesize($filePath),
+        // ]);
         
         return response()->download(
             $filePath,
@@ -545,11 +545,11 @@ class GangSheetController extends Controller
         $pngResult = imagepng($image, $path, 9); // 9 = maximum compression
         imagedestroy($image);
         
-        \Log::info("=== GENERATE WITH GD END ===");
-        \Log::info("PNG save result: " . ($pngResult ? 'SUCCESS' : 'FAILED'));
-        \Log::info("PNG file path: {$path}");
-        \Log::info("PNG file size: " . filesize($path) . " bytes");
-        \Log::info("Direct URL: /downloads/{$filename}");
+        // \Log::info("=== GENERATE WITH GD END ===");
+        // \Log::info("PNG save result: " . ($pngResult ? 'SUCCESS' : 'FAILED'));
+        // \Log::info("PNG file path: {$path}");
+        // \Log::info("PNG file size: " . filesize($path) . " bytes");
+        // \Log::info("Direct URL: /downloads/{$filename}");
         
         return 'downloads/' . $filename;
     }

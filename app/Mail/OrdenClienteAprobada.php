@@ -30,7 +30,7 @@ class OrdenClienteAprobada extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Tu pedido ' . $this->orden->order_number . ' fue confirmado y ya puedes seguirlo',
+            subject: 'Your order ' . $this->orden->order_number . ' has been confirmed and you can now track it',
         );
     }
 

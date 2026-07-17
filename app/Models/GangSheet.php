@@ -70,10 +70,10 @@ class GangSheet extends Model
                 $filePath = public_path($gangSheet->final_path);
                 if (file_exists($filePath)) {
                     @unlink($filePath);
-                    \Log::info('Gang sheet PNG eliminado', [
-                        'gang_sheet_id' => $gangSheet->id,
-                        'path' => $filePath,
-                    ]);
+                    // \Log::info('Gang sheet PNG eliminado', [
+                    //     'gang_sheet_id' => $gangSheet->id,
+                    //     'path' => $filePath,
+                    // ]);
                 }
             }
 

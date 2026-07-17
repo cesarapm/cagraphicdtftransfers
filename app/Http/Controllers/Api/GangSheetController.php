@@ -168,11 +168,11 @@ class GangSheetController extends Controller
             // Retornar URL directa en lugar de intentar streamear a través de PHP
             $downloadUrl = url('/' . $gangSheet->final_path);
             
-            Log::info('Gang sheet download initiated', [
-                'id' => $id,
-                'download_url' => $downloadUrl,
-                'file_size' => filesize($filePath),
-            ]);
+            // Log::info('Gang sheet download initiated', [
+            //     'id' => $id,
+            //     'download_url' => $downloadUrl,
+            //     'file_size' => filesize($filePath),
+            // ]);
 
             // Opción 1: Retornar JSON con URL para descarga directa
             return response()->json([
@@ -264,11 +264,11 @@ class GangSheetController extends Controller
             $file->move($downloadDir, $fileNameFormatted);
             $path = 'downloads/' . $fileNameFormatted;
             
-            \Log::info('Gang sheet PNG saved to public', [
-                'path' => $path,
-                'full_path' => $downloadDir . '/' . $fileNameFormatted,
-                'file_size' => $fileSize,
-            ]);
+            // \Log::info('Gang sheet PNG saved to public', [
+            //     'path' => $path,
+            //     'full_path' => $downloadDir . '/' . $fileNameFormatted,
+            //     'file_size' => $fileSize,
+            // ]);
             
             // Log::info('✅ Gang sheet PNG saved', [
             //     'path' => $path,
@@ -497,7 +497,7 @@ class GangSheetController extends Controller
                 $filePath = public_path($gangSheet->final_path);
                 if (file_exists($filePath)) {
                     @unlink($filePath);
-                    \Log::info('Gang sheet file deleted', ['path' => $filePath]);
+                    // \Log::info('Gang sheet file deleted', ['path' => $filePath]);
                 }
             }
 

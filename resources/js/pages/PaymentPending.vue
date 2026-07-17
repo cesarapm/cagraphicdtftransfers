@@ -35,7 +35,7 @@
 
 <style scoped>
 .payment-state {
-  margin-top: 70px;
+
   min-height: calc(100vh - 70px);
   background:
     radial-gradient(circle at top right, rgba(216, 196, 173, 0.44), transparent 34%),
@@ -121,8 +121,8 @@
 
 @media (max-width: 600px) {
   .payment-state {
-    margin-top: 84px;
-    min-height: calc(100vh - 84px);
+    margin-top: 0px;
+    min-height: calc(100vh - 70px);
   }
 
   .payment-state__shell {

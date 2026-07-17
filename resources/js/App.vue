@@ -130,6 +130,7 @@
         <v-list-item :to="{ name: 'GangSheetBuilder' }" prepend-icon="mdi-grid" title="Build Gang Sheet"></v-list-item>
 
         <v-list-item :to="{ name: 'Contact' }" prepend-icon="mdi-email" title="Contact"></v-list-item>
+        <v-list-item :to="{ name: 'Cart' }" prepend-icon="mdi-cart" title="Cart"></v-list-item>
 
         <v-divider class="my-2"></v-divider>
 

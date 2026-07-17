@@ -34,7 +34,7 @@ class OrdenAprobada extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Nueva orden aprobada ' . $this->orden->order_number,
+            subject: 'New order approved ' . $this->orden->order_number,
         );
     }
 

@@ -163,7 +163,7 @@ onMounted(async () => {
 
 <style scoped>
 .payment-state {
-  margin-top: 70px;
+  
   min-height: calc(100vh - 70px);
   background:
     radial-gradient(circle at top left, rgba(196, 148, 133, 0.22), transparent 32%),
@@ -250,8 +250,8 @@ onMounted(async () => {
 
 @media (max-width: 600px) {
   .payment-state {
-    margin-top: 84px;
-    min-height: calc(100vh - 84px);
+    margin-top: 0px;
+    min-height: calc(100vh - 70px);
   }
 
   .payment-state__shell {
